@@ -1,67 +1,83 @@
-/*
- *  Assert.h: Utility for specifying data invariants (Assertions)
- *
- *  Written by:
- *   Steven G. Parker
- *   Department of Computer Science
- *   University of Utah
- *   Feb. 1994
- *
- *  Copyright (C) 1994 SCI Group
- *  Hacked by DaveMc, 1998.
- */
+//////////////////////////////////////////////////////////////////////
+// Assert.h - Utility for specifying data invariants (Assertions)
+//
+// Changes Copyright David K. McAllister, Dec. 1998.
+// Originally written by Steven G. Parker, Feb. 1994.
 
-#ifndef _assert_h
-#define _assert_h
+#ifndef _dmc_assert_h
+#define _dmc_assert_h
 
+#include "toolconfig.h"
+
+#ifdef DMC_MACHINE_sgi
 #include <iostream>
-using namespace std;
+#endif
 
-namespace Remote {
-namespace Tools {
+#ifdef DMC_MACHINE_win
+#include <iostream>
+#endif
+
+#ifdef DMC_MACHINE_hp
+#include <iostream.h>
+#endif
+
+#ifdef NDEBUG
+#undef NDEBUG
+#include <assert.h>
+#define NDEBUG
+#else
+#include <assert.h>
+#endif
+#include <stdlib.h>
 
 // This assertion always causes a fatal error. It doesn't depend on debug mode.
-#define ASSERTERR(condition,msg) {if(!(condition)){cerr << "Fatal Error: (" << (#condition) << ") at " << __FILE__ <<":" << __LINE__ << " " << (#msg) << endl; exit(1);}}
+#ifndef ASSERTERR
+#ifdef _DEBUG
+#define ASSERTERR(condition,msg) {if(!(condition)){std::cerr << "Fatal Error: (" << (#condition) << ") at " << __FILE__ <<":" << __LINE__ << " " << (#msg) << std::endl; assert(0);}}
+#else
+#define ASSERTERR(condition,msg) {if(!(condition)){std::cerr << "Fatal Error: (" << (#condition) << ") at " << __FILE__ <<":" << __LINE__ << " " << (#msg) << std::endl; exit(1);}}
+#endif
+#endif
 
 // This kind does not depend on debug mode.
-#define ASSERT0(condition) {if(!(condition)){cerr << "Assertion Failed: (" << (#condition) << ") at " << __FILE__ <<":" << __LINE__ << endl; exit(1);}}
+// Always terminates on failure.
+#ifndef ASSERT0
+#define ASSERT0(condition) {if(!(condition)){std::cerr << "Assertion0 Failed: (" << (#condition) << ") at " << __FILE__ <<":" << __LINE__ << std::endl; assert(0);}}
+#endif
+
+// Prints a message; doesn't terminate.
+#ifndef ASSERT0M
+#ifdef _DEBUG
+#define ASSERT0M(condition,msg) {if(!(condition)){std::cerr << "Assertion0 Failed: (" << (#condition) << ") at " << __FILE__ <<":" << __LINE__ << " " << (#msg) << std::endl;}}
+#else
+#define ASSERT0M(condition,msg) {if(!(condition)){std::cerr << "Assertion0 Failed: (" << (#condition) << ") at " << __FILE__ <<":" << __LINE__ << " " << (#msg) << std::endl;}}
+#endif
+#endif
 
 // These two depend on debug mode.
-#if SCI_ASSERTION_LEVEL >= 1
-#define ASSERT1(condition) {if(!(condition)){cerr << "Assertion1 Failed: (" << (#condition) << ") at " << __FILE__ <<":" << __LINE__ << endl; while(1);}}
-#define ASSERT1M(condition,msg) {if(!(condition)){cerr << "Assertion1 Failed: (" << (#condition) << ") at " << __FILE__ <<":" << __LINE__ << " " << (#msg) << endl; while(1);}}
+#if DMC_ASSERTION_LEVEL >= 1
+#ifndef ASSERT1
+#define ASSERT1(condition) {if(!(condition)){std::cerr << "Assertion1 Failed: (" << (#condition) << ") at " << __FILE__ <<":" << __LINE__ << std::endl; assert(0);}}
+#endif
+#ifndef ASSERT1M
+#define ASSERT1M(condition,msg) {if(!(condition)){std::cerr << "Assertion1 Failed: (" << (#condition) << ") at " << __FILE__ <<":" << __LINE__ << " " << (#msg) << std::endl; assert(0);}}
+#endif
 #else
+#ifndef ASSERT1
 #define ASSERT1(condition)
+#endif
+#ifndef ASSERT1M
 #define ASSERT1M(condition,msg)
 #endif
-
-#if SCI_ASSERTION_LEVEL >= 2
-#define ASSERT2(condition) {if(!(condition)){cerr << "Assertion2 Failed: (" << (#condition) << ") at " << __FILE__ <<":" << __LINE__ << endl; while(1);}}
-#else
-#define ASSERT2(condition)
 #endif
 
-#if SCI_ASSERTION_LEVEL == 0
-#define ASSERT1(condition)
-#define ASSERT1M(condition,msg)
-#define ASSERT2(condition)
+#ifndef ASSERT
+#define ASSERT(condition) ASSERT1(condition)
 #endif
 
-#define ASSERT(condition) ASSERT2(condition)
-
-/*
-#if SCI_ASSERTION_LEVEL >= 0
-#define GL_ASSERT() {GLenum sci_err; while \
-  ((sci_err = glGetError()) != GL_NO_ERROR) \
-    cerr << "OpenGL error: " << (char *)gluErrorString(sci_err) \
-	 << " at " << __FILE__ <<":" << __LINE__ << endl;}
-#else
-*/
-#define GL_ASSERT()
-//#endif
-
-
-} // namespace Tools
-} // namespace Remote
+#ifndef GL_ASSERT
+#define GL_ASSERT() {GLenum DMC_err; while ((DMC_err = glGetError()) != GL_NO_ERROR) \
+			std::cerr << "OpenGL error: " << (char *)gluErrorString(DMC_err) << " at " << __FILE__ <<":" << __LINE__ << std::endl;}
+#endif
 
 #endif

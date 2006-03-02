@@ -1,21 +1,29 @@
 //////////////////////////////////////////////////////////////////////
 // Quant.h - Quantize color images to 256 colors for saving.
 //
-// Modified by David K. McAllister, 1997-1999.
-// Taken from XV v. 3.10, which was taken from xgif and others 1987-1999.
+// Copyright David K. McAllister, Mar. 1999.
 
+#ifndef _quant_h
+#define _quant_h
+
+#include "toolconfig.h"
+
+#ifdef DMC_MACHINE_sgi
 #include <iostream>
-#include <strings.h>
 using namespace std;
+#endif
 
-#include <stdio.h>
-#include <stdlib.h>
+#ifdef DMC_MACHINE_win
+#include <basetsd.h>
+#include <iostream>
+using namespace std;
+#endif
 
-namespace Remote {
-namespace Tools {
+#ifdef DMC_MACHINE_hp
+#include <iostream.h>
+#endif
 
 typedef unsigned char byte;
-typedef long long INT64;
 
 //////////////////////////////////////////////////////////////////////
 // Color Quantization Class
@@ -43,24 +51,23 @@ struct color_count
 // With Color Refinement by David K. McAllister
 //////////////////////////////////////////////////////////////////////
 
+// XXX Need to make this a templated class based on the pixel type.
 struct Quantizer
 {
-	int size;
-	int NumColors;
-	pixel cmap[256];
-	pixel *Pix;
+	int size;                  // How many pixels are in the image
+	int NumColors, MaxColors;
+	pixel cmap[256];           // The colormap
+	pixel *Pix;                // The 24-bit color image
 
-	/**************************/
+    int WorstErr;
+    pixel WorstErrPix;
+
 	byte *Quant(byte *pic24, int sz, int newcolors, bool IsGray = false);
 
-private:
-	//////////////////////////////
-	inline void FatalError(const char *st)
-	{
-		cerr << st << endl;
-		exit(1);
-	}
+    // Replace the Pix24 image data with the 24-bit colors chosen as the palette
+    void ReplaceImage(const byte *pix8);
 
+private:
 	// See if there are fewer than MaxCols unique colors.
 	// If so, return pic8.
 	bool TrivialSolution(int MaxCols, byte *);
@@ -69,26 +76,22 @@ private:
 	// Also overwrite pic8 with the new indices.
 	void ReduceColorMap(byte *pic8);
 
-	// Give a color map, convert the 24-bit image to 8 bits. No dither.
-	// Counts is how many of each pixel there are.
+	// Given a color map, convert the 24-bit image to 8 bits. No dither.
+	// Counts is how many of each ColorMap entry there are.
 	// Returns error.
-	INT64 Image24to8(byte *pic8, int *Counts, int *R=NULL, int *G=NULL, int *B=NULL);
+	DMCINT64 Image24to8(byte *pic8, int *Counts, int *R=NULL, int *G=NULL, int *B=NULL);
+	DMCINT64 RefineColorMap(byte *pic8);
 
-	INT64 RefineColorMap(byte *pic8);
-
-	INT64 Image24to8Fast(color_count *chash, int hsize, int *Counts, int *R=NULL, int *G=NULL, int *B=NULL);
-	INT64 RefineColorMapFast(color_count *chash, int hsize);
+	DMCINT64 Image24to8Fast(color_count *chash, int hsize, int *Counts, int *R=NULL, int *G=NULL, int *B=NULL);
+	DMCINT64 RefineColorMapFast(color_count *chash, int hsize);
 
 	// Set the color map to these centroids.
 	void CentroidsToColorMap(int *Count, int *R, int *G, int *B);
 
-	void mediancut(color_count* chv, int colors,
+	void MedianCut(color_count* chv, int colors,
 		int sum, int maxval, int newcolors);
 
-	color_count* ppm_computechash(int &colors);
+	color_count* MakeHist(int &colors);
 };
 
-
-} // namespace Tools
-} // namespace Remote
-
+#endif

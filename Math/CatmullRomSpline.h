@@ -1,23 +1,27 @@
-/*
-*  CatmullRomSpline.h: 
-*
-*  Written by:
-*   Steven G. Parker
-*   Department of Computer Science
-*   University of Utah
-*   March 1994
-*
-*  Copyright (C) 1994 SCI Group
-*/
+//////////////////////////////////////////////////////////////////////
+// CatmullRomSpline.h - Implements a Catmull-Rom interpolating spline.
+//
+// Changes Copyright David K. McAllister, Dec. 1997.
+// Originally written by Steven G. Parker, Mar. 1994.
 
-#ifndef SCI_Math_CatmullRomSpline_h
-#define SCI_Math_CatmullRomSpline_h
+#ifndef _CatmullRomSpline_h
+#define _CatmullRomSpline_h
 
+#include "toolconfig.h"
+
+#ifdef DMC_MACHINE_sgi
 #include <vector>
 using namespace std;
+#endif
 
-namespace Remote {
-namespace Tools {
+#ifdef DMC_MACHINE_win
+#include <vector>
+using namespace std;
+#endif
+
+#ifdef DMC_MACHINE_hp
+#include <vector>
+#endif
 
 template<class T>
 class CatmullRomSpline {
@@ -28,21 +32,17 @@ class CatmullRomSpline {
 	
 public:
 	CatmullRomSpline<T>();
-	CatmullRomSpline<T>( const vector<T>& );
-	CatmullRomSpline<T>( const int );
-	CatmullRomSpline<T>( const CatmullRomSpline<T>& );
+	CatmullRomSpline<T>(const vector<T>&);
+	CatmullRomSpline<T>(const int);
+	CatmullRomSpline<T>(const CatmullRomSpline<T>&);
 	
-	void setData( const vector<T>& );
-	void add( const T& );
-	// void insertData( const int, const T& );
-	// void removeData( const int );
+	void setData(const vector<T>&);
+	void add(const T&);
+	// void insertData(const int, const T&);
+	// void removeData(const int);
 	
-	T operator()( double ) const; // 0-1
-	T& operator[]( const int );
+	T operator()(double) const; // 0-1
+	T& operator[](const int);
 };
 
-
-} // namespace Tools
-} // namespace Remote
-
-#endif /* SCI_Math_CatmullRomSpline_h */
+#endif

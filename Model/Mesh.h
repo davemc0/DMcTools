@@ -1,304 +1,292 @@
 //////////////////////////////////////////////////////////////////////
-// Mesh.h - Represent a model as a mesh.
+// Mesh.h - Represent an object as a mesh.
 //
-// David K. McAllister, August 1999.
+// Copyright David K. McAllister, Aug. 1999.
 //
-// This represents arbitrary non-manifold meshes of triangles, edges,
-// and faces. It can import and export a Model. This mesh includes
-// things used only for simplifying meshes. Using it for other
-// purposes won't be slow, but it will take more memory, since every
-// Vertex, Edge, and Face has a Quadric in it.
+// This represents arbitrary non-manifold meshes of triangles, edges, and faces. 
+// It is a kind of BaseObject. It represents a single primitive group of a model.
+// Many meshes constitute a Model. It can import and export a TriObject.
+// It can export a RenderObject.
 
 #ifndef mesh_h
 #define mesh_h
 
-#include <Remote/Tools/Model/Model.h>
-#include <Remote/Tools/Math/Quadric.h>
+#define DMC_MESH_DEBUG
 
-namespace Remote {
-namespace Tools {
+#include <Model/MeshElements.h>
+#include <Model/KDVertex.h>
+#include <Math/KDBoxTree.h>
+#include <Model/TriObject.h>
+#include <Model/RenderObject.h>
 
-#define DIST_FACTOR 0.000
+#include <set>
+using namespace std;
 
-// Returns true if the points are within D of eachother.
-inline bool VecEq(const Vector &V0, const Vector &V1, const double &DSqr = 0.0)
+struct Mesh : public BaseObject
 {
-  return (V0 - V1).length2() <= DSqr;
-}
+    Vertex *Verts;
+    Edge *Edges;
+    Face *Faces;
+    
+    // This tree of pointers is used for quickly matching a vertex,
+    // especially when adding a new vertex to the mesh.
+    // It is a pointer so that it won't automatically get copied
+    // when I copy a mesh.
+    KDBoxTree<KDVertex> *VertTree;
+    
+    // When making a mesh, this tells how close two vertices must
+    // be to be considered the same.
+    double MeshMaxDist;
 
-struct Edge;
-struct Face;
+    bool FacesAreFixed; // True when FixFacing() has been run and nothing has changed since then.
 
-struct Vertex
-{
-  Quadric3 Q;  // Used for simplifying meshes.
-  Vector V;
-  Vector Col;
-  Vector Tex;
-  Vertex *next, *prev;
+    inline Mesh()
+    {
+        MeshMaxDist = 0;
+        Verts = NULL;
+        Edges = NULL;
+        Faces = NULL;
+        VertTree = NULL;
+        ObjectType = DMC_MESH_OBJECT;
+        FacesAreFixed = false;
+    }
+    
+    // Make a Mesh from the given TriObject.
+    inline Mesh(const TriObject &M, Vertex *(*VF)()=NULL,
+        Edge *(*EF)()=NULL, Face *(*FF)()=NULL)
+    {
+        ObjectType = DMC_MESH_OBJECT;
+        MeshMaxDist = 0;
+        Verts = NULL;
+        Edges = NULL;
+        Faces = NULL;
+        VertTree = NULL;
+        EdgeCount = VertexCount = FaceCount = 0;
+        EdgeType = VertexType = FaceType = 0;
+        ImportTriObject(M, -1.0, VF, EF, FF);
+        
+        Name[0] = '\0';
+        TexPtr = NULL;
+        ObjID = -1;
+        SColorValid = EColorValid = AColorValid = false;
+        DColorValid = ShininessValid = AlphaValid = false;
+        creaseAngle = M_PI * 0.5;
+        shininess = 32.0;
+        alpha = 1.0;
+        dcolor = Vector(0,1,0);
+        scolor = Vector(0,0,0);
+        ecolor = Vector(0,0,0);
+        acolor = Vector(0.2,0.2,0.2);
+        FacesAreFixed = false;
+    }
+    
+    ~Mesh();
+    
+    /////////////////////////////////////////////////////////////////
+    // All subclasses of BaseObject must implement these:
+    
+    virtual void Dump() const
+    {
+        cerr << "Mesh vert count: " << VertexCount << " edge count: "
+            << EdgeCount << " face count: " << FaceCount << endl;
+    }
+    
+    // For meshes with attributes, generates the given attribute.
+    // based on the geometry of the mesh.
+    // You need to make sure the facing is consistent before calling this.
+    // Sets the OBJ_WHATEVER flag.
+    virtual void GenColors() {ASSERT0(0);}
+    virtual void GenNormals();
+    virtual void GenTexCoords();
+    virtual void GenTangents();
+	
+    // Clears the OBJ_WHATEVER flag.
+    virtual void RemoveColors() {VertexType = VertexType & (~OBJ_COLORS);}
+    virtual void RemoveNormals() {VertexType = VertexType & (~OBJ_NORMALS);}
+	virtual void RemoveTexCoords() {VertexType = VertexType & (~OBJ_TEXCOORDS);}
+	virtual void RemoveTangents() {VertexType = VertexType & (~OBJ_TANGENTS);}
+    
+    virtual void RebuildBBox();
+    
+    // Transform all verticess by this matrix.
+    // Also rebuilds the BBox.
+    virtual void ApplyTransform(Matrix44 &Mat);
+	
+    // Transform all texcoords by this matrix.
+	virtual void ApplyTextureTransform(Matrix44 &Mat);
+    
+    void GenColorsFromFaceColors();
+    void GenNormalsFromFaceNormals();
+    void GenFaceNormals();
+    void GenTangentsFromFaceTangents();
+    void GenFaceTangents();
 
-  vector<Edge *> Edges;
-  vector<Face *> Faces;
+    /////////////////////////////////////////////////////////////////
+    
+    // Add the given TriObject to the mesh.
+    // If you want the MeshMaxDist to be set as a multiple of the
+    // bounding box size then pass in that multiple here.
+    // Otherwise it uses the existing value of MeshMaxDist.
+    //
+    // The elements created are base Vertex, Edge, and Face unless
+    // the incoming TriObject has normals, colors, or texture
+    // coordinates. In this case, the vertices are actually
+    // AVertex objects.
+    //
+    // To make something else, pass in a factory function for it.
+    void ImportTriObject(const TriObject &M, double MeshDistFactor = -1.0, 
+        Vertex *(*VF)()=NULL, Edge *(*EF)()=NULL, Face *(*FF)()=NULL);
+    
+    // Return a TriObject made from this Mesh.
+    // AcceptedAttribs tells what attributes to export if they exist.
+    // The mask is defined in AElements.h.
+    void ExportTriObject(TriObject &Ob, unsigned int AcceptedAttribs = OBJ_ALL);
+    
+    // Convert the Mesh to a RenderObject and return it.
+    // AcceptedAttribs has bits to tell what vertex properties to export,
+    // assuming they exist. It is a mask of OBJ_ bits from AElements.h.
+    // Doesn't generate non-existing required attribs. Do that beforehand.
+    void ExportRenderObject(RenderObject &Ob, unsigned int AcceptedAttribs = OBJ_ALL);
 
-  inline Vertex()
-  {
-    // XXX This isn't necessary in general, but for simplification it speeds things up.
-    Q.zero();
-  }
+    // Make every face in the mesh get the same winding as the
+    // face listed first in the linked list.
+    void FixFacing();
+    
+    // Remove vertices that have no edges or faces.
+    void RemoveUnusedVertices();
+    
+    /////////////////////////////////////////////////////////////////
+    // The debug interface.
+    
+    // Makes sure the mesh is sane and counts everything, too.
+    void CheckIntegrity(const bool Detailed = false);
+    bool CheckSize(const BBox &Box);
 
-  inline ~Vertex()
-  {
-    if(next)
-      next->prev = prev;
-    if(prev)
-      prev->next = next;
+    /////////////////////////////////////////////////////////////////
+    // The single-element interface.
+    
+    // Add the vertex without seeing if it already exists.
+    // Doesn't make anything point to this vertex.
+    // If the Vertex is really a subclass, make it yourself and pass it in.
+    inline Vertex *AddVertex(const Vector &Pos, Vertex *Ver = NULL)
+    {
+        if(Ver == NULL)
+            Ver = new Vertex;
+        Ver->V = Pos;
+        
+        Ver->next = Verts;
+        Ver->prev = NULL;
+        if(Verts)
+            Verts->prev = Ver;
+        Verts = Ver;
+        VertexCount++;
+        
+        return Ver;
+    }
+    
+    // Makes the vertices point to this edge.
+    // If the Edge is really a subclass, make it yourself and pass it in.
+    inline Edge *AddEdge(Vertex *v0, Vertex *v1, Edge *E = NULL)
+    {
+        // Add the edge to the front.
+        if(E == NULL)
+            E = new Edge;
+        E->v0 = v0;
+        E->v1 = v1;
+        E->next = Edges;
+        E->prev = NULL;
+        if(Edges)
+            Edges->prev = E;
+        Edges = E;
+        EdgeCount++;
+        
+        v0->Edges.push_back(E);
+        v1->Edges.push_back(E);
+        
+        return E;
+    }
+    
+    // Makes the edges and vertices point to this face.
+    // If the Face is really a subclass, make it yourself and pass it in.
+    inline Face *AddFace(Vertex *v0, Vertex *v1, Vertex *v2, Edge *e0, Edge *e1, Edge *e2, Face *F = NULL)
+    {
+        // Create the face.
+        if(F == NULL)
+            F = new Face;
+        F->next = Faces;
+        F->prev = NULL;
+        if(Faces)
+            Faces->prev = F;
+        Faces = F;
+        F->v0 = v0;
+        F->v1 = v1;
+        F->v2 = v2;
+        F->e0 = e0;
+        F->e1 = e1;
+        F->e2 = e2;
+        
+        // Add the face index to the vertices and edges.
+        v0->Faces.push_back(F);
+        v1->Faces.push_back(F);
+        v2->Faces.push_back(F);
+        e0->Faces.push_back(F);
+        e1->Faces.push_back(F);
+        e2->Faces.push_back(F);
+        
+        FaceCount++;
+        
+        return F;
+    }
+    
+    inline Vertex *FindVertex(const Vector &V)
+    {
+        Vertex Ver;
+        Ver.V = V;
+        KDVertex InV(&Ver);
+        cerr << "F";
+        KDVertex OutV;
+        if(VertTree->find(InV, OutV))
+        {
+            return OutV.Vert;
+        }
+        else
+            return NULL;
+    }
+    
+    Vertex *FindVertexInEdgeList(const vector<Edge *> &EdgeList, const Vector &V,
+        Edge * &FoundEdge) const;
+    
+    // Searches these vertices to find an edge between them.
+    // Returns NULL if the edge doesn't exist.
+    Edge *FindEdge(Vertex *v0, Vertex *v1, Edge *(*EF)()=NULL);
+    
+    inline void DeleteVertex(Vertex *V)
+    {
+        if(V->next) {
+            // Not list tail.
+            V->next->prev = V->prev;
+        }
+        if(V->prev) {
+            V->prev->next = V->next;
+        } else {
+            // List head.
+            Verts = V->next;
+        }
+        VertexCount--;
+        V->next = V->prev = NULL;
 
-#ifdef SCI_MESH_DEBUG
-    next = prev = NULL;
-#endif
-  }
+        delete V;
+    }
 
-  inline void ListRemove(vector<Vertex *> &Ll)
-  {
-    for(int i=0; i<Ll.size(); )
-      if(this == Ll[i])
-	{
-	  Ll[i] = Ll.back();
-	  Ll.pop_back();
-	}
-      else
-	i++;
-  }
+private:
+    // Returns a count of flipped faces.
+    int FlipMe(Face *F, set<Face *> &Visited, 
+        Vertex *v0, Vertex *v1, Vertex *v2);
+
+    // Called by SplitVertexAtFace.
+    Edge *DoEdge(Edge *E, Vertex *V, Vertex *SplitV);
+
+    Vertex *SplitVertexAtFace(Face *F, Vertex *V, Vertex *SV);
 };
-
-struct Edge
-{
-  Quadric3 Q; // This is the resulting error when the edge is collapsed.
-  Vector V; // The vertex result after the edge is collapsed.
-  Vector Col; // Results of collapse.
-  Vector Tex; // Results of collapse.
-  double Cost;
-  Edge *next, *prev; // For the linked list of all edges.
-
-  int Heap; // Index into the heap vector.
-
-  vector<Face *> Faces; // Should be 1 or 2 if manifold.
-  Vertex *v0, *v1;
-
-  inline ~Edge()
-  {
-    if(next)
-      next->prev = prev;
-    if(prev)
-      prev->next = next;
-
-#ifdef SCI_MESH_DEBUG
-    v0 = NULL;
-    next = prev = NULL;
-#endif
-  }
-
-  inline void ListRemove(vector<Edge *> &Ll)
-  {
-    for(int i=0; i<Ll.size(); )
-      if(this == Ll[i])
-	{
-	  Ll[i] = Ll.back();
-	  Ll.pop_back();
-	}
-      else
-	i++;
-  }
-};
-
-struct Face
-{
-  Face *next, *prev;
-
-  Vertex *v0, *v1, *v2;
-  Edge *e0, *e1, *e2;
-  bool visited;
-
-  inline ~Face()
-  {
-    if(next)
-      next->prev = prev;
-    if(prev)
-      prev->next = next;
-
-#ifdef SCI_MESH_DEBUG
-    v0 = NULL;
-    next = prev = NULL;
-#endif
-  }
-
-  inline void ListRemove(vector<Face *> &Ll)
-  {
-    for(int i=0; i<Ll.size(); )
-      if(this == Ll[i])
-	{
-	  Ll[i] = Ll.back();
-	  Ll.pop_back();
-	}
-      else
-	i++;
-  }
-};
-
-} // namespace Tools
-} // namespace Remote
-
-#include <Remote/Tools/Model/VertexTree.h>
-
-namespace Remote {
-namespace Tools {
-
-//----------------------------------------------------------------------
-struct Mesh
-{
-  Vertex *Verts;
-  Edge *Edges;
-  Face *Faces;
-
-  double MeshMaxDist; // When making mesh, this tells when two verts are the same.
-  int FaceCount, VertexCount, EdgeCount;
-  bool HasColor, HasTexCoords;
-
-  KDTree<KDVertex> VertTree;
-
-  inline Mesh()
-  {
-    MeshMaxDist = 0;
-    Verts = NULL;
-    Edges = NULL;
-    Faces = NULL;
-    EdgeCount = VertexCount = FaceCount = 0;
-    HasColor = HasTexCoords = false;
-  }
-
-  inline Mesh(const Object &M)
-  {
-    Verts = NULL;
-    Edges = NULL;
-    Faces = NULL;
-    EdgeCount = VertexCount = FaceCount = 0;
-    HasColor = HasTexCoords = false;
-    ImportObject(M);
-  }
-
-  // Add the vertex without seeing if it already exists.
-  // Doesn't make anything point to this vertex.
-  inline Vertex *AddVertex(const Vector &Vec, const Vector *Color, const Vector *TexCoord)
-  {
-    Vertex *V = new Vertex;
-    V->V = Vec;
-    if(HasColor)
-      V->Col = *Color;
-    if(HasTexCoords)
-      V->Tex = *TexCoord;
-    V->next = Verts;
-    V->prev = NULL;
-    if(Verts)
-      Verts->prev = V;
-    Verts = V;
-    VertexCount++;
-    
-    return V;
-  }
-
-  // Add the vertex without seeing if it already exists.
-  // Doesn't make anything point to this vertex.
-  // This is faster.
-  inline Vertex *AddVertex(const Vector &Vec)
-  {
-    Vertex *V = new Vertex;
-    V->V = Vec;
-    V->next = Verts;
-    V->prev = NULL;
-    if(Verts)
-      Verts->prev = V;
-    Verts = V;
-    VertexCount++;
-    
-    return V;
-  }
-
-  // Makes the vertices point to this edge.
-  inline Edge *AddEdge(Vertex *v0, Vertex *v1)
-  {
-    // Add the edge to the front.
-    Edge *E = new Edge;
-    E->v0 = v0;
-    E->v1 = v1;
-    E->next = Edges;
-    E->prev = NULL;
-    if(Edges)
-      Edges->prev = E;
-    Edges = E;
-    EdgeCount++;
-
-    v0->Edges.push_back(E);
-    v1->Edges.push_back(E);
-    
-    return E;
-  }
-
-  // Makes the edges and vertices point to this face.
-  inline Face *AddFace(Vertex *v0, Vertex *v1, Vertex *v2, Edge *e0, Edge *e1, Edge *e2)
-  {
-    // Create the face.
-    Face *F = new Face;
-    F->next = Faces;
-    F->prev = NULL;
-    if(Faces)
-      Faces->prev = F;
-    Faces = F;
-    F->v0 = v0;
-    F->v1 = v1;
-    F->v2 = v2;
-    F->e0 = e0;
-    F->e1 = e1;
-    F->e2 = e2;
-    
-    // Add the face index to the vertices and edges.
-    v0->Faces.push_back(F);
-    v1->Faces.push_back(F);
-    v2->Faces.push_back(F);
-    e0->Faces.push_back(F);
-    e1->Faces.push_back(F);
-    e2->Faces.push_back(F);
-    
-    FaceCount++;
-
-    return F;
-  }
-
-  // Add the incoming object to the mesh.
-  void ImportObject(const Object &M);
-  
-  // Return an object made from the mesh.
-  Object ExportObject();
-
-  // Makes sure the mesh is proper and counts everything, too.
-  void CheckIntegrity(const bool Slow = false);
-
-  void Dump();
-
-  void FixFacing();
-
-  void FlipMe(Face *F, Vertex *v0, Vertex *v1, Vertex *v2);
-
-  // AddedVert will be true if it added.
-  Vertex *FindVertex(const Vector &V, bool &AddedVert, const Vector *Color = NULL, const Vector *TexCoord = NULL);
-  Vertex *FindVertexInEdgeList(const vector<Edge *> &Edg, const Vector &V, Edge * &e) const;
-
-  Edge *FindEdge(Vertex *v0, Vertex *v1);
-
-  
-};
-
-
-} // namespace Tools
-} // namespace Remote
 
 #endif

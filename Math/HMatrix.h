@@ -1,20 +1,30 @@
 /////////////////////////////////////////////////////////////
-// Matrix.h -  Stuff for working with matrices large and small.
+// HMatrix.h - Math for variable-sized matrices.
 //
-// by David K. McAllister, 1998.
+// Copyright David K. McAllister, Mar. 1998.
 
 #ifndef _matrix_h
 #define _matrix_h
 
-#include <Remote/Tools/Util/Assert.h>
+#include <Util/Assert.h>
+
+#ifdef DMC_MACHINE_sgi
+#include <string>
+#include <fstream>
+using namespace std;
+#endif
+
+#ifdef DMC_MACHINE_win
+#include <string>
+#include <fstream>
+using namespace std;
+#endif
+
+#ifdef DMC_MACHINE_hp
+#include <string>
+#endif
 
 #include <string.h>
-#include <string>
-using namespace std;
-
-
-namespace Remote {
-namespace Tools {
 
 class HVector;
 
@@ -33,7 +43,11 @@ public:
 	inline Matrix(const int _c, const int _r)
 	{
 		if(_r * _c > 0)
+		{
 			data = new double[_r * _c];
+			ASSERTERR(data, "memory alloc failed");
+			
+		}
 		else
 			data = NULL;
 
@@ -46,6 +60,7 @@ public:
 		if(A.data)
 		{
 			data = new double[A.c * A.r];
+			ASSERTERR(data, "memory alloc failed");
 			memcpy(data, A.data, A.c * A.r * sizeof(double));
 			c = A.c;
 			r = A.r;
@@ -63,14 +78,16 @@ public:
 			delete [] data;
 	}
 
-	Matrix operator+(const Matrix &A) const
+	inline Matrix operator+(const Matrix &A) const
 	{
 		ASSERT((data != NULL));
 		ASSERT(A.c == c	&& A.r == r);
 
 		Matrix C(c, r);
 
-		for(int i=0; i<c*r; i++)
+		int cnt = c*r;
+
+		for(int i=0; i<cnt; i++)
 		{
 			C.data[i] = data[i] + A.data[i];
 		}
@@ -78,12 +95,14 @@ public:
 		return C;
 	}
 
-	Matrix & operator+=(const Matrix &A)
+	inline Matrix & operator+=(const Matrix &A)
 	{
 		ASSERT(data != NULL);
 		ASSERT(A.c == c && A.r == r);
 
-		for(int i=0; i<c*r; i++)
+		int cnt = c*r;
+
+		for(int i=0; i<cnt; i++)
 		{
 			data[i] += A.data[i];
 		}
@@ -91,20 +110,23 @@ public:
 		return *this;
 	}
 
-	Matrix & operator/=(const double d)
+	inline Matrix & operator/=(const double d)
 	{
 		ASSERT(data != NULL);
 		ASSERT(c > 0 && r > 0);
+		
+		double dinv = 1. / d;
+		int cnt = c*r;
 
-		for(int i=0; i<c*r; i++)
+		for(int i=0; i<cnt; i++)
 		{
-			data[i] /= d;
+			data[i] *= dinv;
 		}
 
 		return *this;
 	}
 
-	double & operator()(const int x, const int y)
+	inline double & operator()(const int x, const int y)
 	{
 		ASSERT(data != NULL);
 		ASSERT(x >= 0 && x < c);
@@ -146,9 +168,5 @@ public:
 
 // Defined in HVector.cpp
 ostream& operator<<(ostream& os, const Matrix& m);
-
-
-} // namespace Tools
-} // namespace Remote
 
 #endif

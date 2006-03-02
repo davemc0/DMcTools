@@ -1,0 +1,360 @@
+//////////////////////////////////////////////////////////////////////
+// KDItemTree.h - Implements a template class for a KD-Tree.
+//
+// Copyright David K. McAllister, Sep. 1999.
+
+#ifndef _kdItemtree_h
+#define _kdItemtree_h
+
+#include <Math/Vector.h>
+
+#include <algorithm>
+using namespace std;
+
+template<class _Tp>
+class KDItem
+{
+public:
+	_Tp Value;
+	KDItem *lower, *higher;
+	
+	inline KDItem() {lower = higher = NULL;}
+	
+	inline KDItem(const _Tp &_Val) : Value(_Val) {lower = higher = NULL;}
+	
+	// A copy constructor.
+	inline KDItem(const KDItem &Tr) : Value(Tr.Value)
+	{
+		// cerr << "Copying KDItem\n";
+		lower = higher = NULL;
+		if(Tr.lower)
+		{
+			lower = new KDItem(*Tr.lower);
+			ASSERTERR(lower, "memory alloc failed");			
+		}
+		if(Tr.higher)
+		{
+			higher = new KDItem(*Tr.higher);
+			ASSERTERR(higher, "memory alloc failed");			
+		}
+	}
+	
+	inline ~KDItem()
+	{
+		if(lower)
+			delete lower;
+		if(higher)
+			delete higher;
+	}
+};
+
+// The class _Tp needs to inherit from Vector.
+// Or you can edit this to require .vector().
+
+// Always stores the lesser item in the lower child.
+template<class _Tp, int NumDim = 3>
+class KDItemTree
+{
+	KDItem<_Tp> *Root;
+	
+	inline bool lessX(const Vector &a, const Vector &b) const
+	{
+		//cerr << "lessX\n";
+		if(a.x < b.x) return true;
+		else if(a.x > b.x) return false;
+		else if(a.y < b.y) return true;
+		else if(a.y > b.y) return false;
+		else return a.z < b.z;
+	}
+	
+	inline bool lessY(const Vector &a, const Vector &b) const
+	{
+		if(a.y < b.y) return true;
+		else if(a.y > b.y) return false;
+		else if(a.z < b.z) return true;
+		else if(a.z > b.z) return false;
+		else return a.x < b.x;
+	}
+	
+	inline bool lessZ(const Vector &a, const Vector &b) const
+	{
+		if(a.z < b.z) return true;
+		else if(a.z > b.z) return false;
+		else if(a.x < b.x) return true;
+		else if(a.x > b.x) return false;
+		else return a.y < b.y;
+	}
+	
+	inline bool myless(const Vector &a, const Vector &b, const int lev) const
+	{
+		if(lev==2) return lessZ(a, b);
+		else if(lev) return lessY(a, b);
+		else return lessX(a, b);
+	}
+	
+	// Returns true if the two are close enough.
+	inline bool within(const Vector &a, const Vector &b, const double threshSq) const
+	{
+		return (a-b).length2() < threshSq;
+	}
+	
+public:
+	inline KDItemTree()
+	{
+		Root = NULL;
+	}
+	
+	// A copy constructor.
+	inline KDItemTree(const KDItemTree &Tr)
+	{
+		if(Tr.Root)
+		{
+			Root = new KDItem<_Tp>(*Tr.Root);
+			ASSERTERR(Root, "memory alloc failed");		
+		}
+		else
+			Root = NULL;
+	}
+	
+	inline ~KDItemTree()
+	{
+		if(Root)
+			delete Root;
+	}
+	
+	// Remove everything in the tree.
+	inline void clear()
+	{
+		if(Root)
+			delete Root;
+		Root = NULL;
+	}
+	
+	inline bool empty() const
+	{
+		return Root == NULL;
+	}
+
+	// Insert an item into the tree.
+	inline void insert(const _Tp &Val)
+	{
+		//cerr << "In\n";
+		KDItem<_Tp> *It = new KDItem<_Tp>(Val);
+		ASSERTERR(It, "memory alloc failed");		
+		
+		// fprintf(stderr, "I: 0x%08x ", long(this));
+		// cerr << Value.size() << Box << " " << It.Vert->V << endl;
+		
+		if(!Root)
+		{
+			Root = It;
+		}
+		else
+		{		
+			rinsert(Root, It);
+		}
+		
+		return;
+	}
+	
+	// Find an exact match. Returns NULL if not there.
+	// Queries given a _Tp.
+	inline const _Tp * find(const _Tp &Qr) const
+	{
+		// fprintf(stderr, "F: 0x%08x ", long(this));
+		// cerr << Value.size() << Box << " " << Qr.Vert->V << endl;
+		
+		if(Root)
+			return rfind(Root, Qr.Value);
+		else
+			return Root->Value; // It's NULL.
+	}
+	
+	// Find an exact match. Returns NULL if not there.
+	// Queries on a Vector instead of on a _Tp.
+	inline const _Tp * findv(const Vector &Qr) const
+	{
+		if(Root)
+			return rfind(Root, Qr);
+		else
+			return NULL;
+	}
+	
+	// Find a close enough one. Returns NULL if not there.
+	// Queries on a Vector instead of on a _Tp.
+	inline const _Tp * findv(const Vector &Qr, double thresh) const
+	{
+		if(Root)
+			return rfindeps(Root, Qr, thresh);
+		else
+			return NULL;
+	}
+	
+	// Find the closest one. Returns NULL if tree is empty.
+	// Queries on a Vector instead of on a _Tp.
+	inline const _Tp * nearestv(const Vector &Qr) const
+	{
+		const _Tp *bestItem = NULL;
+		double bestdSqr = DMC_MAXFLOAT;
+		rnearest(Root, Qr, bestdSqr, bestItem);
+		return bestItem;
+	}
+	
+private:
+	// This one is called recursively internally.
+	inline void rinsert(KDItem<_Tp> *Root, KDItem<_Tp> *It, int lev = 0)
+	{
+		if(lev==3)
+			lev = 0;
+		//cerr << "insert\n";
+		
+		// insert into the kids.
+		if(myless(It->Value, Root->Value, lev))
+		{
+			if(Root->lower)
+				rinsert(Root->lower, It, lev+1);
+			else
+				Root->lower = It;
+		}
+		else
+		{
+			if(Root->higher)
+				rinsert(Root->higher, It, lev+1);
+			else
+				Root->higher = It;
+		}
+		
+		return;
+	}
+	
+	// This one is called recursively internally.
+	// The strategy is to traverse the whole tree except for branches
+	// that can be pruned because the distance to that partition from
+	// the query point is farther away than the currently closest point.
+	// Uses a global best point.
+	inline void rnearest(KDItem<_Tp> *Root, const Vector &Qr,
+		double &bestdSqr, const _Tp *&bestItem, int lev = 0) const
+	{
+		if(Root == NULL)
+			return;
+		if(lev==3)
+			lev = 0;
+
+		// See if Root is closer and update best.
+		double rdSqr = (Root->Value - Qr).length2();
+		
+		if(rdSqr < bestdSqr)
+		{
+			bestdSqr = rdSqr;
+			bestItem = &(Root->Value);
+		}
+		
+		// Compute distance to the dividing line.
+		double distL =
+			(lev == 0) ? (Root->Value.x - Qr.x) :
+		(lev == 1) ? (Root->Value.y - Qr.y) :
+		(Root->Value.z - Qr.z);
+		double distLSqr = Sqr(distL);
+		
+		// Qr is on one side of the plane that contains Root->Value.
+		// We have to traverse this side.
+		// We also have to traverse the other side if the plane is within
+		// bestdSqr of Qr.
+		if(distL > 0)
+		{
+			// Query point is on lower of root.
+			// We have to traverse the lower side.
+			rnearest(Root->lower, Qr, bestdSqr, bestItem, lev+1);
+			
+			// Do we also have to traverse higher side?
+			if(distLSqr < bestdSqr)
+				rnearest(Root->higher, Qr, bestdSqr, bestItem, lev+1);
+		}
+		else
+		{
+			// Query point is on higher of root.
+			// We have to traverse the higher side.
+			rnearest(Root->higher, Qr, bestdSqr, bestItem, lev+1);
+			
+			// Do we also have to traverse lower side?
+			if(distLSqr < bestdSqr)
+				rnearest(Root->lower, Qr, bestdSqr, bestItem, lev+1);
+		}
+	}
+	
+	// This one is called recursively internally.
+	inline const _Tp * rfind(const KDItem<_Tp> *Root, const Vector &Qr,
+		int lev = 0) const
+	{
+		if(lev==3)
+			lev = 0;
+
+		if(Root->lower && myless(Qr, Root->Value, lev))
+		{
+			return rfind(Root->lower, Qr, lev+1);
+		}
+		else
+		{
+			if(Qr == Root->Value)
+				return &Root->Value;
+			else if(Root->higher)
+				return rfind(Root->higher, Qr, lev+1);
+			else
+				return NULL;
+		}
+	}
+	
+	// This one returns any point that is within a distance epsilon.
+	// This one is called recursively internally.
+	inline const _Tp * rfindeps(const KDItem<_Tp> *Root, const Vector &Qr,
+		double thresh, int lev = 0) const
+	{
+		if(lev==3)
+			lev=0;
+
+		if(within(Qr, Root->Value, Sqr(thresh)))
+			return &(Root->Value);
+		
+		if(myless(Qr, Root->Value, lev))
+		{
+			if(Root->lower)
+			{
+				if(const _Tp *Res = rfindeps(Root->lower, Qr, thresh, lev+1))
+					return Res;
+			}
+			// Didn't find in the proper half.
+			// Do we need to search the other half?
+			if(Root->higher == NULL)
+				return NULL;
+			
+			if(((lev==0) && fabs(Root->Value.x - Qr.x) < thresh) ||
+				((lev==1) && fabs(Root->Value.y - Qr.y) < thresh) ||
+				((lev==2) && fabs(Root->Value.z - Qr.z) < thresh))
+				return rfindeps(Root->higher, Qr, thresh, lev+1);
+			else
+				return NULL;
+		}
+		else
+		{
+			if(Root->higher)
+			{
+				if(const _Tp *Res = rfindeps(Root->higher, Qr, thresh, lev+1))
+					return Res;
+			}
+			
+			// Didn't find in the proper half.
+			// Do we need to search the other half?
+			if(Root->lower == NULL)
+				return NULL;
+			
+			if(((lev==0) && fabs(Root->Value.x - Qr.x) < thresh) ||
+				((lev==1) && fabs(Root->Value.y - Qr.y) < thresh) ||
+				((lev==2) && fabs(Root->Value.z - Qr.z) < thresh))
+				return rfindeps(Root->lower, Qr, thresh, lev+1);
+			else
+				return NULL;
+		}
+	}
+};
+
+#endif

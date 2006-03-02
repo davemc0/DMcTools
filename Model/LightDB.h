@@ -1,0 +1,97 @@
+//////////////////////////////////////////////////////////////////////
+// LightDB.h - Represent a Light and a list of Lights.
+//
+// Copyright David K. McAllister, July 1999.
+
+#ifndef _Lightdb_h
+#define _Lightdb_h
+
+// #include <Model/TriObject.h>
+#include <Image/ucImage.h>
+#include <Util/Utils.h>
+
+#include <vector>
+using namespace std;
+
+struct LightInfo
+{
+	char *LightName;
+    bool Enabled;
+	int LightID; // This is the OpenGL Light object ID.
+    int LightType; // 0 = Directional, 1 = Point, 2 = Spot.
+    float Intensity;
+    Vector Color;
+    Vector Position; // Direction or location.
+    float DropOffRate;
+    float CutOffAngle;
+    
+    inline LightInfo()
+    {
+        LightName = NULL;
+        Enabled = true;
+        LightID = -1;
+        LightType = -1;
+        Intensity = 1;
+        Color = Vector(1,1,1);
+        Position = Vector(0,0,1);
+        DropOffRate = 0;
+        CutOffAngle = 0.785398;
+    }
+    
+    inline void Dump()
+    {
+        cerr << LightName<<" "<<(Enabled?"on ":"off ")<<LightID<<" "<<LightType<<" "
+            <<Intensity<<" "<<Color<<" "<<Position
+            <<" "<<DropOffRate<<" "<<CutOffAngle<<endl;
+    }
+};
+
+class LightDB
+{
+public:
+	vector<LightInfo *> LightList;
+	
+	// Returns -1 if not found.
+	inline LightInfo *FindByName(const char *name)
+	{
+        ASSERT0(name); 
+		for(int tind=0; tind<LightList.size(); tind++) {
+			if(!strcmp(LightList[tind]->LightName, name))
+				return LightList[tind];
+		}
+        
+        return NULL;
+    }
+    
+    inline LightInfo *Add(char *name=NULL)
+    {
+        LightInfo *x = new LightInfo();
+        x->LightName = name;
+        
+        LightList.push_back(x);
+
+		return x;
+    }
+    
+    // Adds it if not found.
+    inline LightInfo *FindByNameOrAdd(const char *name)
+    {
+        ASSERT0(name); 
+        LightInfo *x = FindByName(name);
+        if(x == NULL) {
+            x = Add();
+        }
+
+        return x;
+    }
+    
+    inline void Dump()
+    {
+        for(int i=0; i<LightList.size(); i++) {
+            cerr << i << ": ";
+            LightList[i]->Dump();
+        }
+    }
+};
+
+#endif
