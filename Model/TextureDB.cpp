@@ -7,6 +7,8 @@
 #include <Util/Utils.h>
 #include <Image/tImage.h>
 
+using namespace std;
+
 // Load this texture into memory if it's not yet.
 // If dir is specified, it replaces the path with dir.
 // If prepend is true it instead prepends dir to TexFName.
@@ -46,14 +48,14 @@ bool TexInfo::LoadToAppMemory(char *dir, bool prepend)
         if(HDR.size() > 0) {
             HDR *= f3Pixel(ExposureScale);
             uc3Image NewIm = HDR;
-            ASSERTERR(Im, "memory alloc failed");
+            ASSERT_RM(Im, "memory alloc failed");
             Im->Set(NewIm.w(), NewIm.h(), 3);
             memcpy(Im->Pix, NewIm.pp(), Im->dsize);
             IsLinear = true;
         }
     } else {
         Im = new ucImage(fname);
-        ASSERTERR(Im, "memory alloc failed");	
+        ASSERT_RM(Im, "memory alloc failed");	
     }
     
     if(Im->size > 0) {
@@ -76,10 +78,10 @@ void TexInfo::Dump()
 // Returns -1 if not found.
 TexInfo *TextureDB::FindByName(const char *name)
 {
-    ASSERT0(name);
+    ASSERT_R(name);
     char *namelower = strdup(name);
     ToLower(namelower);
-    for(int tind=0; tind<TexList.size(); tind++) {
+    for(int tind=0; tind<(int)TexList.size(); tind++) {
         char *nl = strdup(TexList[tind]->TexFName);
         ToLower(nl);
         if(!strcmp(nl, namelower)) {
@@ -97,7 +99,7 @@ TexInfo *TextureDB::FindByName(const char *name)
 // Adds it if not found.
 TexInfo *TextureDB::FindByNameOrAdd(const char *name)
 {
-    ASSERT0(name); 
+    ASSERT_R(name); 
     TexInfo *x = FindByName(name);
     if(x == NULL) {
         x = new TexInfo(name, NULL, -1);
@@ -110,7 +112,7 @@ TexInfo *TextureDB::FindByNameOrAdd(const char *name)
 
 void TextureDB::Dump()
 {
-    for(int i=0; i<TexList.size(); i++) {
+    for(int i=0; i<(int)TexList.size(); i++) {
         cerr << i << ": ";
         TexList[i]->Dump();
     }

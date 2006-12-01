@@ -6,6 +6,8 @@
 #include <Model/CameraDB.h>
 #include <Math/MiscMath.h>
 
+using namespace std;
+
 Matrix44 CameraInfo::GetProjectionMatrix()
 {
     Matrix44 M;
@@ -70,7 +72,7 @@ void CameraInfo::Xform(const Matrix44 &M)
 
 void CameraInfo::ComputePerspective(double fovyRad, double aspect, double znear, double zfar)
 {
-    ASSERT(znear>0 && zfar>0);
+    ASSERT_D(znear>0 && zfar>0);
     Near = znear;
     Far = zfar;
     

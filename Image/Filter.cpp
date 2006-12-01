@@ -1,6 +1,8 @@
 //////////////////////////////////////////////////////////////////////
 // Filter.cpp - Stuff to filter images.
 //
+// This stuff is mostly deprecated by ImageAlgorithms.h.
+//
 // Copyright David K. McAllister, 1998.
 
 #include <Util/Assert.h>
@@ -19,13 +21,13 @@ inline int int_mult(unsigned char a, unsigned char b)
 // 3x3 blur with special kernel. Assumes single channel image.
 void ucImage::FastBlur1()
 {
-	ASSERT(chan == 1);
+	ASSERT_R(chan == 1);
 	// cerr << "FastBlur1\n";
 	int y;
 	
 	// Allocates space for image.
 	unsigned char *P2 = new unsigned char[dsize];
-	ASSERTERR(P2, "memory alloc failed");
+	ASSERT_RM(P2, "memory alloc failed");
 	
 	// Do corners.
 	{
@@ -151,13 +153,13 @@ void ucImage::FastBlur1()
 // Assumes an odd kernel size. Assumes single channel image.
 void ucImage::Filter1(const int N, const KERTYPE *kernel)
 {
-	ASSERT(chan == 1);
+	ASSERT_R(chan == 1);
 	
 	int N2 = N/2, y;
 	
 	// Allocates space for image.
 	unsigned char *P2 = new unsigned char[dsize];
-	ASSERTERR(P2, "memory alloc failed");
+	ASSERT_RM(P2, "memory alloc failed");
 	
 	// Do top and bottom edges.
 	{
@@ -180,10 +182,6 @@ void ucImage::Filter1(const int N, const KERTYPE *kernel)
 			P2[y*wid+x] = SampleSlow1(x, y, N, kernel);
 	}
 	
-#ifdef DMC_USE_MP
-#pragma parallel
-#pragma pfor schedtype(gss) local(y)
-#endif
 	for(y=N2; y<hgt-N2; y++)
 	{
 		int y0 = y-N2;
@@ -214,13 +212,13 @@ void ucImage::Filter1(const int N, const KERTYPE *kernel)
 
 void ucImage::Filter3(const int N, const KERTYPE *kernel)
 {
-	ASSERT(chan == 3);
+	ASSERT_R(chan == 3);
 	
 	int N2 = N/2, x, y;
 	
 	// Allocates space for color image.
 	unsigned char *P2 = new unsigned char[dsize];
-	ASSERTERR(P2, "memory alloc failed");
+	ASSERT_RM(P2, "memory alloc failed");
 	
 	Pixel *Pp2 = (Pixel *)P2;
 	// Do top and bottom edges.
@@ -283,13 +281,13 @@ void ucImage::Filter(const int N, const KERTYPE *kernel)
 	else if(chan == 3)
 		Filter3(N, kernel);
 	else
-		cerr << "Filtering not supported on " << chan << " channel images.\n";
+        std::cerr << "Filtering not supported on " << chan << " channel images.\n";
 }
 
 double *MakeBlurKernel(const int N, const double sigma)
 {
 	double *kernel = new double[N*N];
-	ASSERTERR(kernel, "memory alloc failed");
+	ASSERT_RM(kernel, "memory alloc failed");
 	
 	int N2 = N/2, x, y;
 	
@@ -318,7 +316,7 @@ double *MakeBlurKernel(const int N, const double sigma)
 KERTYPE *DoubleKernelToFixed(const int N, double *dkernel)
 {
 	KERTYPE *ckernel = new KERTYPE[N*N];
-	ASSERTERR(ckernel, "memory alloc failed");
+	ASSERT_RM(ckernel, "memory alloc failed");
 	
 	// I should multiply by 256 and clamp to 255 but I won't.
 	double SD = 0;
@@ -388,77 +386,6 @@ void ucImage::HorizFiltLinear(unsigned char *Ld, int wd,
 // Rescales the image to the given size.
 void ucImage::Resize(const int w, const int h)
 {
-#if 0
-	if(w < 1 || h < 1 || chan < 1)
-	{
-		wid = hgt = chan = size = dsize = 0;
-		if(Pix)
-			delete [] Pix;
-		return;
-	}
-	
-	if(size < 1 || Pix == NULL)
-		return;
-	
-	unsigned char *P;
-	int x, y;
-	
-	// Scale the width first.
-	int dsize1 = w * hgt * chan;
-	
-	if(w == wid)
-		P = Pix;
-	else
-	{
-		P = new unsigned char[dsize1];
-		ASSERTERR(P, "memory alloc failed");
-
-		if(w > wid)
-		{
-			// Upsample using cubic filter.
-			for(y=0; y<hgt; y++)
-				HorizFiltLinear(&P[y*w*chan], w, &Pix[y*wid*chan], wid);
-		}
-		else
-		{
-			// Downsample using gaussian.
-			for(y=0; y<hgt; y++)
-				HorizFiltGaussian(&P[y*w*chan], w, &Pix[y*wid*chan], wid);
-		}
-	}
-	
-	if(P != Pix)
-		delete [] Pix;
-	Pix = P;
-	wid = w;
-	
-	// Scale the height.
-	dsize1 = wid * h * chan;
-	
-	if(h == hgt)
-		P = Pix;
-	else
-	{
-		P = new unsigned char[dsize1];
-		ASSERTERR(P, "memory alloc failed");
-		if(h > hgt)
-		{
-			// Upsample using cubic filter.
-			for(x=0; x<wid; x++)
-				VertFiltCubic(&P[x*chan], h, &Pix[x*chan], hgt, wid*chan);
-		}
-		else
-		{
-			// Downsample using gaussian.
-			for(x=0; x<wid; x++)
-				VertFiltGaussian(&P[x*chan], h, &Pix[x*chan], hgt, wid*chan);
-		}
-	}
-	
-	if(P != Pix)
-		delete [] Pix;
-	Pix = P;
-#endif
 	wid = w;
 	hgt = h;
 	size = wid * hgt;
@@ -467,34 +394,34 @@ void ucImage::Resize(const int w, const int h)
 
 static inline float CubicFilter(float x)
 {
-    x = fabs(x);
-    
-    /*
-    Was:
-    
-      const float b = 1.0/3.0;
-      const float c = 1.0/3.0;
-      
-        // Heinously inefficient code!  I hope the compiler does constant folding.
-        
-          if (x < 1)
-          return ((12 - 9*b - 6*c)*pow(x,3) +
-          (-18 + 12*b + 6*c)*pow(x,2) +
-          6 - 2*b) / 6;
-          else
-          return ((-b - 6*c)*pow(x,3) +
-          (6*b + 30*c)*pow(x,2) + 
-          (-12*b - 48*c)*x + 8*b +
-          24*c) / 6;
-    */
-    
-    float x2 = x * x;
-    float x3 = x2 * x;
-    
-    if (x < 1)
-        return 7.0/6.0 * x3 - 2.0 * x2 + 8.0/9.0;
-    else
-        return -7.0/18.0 * x3 + 2.0 * x2 - 10.0/3.0 * x + 16.0/9.0;
+	x = fabs(x);
+
+	/*
+	Was:
+
+	const float b = 1.0/3.0;
+	const float c = 1.0/3.0;
+
+	// Heinously inefficient code!  I hope the compiler does constant folding.
+
+	if (x < 1)
+		return ((12 - 9*b - 6*c)*pow(x,3) +
+		(-18 + 12*b + 6*c)*pow(x,2) +
+		6 - 2*b) / 6;
+	else
+		return ((-b - 6*c)*pow(x,3) +
+		(6*b + 30*c)*pow(x,2) + 
+		(-12*b - 48*c)*x + 8*b +
+		24*c) / 6;
+	*/
+
+	float x2 = x * x;
+	float x3 = x2 * x;
+
+	if (x < 1)
+		return 7.0/6.0 * x3 - 2.0 * x2 + 8.0/9.0;
+	else
+		return -7.0/18.0 * x3 + 2.0 * x2 - 10.0/3.0 * x + 16.0/9.0;
 }
 
 bool ucImage::sample(float x, float y, float &res) const

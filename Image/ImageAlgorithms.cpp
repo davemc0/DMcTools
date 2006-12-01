@@ -150,16 +150,17 @@ template<class OutImgType, class InImgType, class ElType>
 void ToneMapLog(OutImgType &Out, const InImgType &Img,
                 const ElType Scale, const ElType Bias, const ElType LogBias)
 {
-    ASSERT0(typeid(InImgType::PixType::ElType) == typeid(ElType));
+    ASSERT_R(typeid(typename InImgType::PixType::ElType) == typeid(ElType));
     
     Out.SetSize(Img.w(), Img.h());
     
     for(int i=0; i<Img.size(); i++) {
         //cerr << Img[i] << '\t';
-        InImgType::PixType tmp = Scale * func(Img[i], logf);
+        typename InImgType::PixType tmp;
+        tmp = Scale * func(Img[i], logf);
         tmp += Bias;
         //cerr << tmp << '\t';
-        Out[i] = static_cast<OutImgType::PixType>(tmp);
+        Out[i] = static_cast<typename OutImgType::PixType>(tmp);
         //cerr << Out[i] << endl;
     }
 }
@@ -175,14 +176,14 @@ template void ToneMapLog(uc1Image &Out, const f3Image &Img,
 template<class OutImgType, class InImgType, class ElType>
 void ToneMapLinear(OutImgType &Out, const InImgType &Img, const ElType Scale, const ElType Bias)
 {
-    ASSERT0(typeid(InImgType::PixType::ElType) == typeid(ElType));
+    ASSERT_R(typeid(typename InImgType::PixType::ElType) == typeid(ElType));
     
     Out.SetSize(Img.w(), Img.h());
     
     for(int i=0; i<Img.size(); i++) {
-        InImgType::PixType tmp = Scale * Img[i];
+        typename InImgType::PixType tmp = Scale * Img[i];
         tmp += Bias;
-        Out[i] = static_cast<OutImgType::PixType>(tmp);
+        Out[i] = static_cast<typename OutImgType::PixType>(tmp);
     }
 }
 
@@ -199,7 +200,7 @@ template<class OutImgType, class InImgType, class InPixType>
 void ToneMapExtrema(OutImgType &Out, const InImgType &Img,
                     const InPixType &MinP, const InPixType &MaxP)
 {
-    ASSERT0(typeid(InImgType::PixType) == typeid(InPixType));
+    ASSERT_R(typeid(typename InImgType::PixType) == typeid(InPixType));
     
     float minc = MinP.min_chan();
     float maxc = MaxP.max_chan();
@@ -221,7 +222,7 @@ template void ToneMapExtrema(uc1Image &Out, const f3Image &Img,
 template<class OutImgType, class InImgType>
 void ToneMapFindExtrema(OutImgType &Out, const InImgType &Img)
 {
-    InImgType::PixType MinP, MaxP;
+    typename InImgType::PixType MinP, MaxP;
     Img.GetMinMax(MinP, MaxP);
     
     ToneMapExtrema(Out, Img, MinP, MaxP);
@@ -237,7 +238,7 @@ void DeSpeckle(_ImgType &Img)
 {
     for(int y=1; y<Img.h()-1; y++) {
         for(int x=1; x<Img.w()-1; x++) {
-            _ImgType::PixType MinP = Img(x-1,y-1), MaxP = Img(x-1,y-1); 
+            typename _ImgType::PixType MinP = Img(x-1,y-1), MaxP = Img(x-1,y-1); 
             MinP = Min(MinP,Img(x,y-1)); MaxP = Max(MaxP,Img(x,y-1)); 
             MinP = Min(MinP,Img(x+1,y-1)); MaxP = Max(MaxP,Img(x+1,y-1)); 
             MinP = Min(MinP,Img(x-1,y)); MaxP = Max(MaxP,Img(x-1,y)); 
@@ -263,7 +264,7 @@ void DeSpeckleN(_ImgType &Img, int N)
 
     for(int y=1; y<Img.h()-1; y++) {
         for(int x=1; x<Img.w()-1; x++) {
-            _ImgType::PixType MinP = Img(x-1,y-1), MaxP = Img(x-1,y-1); 
+            typename _ImgType::PixType MinP = Img(x-1,y-1), MaxP = Img(x-1,y-1); 
             MinP = Min(MinP,Img(x,y-1)); MaxP = Max(MaxP,Img(x,y-1)); 
             MinP = Min(MinP,Img(x+1,y-1)); MaxP = Max(MaxP,Img(x+1,y-1)); 
             MinP = Min(MinP,Img(x-1,y)); MaxP = Max(MaxP,Img(x-1,y)); 
@@ -272,7 +273,7 @@ void DeSpeckleN(_ImgType &Img, int N)
             MinP = Min(MinP,Img(x,y+1)); MaxP = Max(MaxP,Img(x,y+1)); 
             MinP = Min(MinP,Img(x+1,y+1)); MaxP = Max(MaxP,Img(x+1,y+1)); 
 
-            _ImgType::PixType Me = Img(x,y);
+            typename _ImgType::PixType Me = Img(x,y);
             int c=0;
             c += Img(x-1,y-1) <= Me; 
             c += Img(x,y-1) <= Me; 
@@ -296,7 +297,7 @@ template void DeSpeckleN(uc1Image &Img, int N);
 template <class _RetType, class _ImgType>
 _RetType getApproxMedian(const _ImgType &Img, const int NumSamples)
 {
-    _ImgType::PixType::ElType *vals = new _ImgType::PixType::ElType[NumSamples];
+    typename _ImgType::PixType::ElType *vals = new typename _ImgType::PixType::ElType[NumSamples];
     
     for(int k=0; k<NumSamples; k++) {
         int i = LRand()%Img.size();
@@ -305,7 +306,7 @@ _RetType getApproxMedian(const _ImgType &Img, const int NumSamples)
     
     sort(&vals[0], &vals[NumSamples]);
     
-    _ImgType::PixType::ElType ret = vals[NumSamples/2];
+    typename _ImgType::PixType::ElType ret = vals[NumSamples/2];
     delete [] vals;
     
     return ret;
@@ -415,7 +416,7 @@ void Blur(_ImgType &Img, const _ImgType::PixType::MathType stdev)
     float *F = FPix();
     
     float *N = new float[size];
-    ASSERTERR(N, "memory alloc failed");
+    ASSERT_RM(N, "memory alloc failed");
     
     // Just don't blur the edges.
     memcpy(N, F, wid * sizeof(float));

@@ -9,34 +9,22 @@
 
 #include "toolconfig.h"
 
-#ifdef DMC_MACHINE_sgi
 #include <vector>
-using namespace std;
-#endif
-
-#ifdef DMC_MACHINE_win
-#include <vector>
-using namespace std;
-#endif
-
-#ifdef DMC_MACHINE_hp
-#include <vector>
-#endif
 
 template<class T>
 class CatmullRomSpline {
-	vector<T> d;
+	std::vector<T> d;
 	int nintervals;
 	int nset;
 	int mx;
 	
 public:
 	CatmullRomSpline<T>();
-	CatmullRomSpline<T>(const vector<T>&);
+	CatmullRomSpline<T>(const std::vector<T>&);
 	CatmullRomSpline<T>(const int);
 	CatmullRomSpline<T>(const CatmullRomSpline<T>&);
 	
-	void setData(const vector<T>&);
+	void setData(const std::vector<T>&);
 	void add(const T&);
 	// void insertData(const int, const T&);
 	// void removeData(const int);

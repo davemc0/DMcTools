@@ -1,84 +1,64 @@
-######################################################################
-# Makefile for Tools
+########################################################
+# This makefile makes a library and/or an executable
 #
 
-CC =CC
+#########################################################
+# DEFINES/PATH
+#
 
-# This line gives good loop nest optimization settings for evans (SGI Origin2000).
-LNO =-LNO:opt=1:fusion=2:fission=2:fusion_peeling_limit=2048:cs1=32K:cs2=8M
+INSTALL_LIB_DIR = 
+INSTALL_EXE_DIR = ./bin
+INSTALL_HEADER_DIR = 
 
-# This line gives other good optimization settings for evans (SGI Origin2000).
-TEMPL =-ptv -ptnone
-OPT =-LANG:std $(TEMPL) -O3 -Ofast=IP27 $(LNO) -IPA
-# -DDMC_DEBUG
+#########################################################
+# FILES
 
-INCLUDE = -I..
+LIB	= Release_i686/libDMcTools.a
+LIBSRCS	= Half/half.cpp Image/Bmp.cpp Image/Filter.cpp Image/Gif.cpp Image/ImageAlgorithms.cpp Image/ImageLoadSave.cpp Image/Quant.cpp Image/RGBEio.cpp Image/Targa.cpp Image/ucImage.cpp Math/CatmullRomSpline.cpp Math/DownSimplex.cpp Math/HVector.cpp Math/HermiteSpline.cpp Math/Matrix44.cpp Math/Perlin.cpp Math/Quadric.cpp Model/BisonMe.cpp Model/Camera.cpp Model/LoadOBJ.cpp Model/LoadPLY.cpp Model/LoadTRI.cpp Model/LoadVRML.cpp Model/Mesh.cpp Model/Model.cpp Model/RenderObject.cpp Model/SaveOBJ.cpp Model/SavePLY.cpp Model/SaveTRI.cpp Model/SaveVRML.cpp Model/TextureDB.cpp Model/TriObject.cpp Util/Timer.cpp Util/Utils.cpp
+LIBOBJS = $(LIBSRCS:.cpp=.o)
 
-CFLAGS =$(OPT) $(ARGS) $(INCLUDE)
+EXE	= 
+EXESRCS	= 
 
-all: SGI/libTools-64.a
+EXEOBJS = $(EXESRCS:.cpp=.o)
+EXEDEPENDS = -lz
+# targa.h
 
-32: SGI/libTools.a
+SRCS	= $(LIBSRCS) $(EXESRCS)
 
-SGI/libTools.a: UtilDir MathDir ImageDir ModelDir
-	rm -f $@
-	mkdir -p SGI
-	ar clq $@ Util/*.o Math/*.o Image/*.o Model/*.o
+EXPORT_HEADERS = 
 
-SGI/libTools-64.a: UtilDir64 MathDir64 ImageDir64 ModelDir64
-	rm -f $@
-	mkdir -p SGI
-	CC -ar -o $@ $(OPT) Util/*.o Math/*.o Image/*.o Model/*.o
+#########################################################
+# C COMPILATION
 
-UtilDir:
-	(cd Util ; smake OPT="$(OPT)" CC="$(CC)")
+CC = g++
+CWARNFLAGS = -Wall
+CDEFS = -DANSI
+CINCLUDES = -I. -I.. -IHalf -I../Goodies/include
+CDEBUGFLAGS = -O3
+CFLAGS = $(CWARNFLAGS) $(CDEBUGFLAGS) $(CDEFS) $(CINCLUDES)
 
-MathDir:
-	(cd Math ; smake OPT="$(OPT)" CC="$(CC)")
+CXXFLAGS = $(CFLAGS)
 
-ImageDir:
-	(cd Image ; smake OPT="$(OPT)" CC="$(CC)")
+.SUFFIX: .cpp
+%.o: %.cpp
+	$(COMPILE.cc) $< $(OUTPUT_OPTION)
 
-ModelDir:
-	(cd Model ; smake OPT="$(OPT)" CC="$(CC)")
 
-UtilDir64:
-	(cd Util ; smake OPT="$(OPT) -64" CC="$(CC)")
+################################################################
+# TARGETS
+ALL = $(EXE) $(LIB)
+all: $(ALL)
 
-MathDir64:
-	(cd Math ; smake OPT="$(OPT) -64" CC="$(CC)")
+################################################################
+# BUILD
 
-ImageDir64:
-	(cd Image ; smake OPT="$(OPT) -64" CC="$(CC)")
+Build build install:
+	@echo "Starting Build @ `date '+%T %d%h%y'`"
+	@$(MAKE) install_exe
+	@echo "Done @ `date '+%T %d%h%y'`"
 
-ModelDir64:
-	(cd Model ; smake OPT="$(OPT) -64" CC="$(CC)")
+################################################################
+include Makefile.std
 
-clean:
-	(cd Model ; make clean)
-	(cd Test ; make clean)
-	rm -f ./unistd.h
-	rm -f */*.o
-	rm -f */*~
-	rm -rf */ii_files
-	rm -rf */ptrepository
-	chmod 644 *.h */*.cpp */*.h
-	crfilter *.h */*.cpp */*.h
 
-tgz:
-	mkdir DMcTools
-	mkdir DMcTools/Util
-	mkdir DMcTools/Math
-	mkdir DMcTools/Image
-	mkdir DMcTools/Model
-	mkdir DMcTools/Test
-	cp *.h Makefile Makefile.hp DMcTools.ds? README.txt DMcTools
-	cp Util/*.h Util/*.cpp Util/Makefile DMcTools/Util
-	cp Math/*.h Math/*.cpp Math/Makefile DMcTools/Math
-	cp Test/*.h Test/*.cpp Test/Makefile DMcTools/Test
-	cp Image/*.h Image/*.cpp Image/Makefile DMcTools/Image
-	cp Model/*.h Model/*.cpp Model/Makefile Model/*.y Model/*.l DMcTools/Model
-	tar cvf DMcTools.tar DMcTools
-	gzip DMcTools.tar
-	rm -rf DMcTools
-	mv DMcTools.tar.gz ..

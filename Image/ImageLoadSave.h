@@ -31,7 +31,7 @@ public:
     ~ImageLoadSave()
     {
         // The data should always get taken away from me.
-        ASSERT0(Pix == NULL);
+        ASSERT_R(Pix == NULL);
     }
     
     int size() const {return wid * hgt;}
@@ -83,7 +83,7 @@ public:
     bool SavePNG(const char *fname) const;
     bool LoadMAT(const char *fname);
     bool SaveMAT(const char *fname) const;
-#ifdef DMC_USE_HDR
+#ifdef DMC_USE_RGBE
     bool LoadHDR(const char* fname);
     bool SaveHDR(const char *fname) const;
 #endif

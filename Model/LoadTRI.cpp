@@ -9,6 +9,6 @@
 bool Model::LoadTRI(const char *fname, const unsigned int RequiredAttribs,
         const unsigned int AcceptedAttribs)
 {
-	ASSERTERR(0, "Not written.");
+	ASSERT_RM(0, "Not written.");
     return true;
 }

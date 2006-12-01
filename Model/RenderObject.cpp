@@ -45,7 +45,7 @@ void RenderObject::RebuildBBox()
 // the inverse transpose, but merely the upper 3x3.
 void RenderObject::ApplyTransform(Matrix44 &Mat)
 {
-    ASSERT0(0);
+    ASSERT_R(0);
 #if 0
     Box.Reset();
     
@@ -68,10 +68,10 @@ void RenderObject::ApplyTransform(Matrix44 &Mat)
 
 void RenderObject::ApplyTextureTransform(Matrix44 &Mat)
 {
-    ASSERT0(VertexType & OBJ_TEXCOORDS);
+    ASSERT_R(VertexType & OBJ_TEXCOORDS);
     
     int i;
-    for(i=0; i<verts.size(); i++) {
+    for(i=0; i<(int)verts.size(); i++) {
         texcoords[i] = Mat * texcoords[i];
     }
 }

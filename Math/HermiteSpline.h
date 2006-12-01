@@ -18,7 +18,6 @@
 
 #ifdef DMC_MACHINE_win
 #include <vector>
-using namespace std;
 #endif
 
 template<class T>

@@ -12,15 +12,12 @@
 #include <vector>
 #include <algorithm>
 
-using namespace std;
-
-
 // The class _Tp must support the following functions:
 // friend inline bool lessX(const _Tp &a, const _Tp &b);
 // friend inline bool lessY(const _Tp &a, const _Tp &b);
 // friend inline bool lessZ(const _Tp &a, const _Tp &b);
 // inline bool operator==(const _Tp &a) const;
-// inline Vector &vector() const;
+// inline Vector &std::vector() const;
 // These can point to the normal ones if no ties cannot occur.
 // friend inline bool lessFX(const _Tp &a, const _Tp &b);
 // friend inline bool lessFY(const _Tp &a, const _Tp &b);
@@ -34,7 +31,7 @@ template<class _Tp>
 class KDBoxTree
 {
 	BBox Box;
-	vector<_Tp> Items;
+	std::vector<_Tp> Items;
 	_Tp Med;
 	KDBoxTree *left, *right;
 	bool (*myless)(const _Tp &a, const _Tp &b);
@@ -47,22 +44,22 @@ public:
 		left = right = NULL;
 		myless = NULL;
 		Items.assign(first, last);
-		for(std::vector<_Tp>::iterator I = Items.begin(); I!=Items.end(); I++)
+		for(typename std::vector<_Tp>::iterator I = Items.begin(); I!=Items.end(); I++)
 			Box += I->vector();
 		
-		// cerr << "Constructed KDBoxTree with " << Items.size() << " items.\n";
+		// std::cerr << "Constructed KDBoxTree with " << Items.size() << " items.\n";
 	}
 	
 	// A copy constructor.
 	inline KDBoxTree(const KDBoxTree &Tr) : Box(Tr.Box), Items(Tr.Items), Med(Tr.Med)
 	{
-		// cerr << "Copying KDBoxTree\n";
+		// std::cerr << "Copying KDBoxTree\n";
 		myless = Tr.myless;
 		if(Tr.left)
 		{
 			left = new KDBoxTree(*Tr.left);
 			right = new KDBoxTree(*Tr.right);
-			ASSERTERR(left && right, "memory alloc failed");			
+			ASSERT_RM(left && right, "memory alloc failed");			
 		}
 		else
 			left = right = NULL;
@@ -92,10 +89,10 @@ public:
 	
 	inline void insert(const _Tp &It)
 	{
-		//cerr << "Box In\n";
+		//std::cerr << "Box In\n";
 		Box += It.vector();
 		
-		// cerr << Items.size() << Box << " " << It.Vert->V << endl;
+		// std::cerr << Items.size() << Box << " " << It.Vert->V << std::endl;
 		
 		if(left)
 		{
@@ -115,14 +112,14 @@ public:
 			// Find which dimension.
 			Vector d = Box.MaxV - Box.MinV;
 			
-			if(d.x > d.y) myless = (d.x > d.z) ? lessX : lessZ;
-			else myless = (d.y > d.z) ? lessY : lessZ;
+			if(d.x > d.y) myless = (d.x > d.z) ? _Tp::lessX : _Tp::lessZ;
+			else myless = (d.y > d.z) ? _Tp::lessY : _Tp::lessZ;
 
-			for(vector<_Tp>::const_iterator Ti = Items.begin(); Ti != Items.end(); Ti++)
+			for(typename std::vector<_Tp>::const_iterator Ti = Items.begin(); Ti != Items.end(); Ti++)
 			{
 				Vector Vf = Ti->vector();
 				if(IsNaN(Vf.x) || IsNaN(Vf.y) || IsNaN(Vf.z))
-					cerr << "NAN " << Vf << endl;
+					std::cerr << "NAN " << Vf << std::endl;
 			}
 			
 			// Split the box into two kids and find median.
@@ -134,18 +131,18 @@ public:
 			if(!myless(*(MedP-1), *MedP))
 			{
 				// Shift gears to more complex comparator.
-				if(d.x > d.y) myless = d.x > d.z ? lessFX : lessFZ;
-				else myless = d.y > d.z ? lessFY : lessFZ;
+				if(d.x > d.y) myless = d.x > d.z ? _Tp::lessFX : _Tp::lessFZ;
+				else myless = d.y > d.z ? _Tp::lessFY : _Tp::lessFZ;
 				
 				sort(Items.begin(), Items.end(), myless);
 			}
-			ASSERT1(myless(*(MedP-1), *MedP));
+			ASSERT_D(myless(*(MedP-1), *MedP));
 			Med = *MedP;
 			
             // Puts the median in the right child.
             left = new KDBoxTree(&(*Items.begin()), MedP);
             right = new KDBoxTree(MedP, &(*Items.end()));
-            ASSERTERR(left && right, "memory alloc failed");			
+            ASSERT_RM(left && right, "memory alloc failed");			
 			Items.clear();
 		}
 	}
@@ -157,7 +154,7 @@ public:
 	inline bool find(const _Tp &It, _Tp &Res)
 	{
 		// fprintf(stderr, "F: 0x%08x ", long(this));
-		// cerr << Items.size() << Box << " " << It.Vert->V << endl;
+		// std::cerr << Items.size() << Box << " " << It.Vert->V << std::endl;
 		
 		if(left)
 		{
@@ -204,7 +201,7 @@ public:
 	
 	void Dump()
 	{
-		cerr << Box << endl;
+		std::cerr << Box << std::endl;
 		
 		if(left)
 		{
@@ -213,12 +210,12 @@ public:
 		}
 		else
 		{
-			cerr << "Count = " << Items.size() << endl;
+			std::cerr << "Count = " << Items.size() << std::endl;
 			for(int i=0; i<Items.size(); i++)
 			{
 				const Vector &V = Items[i].vector();
 				fprintf(stderr, "%d %0.20lf %0.20lf %0.20lf\n", i, V.x, V.y, V.z);
-				// cerr << i << " " << Items[i].vector() << endl;
+				// std::cerr << i << " " << Items[i].vector() << std::endl;
 			}
 		}
 	}

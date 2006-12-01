@@ -26,7 +26,7 @@ public:
 		n = _n;
 		sindata=new double[n];
 		cosdata=new double[n];
-		ASSERTERR(sindata && cosdata, "memory alloc failed");		
+		ASSERT_RM(sindata && cosdata, "memory alloc failed");		
 		double d = max-min;
 		for(int i=0;i<n;i++)
 		{
@@ -68,7 +68,7 @@ public:
         min = _min;
 		asindata=new double[n];
 		acosdata=new double[n];
-		ASSERTERR(asindata && acosdata, "memory alloc failed");		
+		ASSERT_RM(asindata && acosdata, "memory alloc failed");		
 		double d = max-min;
 		for(int i=0;i<n;i++)
 		{
@@ -98,7 +98,7 @@ public:
     inline double ACos(double c) const
     {
         int i = int((c - min) * k);
-        //ASSERT0(i >= 0 && i < n);
+        //ASSERT_R(i >= 0 && i < n);
         return acosdata[i];
     }
 };

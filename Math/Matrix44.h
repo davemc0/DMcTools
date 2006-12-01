@@ -33,7 +33,7 @@ class Matrix44
                 return mat[3][i];
         }
         
-        ASSERT0(0);
+        ASSERT_R(0);
         return 0;
     }
     
@@ -308,8 +308,8 @@ public:
             is_identity = false;
     }
     
-    string print() const;
-    string printInv() const;
+    std::string print() const;
+    std::string printInv() const;
     bool CheckNaN() const; // Make sure there are no NaNs.
     
     // Touch a single element of the matrix.
@@ -347,13 +347,13 @@ inline Matrix44 MFrustum(double l, double r, double b, double t, double zn, doub
 inline Matrix44 MPerspective(double fovyRad, double aspect, double znear, double zfar) {Matrix44 M; M.Perspective(fovyRad, aspect, znear, zfar); return M;}
 inline Matrix44 MLookAt(const Vector& eye, const Vector& lookat, const Vector& up) {Matrix44 M; M.LookAt(eye, lookat, up); return M;}
 
-inline ostream& operator<<(ostream& os, const Matrix44& m)
+inline std::ostream& operator<<(std::ostream& os, const Matrix44& m)
 {
     os << m.print();
     return os;
 }
 
-inline istream& operator>>(istream& is, Matrix44& m)
+inline std::istream& operator>>(std::istream& is, Matrix44& m)
 {
     char st;
     double mat[4][4];

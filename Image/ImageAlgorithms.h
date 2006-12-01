@@ -10,7 +10,6 @@
 
 #include <vector>
 
-using namespace std;
 
 // Shamelessly copied from Alvy Ray Smith's Principles of Image Compositing
 // Returns an 8.8 fixed.
@@ -70,7 +69,7 @@ _RetType getApproxMedian(const _ImgType &Img, const int NumSamples);
 // Values beyond minc and maxc are not counted.
 // You define a return type that is usually a uiPixel w/ as many channels as the image.
 template <class _PixType, class _ImgType, class _ElType>
-vector<_PixType> getHistogram(const _ImgType &Img, const int NumBuckets,
+std::vector<_PixType> getHistogram(const _ImgType &Img, const int NumBuckets,
                               const _ElType minc, const _ElType maxc);
 
 // Cheezy box filter for MIP level generation, etc.

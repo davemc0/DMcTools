@@ -44,10 +44,10 @@ struct YYObject : public TriObject
 	int MaterialBinding, NormalBinding;
 	bool InTexture2Transform, InTransform;
 	
-	vector<int> MaterialIndices;
-	vector<int> NormalIndices;
-	vector<int> TexCoordIndices;
-	vector<int> VertexIndices;
+	std::vector<int> MaterialIndices;
+	std::vector<int> NormalIndices;
+	std::vector<int> TexCoordIndices;
+	std::vector<int> VertexIndices;
 	
 	YYObject()
 	{
@@ -59,20 +59,20 @@ struct YYObject : public TriObject
 };
 
 // These are all given to BisonMe.y.
-extern void s_Vertices(vector<Vector> *);
-extern void s_Normals(vector<Vector> *);
-extern void s_TexCoords(vector<Vector> *);
-extern void s_AmbientColors(vector<Vector> *);
-extern void s_DiffuseColors(vector<Vector> *);
-extern void s_EmissiveColors(vector<Vector> *);
-extern void s_Shininesses(vector<double> *);
-extern void s_SpecularColors(vector<Vector> *);
-extern void s_Transparencies(vector<double> *);
+extern void s_Vertices(std::vector<Vector> *);
+extern void s_Normals(std::vector<Vector> *);
+extern void s_TexCoords(std::vector<Vector> *);
+extern void s_AmbientColors(std::vector<Vector> *);
+extern void s_DiffuseColors(std::vector<Vector> *);
+extern void s_EmissiveColors(std::vector<Vector> *);
+extern void s_Shininesses(std::vector<double> *);
+extern void s_SpecularColors(std::vector<Vector> *);
+extern void s_Transparencies(std::vector<double> *);
 
-extern void s_CoordIndices(vector<int> *);
-extern void s_MaterialIndices(vector<int> *);
-extern void s_NormalIndices(vector<int> *);
-extern void s_TexCoordIndices(vector<int> *);
+extern void s_CoordIndices(std::vector<int> *);
+extern void s_MaterialIndices(std::vector<int> *);
+extern void s_NormalIndices(std::vector<int> *);
+extern void s_TexCoordIndices(std::vector<int> *);
 
 extern void s_NormalBinding(int Binding);
 extern void s_MaterialBinding(int Binding);

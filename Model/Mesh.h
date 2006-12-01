@@ -20,7 +20,8 @@
 #include <Model/RenderObject.h>
 
 #include <set>
-using namespace std;
+#include <vector>
+#include <iostream>
 
 struct Mesh : public BaseObject
 {
@@ -87,15 +88,15 @@ struct Mesh : public BaseObject
     
     virtual void Dump() const
     {
-        cerr << "Mesh vert count: " << VertexCount << " edge count: "
-            << EdgeCount << " face count: " << FaceCount << endl;
+        std::cerr << "Mesh vert count: " << VertexCount << " edge count: "
+                  << EdgeCount << " face count: " << FaceCount << std::endl;
     }
     
     // For meshes with attributes, generates the given attribute.
     // based on the geometry of the mesh.
     // You need to make sure the facing is consistent before calling this.
     // Sets the OBJ_WHATEVER flag.
-    virtual void GenColors() {ASSERT0(0);}
+    virtual void GenColors() {ASSERT_R(0);}
     virtual void GenNormals();
     virtual void GenTexCoords();
     virtual void GenTangents();
@@ -243,7 +244,7 @@ struct Mesh : public BaseObject
         Vertex Ver;
         Ver.V = V;
         KDVertex InV(&Ver);
-        cerr << "F";
+        std::cerr << "F";
         KDVertex OutV;
         if(VertTree->find(InV, OutV))
         {
@@ -253,7 +254,7 @@ struct Mesh : public BaseObject
             return NULL;
     }
     
-    Vertex *FindVertexInEdgeList(const vector<Edge *> &EdgeList, const Vector &V,
+    Vertex *FindVertexInEdgeList(const std::vector<Edge *> &EdgeList, const Vector &V,
         Edge * &FoundEdge) const;
     
     // Searches these vertices to find an edge between them.
@@ -280,7 +281,7 @@ struct Mesh : public BaseObject
 
 private:
     // Returns a count of flipped faces.
-    int FlipMe(Face *F, set<Face *> &Visited, 
+    int FlipMe(Face *F, std::set<Face *> &Visited, 
         Vertex *v0, Vertex *v1, Vertex *v2);
 
     // Called by SplitVertexAtFace.

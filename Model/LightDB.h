@@ -11,7 +11,6 @@
 #include <Util/Utils.h>
 
 #include <vector>
-using namespace std;
 
 struct LightInfo
 {
@@ -40,22 +39,22 @@ struct LightInfo
     
     inline void Dump()
     {
-        cerr << LightName<<" "<<(Enabled?"on ":"off ")<<LightID<<" "<<LightType<<" "
+        std::cerr << LightName<<" "<<(Enabled?"on ":"off ")<<LightID<<" "<<LightType<<" "
             <<Intensity<<" "<<Color<<" "<<Position
-            <<" "<<DropOffRate<<" "<<CutOffAngle<<endl;
+            <<" "<<DropOffRate<<" "<<CutOffAngle<<std::endl;
     }
 };
 
 class LightDB
 {
 public:
-	vector<LightInfo *> LightList;
+	std::vector<LightInfo *> LightList;
 	
 	// Returns -1 if not found.
 	inline LightInfo *FindByName(const char *name)
 	{
-        ASSERT0(name); 
-		for(int tind=0; tind<LightList.size(); tind++) {
+        ASSERT_R(name); 
+		for(int tind=0; tind<(int)LightList.size(); tind++) {
 			if(!strcmp(LightList[tind]->LightName, name))
 				return LightList[tind];
 		}
@@ -76,7 +75,7 @@ public:
     // Adds it if not found.
     inline LightInfo *FindByNameOrAdd(const char *name)
     {
-        ASSERT0(name); 
+        ASSERT_R(name); 
         LightInfo *x = FindByName(name);
         if(x == NULL) {
             x = Add();
@@ -87,8 +86,8 @@ public:
     
     inline void Dump()
     {
-        for(int i=0; i<LightList.size(); i++) {
-            cerr << i << ": ";
+        for(int i=0; i<(int)LightList.size(); i++) {
+            std::cerr << i << ": ";
             LightList[i]->Dump();
         }
     }

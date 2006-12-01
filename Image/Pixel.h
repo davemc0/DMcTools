@@ -47,7 +47,7 @@ public:
     // Copy constructor from base class.
     t1Pixel(const tPixel<_ElType,1> &p)
     {
-        for(int i=0; i<chan(); i++) (*this)[i] = p[i];
+        for(int i=0; i<tPixel<_ElType,1>::chan(); i++) (*this)[i] = p[i];
     }
 
     // Only one-channel pixels have this:
@@ -107,7 +107,7 @@ public:
     // Copy constructor from base class.
     t2Pixel(const tPixel<_ElType,2> &p)
     {
-        for(int i=0; i<chan(); i++) (*this)[i] = p[i];
+        for(int i=0; i<tPixel<_ElType,2>::chan(); i++) (*this)[i] = p[i];
     }
 
     // Convert any kind of pixel to this kind.
@@ -230,7 +230,7 @@ public:
     // Copy constructor from base class.
     t4Pixel(const tPixel<_ElType,4> &p)
     {
-        for(int i=0; i<chan(); i++) (*this)[i] = p[i];
+        for(int i=0; i<tPixel<_ElType,4>::chan(); i++) (*this)[i] = p[i];
     }
     
     // Convert any kind of pixel to this kind.

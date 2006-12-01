@@ -1,9 +1,5 @@
 /* Copyright (c) 1991 Regents of the University of California */
 
-#ifndef lint
-static char SCCSid[] = "@(#)color.c 2.8 3/26/94 LBL";
-#endif
-
 /*
 * color.c - routines for color calculations.
 *
@@ -23,7 +19,7 @@ static char SCCSid[] = "@(#)color.c 2.8 3/26/94 LBL";
 
 int fwritergbe(RGBE *scanline, int len, FILE *fp)/* write out a rgbe scanline */
 {
-    int i, j, beg, cnt;
+    int i, j, beg, cnt=0;
     int c2;
     
     if (len < MINELEN || len > MAXELEN) /* OOBs, write out flat */

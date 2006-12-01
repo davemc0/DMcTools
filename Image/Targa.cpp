@@ -5,15 +5,8 @@
 
 #include <Image/ImageLoadSave.h>
 
-#ifdef DMC_MACHINE_sgi
 #include <fstream>
 using namespace std;
-#endif
-
-#ifdef DMC_MACHINE_win
-#include <fstream>
-using namespace std;
-#endif
 
 // Header definition.
 typedef struct TGA_Header_
@@ -188,7 +181,7 @@ static int decode_rgb_rle16(const unsigned char *src0, unsigned char *dest0,
 			src += 2;
 	}
 
-	ASSERT0(dest <= dest0 + wid*hgt*chan);
+	ASSERT_R(dest <= dest0 + wid*hgt*chan);
 
 	return(0);
 }
@@ -227,7 +220,7 @@ static int decode_rgb_rle8(const unsigned char *src0, unsigned char *dest0,
 			src += chan;
 	}
 	
-	ASSERT0(dest <= dest0 + wid*hgt*chan);
+	ASSERT_R(dest <= dest0 + wid*hgt*chan);
 
 	return(0);
 }
@@ -268,7 +261,7 @@ static int decode_rgb_rle24(const unsigned char *src0, unsigned char *dest0,
 			src += chan;
 	}
 	
-	ASSERT0(dest <= dest0 + wid*hgt*chan);
+	ASSERT_R(dest <= dest0 + wid*hgt*chan);
 
 	return(0);
 }
@@ -330,7 +323,7 @@ bool ImageLoadSave::LoadTGA(const char *fname, bool R5G6B5)
 	InFile.seekg(0, ios::beg);
 	
 	unsigned char *fdata = new unsigned char[fsize];
-	ASSERTERR(fdata, "memory alloc failed");
+	ASSERT_RM(fdata, "memory alloc failed");
 	
 	InFile.read((char *)fdata, fsize);
 	
@@ -454,7 +447,7 @@ bool ImageLoadSave::LoadTGA(const char *fname, bool R5G6B5)
     if((header->Desc & TGA_DESC_ORG_MASK) == TGA_ORG_BOTTOM_LEFT) {
         int lsize = wid * chan;
         unsigned char *tbuf = new unsigned char[lsize];
-        ASSERTERR(tbuf, "memory alloc failed");
+        ASSERT_RM(tbuf, "memory alloc failed");
         
         for(int y=0; y<hgt/2; y++)
         {
@@ -639,7 +632,7 @@ bool ImageLoadSave::SaveTGA(const char *fname) const
     // Make the array for the outgoing data. If not compressible,
     // it could end up very big. Worst case: AAB.
 	unsigned char *out_data = new unsigned char[2*size_bytes() + size() / 128];
-	ASSERTERR(out_data, "memory alloc failed");
+	ASSERT_RM(out_data, "memory alloc failed");
 
     // Compress the data
 	int rle_size = encode_rle(Pix, out_data, size(), chan);

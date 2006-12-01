@@ -11,6 +11,8 @@
 #include <Math/Vector.h>
 #endif
 
+using namespace std;
+
 template<class T>
 CatmullRomSpline<T>::CatmullRomSpline()
 : d(0), nset(0), nintervals(0), mx(0)
@@ -76,7 +78,7 @@ void CatmullRomSpline<T>::removeData( const int idx )
 template<class T>
 T CatmullRomSpline<T>::operator()( double x ) const
 {
-	ASSERT(nset >= 4);
+	ASSERT_D(nset >= 4);
 	double xs(x*nintervals);
 	int idx((int)xs);
 	double t(xs-idx);

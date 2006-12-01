@@ -18,7 +18,6 @@
 #include <Model/BaseObject.h>
 
 #include <vector>
-using namespace std;
 
 // Ripped directly from <GL/gl.h>
 #define L_POINTS 0x0000
@@ -36,12 +35,12 @@ struct TriObject : public BaseObject
 {
 	int PrimType; // GL_TRIANGLE_STRIP, etc.
 
-    vector<Vector> verts;
-	vector<Vector> normals; // Must have a length of 0, 1, or verts.size().
-	vector<Vector> tangents; // Must have a length of 0, 1, or verts.size().
-	vector<Vector> texcoords; // Must have a length of 0, 1, or verts.size().
-	vector<Vector> dcolors; // Must have a length of 0, 1, or verts.size().
-	vector<double> alphas; // Must have a length of 0 or dcolors.size().
+    std::vector<Vector> verts;
+	std::vector<Vector> normals; // Must have a length of 0, 1, or verts.size().
+	std::vector<Vector> tangents; // Must have a length of 0, 1, or verts.size().
+	std::vector<Vector> texcoords; // Must have a length of 0, 1, or verts.size().
+	std::vector<Vector> dcolors; // Must have a length of 0, 1, or verts.size().
+	std::vector<double> alphas; // Must have a length of 0 or dcolors.size().
 	
 	inline TriObject()
 	{
@@ -55,9 +54,9 @@ struct TriObject : public BaseObject
 	virtual void Dump() const;
 
     // Sets the OBJ_WHATEVER flag.
-    virtual void GenColors() {ASSERT0(0);}
+    virtual void GenColors() {ASSERT_R(0);}
     virtual void GenNormals();
-    virtual void GenTexCoords() {ASSERT0(0);}
+    virtual void GenTexCoords() {ASSERT_R(0);}
     virtual void GenTangents();
 	
     // Clears the OBJ_WHATEVER flag.

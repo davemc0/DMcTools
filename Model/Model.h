@@ -10,7 +10,6 @@
 #include <Model/BaseObject.h>
 
 #include <vector>
-using namespace std;
 
 class Model
 {
@@ -19,7 +18,7 @@ public:
 	BBox Box;
 	
     // Pointers actually to subclasses of BaseObject.
-	vector<BaseObject *> Objs;
+	std::vector<BaseObject *> Objs;
 	int ObjID;
 	
 	inline Model() {ObjID = -1;}
@@ -29,7 +28,7 @@ public:
         const unsigned int AcceptedAttribs = OBJ_ALL)
 	{
         // Make sure they accept what they require.
-        ASSERT0(AcceptedAttribs == (AcceptedAttribs | RequiredAttribs));
+        ASSERT_R(AcceptedAttribs == (AcceptedAttribs | RequiredAttribs));
 
 		ObjID = -1;
 		Load(fname, RequiredAttribs, AcceptedAttribs);

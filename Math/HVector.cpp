@@ -5,9 +5,11 @@
 
 #include <Math/HVector.h>
 
+using namespace std;
+
 string HVector::print() const
 {
-	ASSERT(data != NULL);
+	ASSERT_R(data != NULL);
 	
 	string s;
 	char ii[20];
@@ -52,7 +54,7 @@ HVector & HVector::nrand(const double sigma)
 // Takes an array of HVectors.
 HVector Mean(const HVector *VA, const int count)
 {
-	ASSERT(count > 0);
+	ASSERT_R(count > 0);
 	
 	int dim = VA[0].size();
 	
@@ -61,7 +63,7 @@ HVector Mean(const HVector *VA, const int count)
 	
 	for(int i=0; i<count; i++)
 	{
-		ASSERT(VA[i].size() == dim);
+		ASSERT_D(VA[i].size() == dim);
 		
 		Mu += VA[i];
 	}
@@ -73,9 +75,9 @@ HVector Mean(const HVector *VA, const int count)
 
 Matrix OuterProd(const HVector &A, const HVector &B)
 {
-	ASSERT(A.data != NULL);
-	ASSERT(B.data != NULL);
-	ASSERT(A.r == B.r);
+	ASSERT_R(A.data != NULL);
+	ASSERT_R(B.data != NULL);
+	ASSERT_R(A.r == B.r);
 	
 	Matrix C(A.r, A.r);
 	
@@ -91,7 +93,7 @@ Matrix OuterProd(const HVector &A, const HVector &B)
 // Compute the covariance matrix of this array of vectors.
 Matrix Covariance(const HVector *VA, const int count)
 {
-	ASSERT(count > 0);
+	ASSERT_R(count > 0);
 	
 	int dim = VA[0].size();
 	Matrix Cov(dim, dim);
@@ -99,12 +101,12 @@ Matrix Covariance(const HVector *VA, const int count)
 	
 	HVector Mu = Mean(VA, count);
 	HVector *VL = new HVector[count];
-	ASSERTERR(VL, "memory alloc failed");
+	ASSERT_RM(VL, "memory alloc failed");
 	
 	int i;
 	for(i=0; i<count; i++)
 	{
-		ASSERT(VA[i].size() == dim);
+		ASSERT_D(VA[i].size() == dim);
 		VL[i] = VA[i] - Mu;
 	}
 

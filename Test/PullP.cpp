@@ -2,6 +2,9 @@
 #include <Image/PullPush.h>
 #include <Util/Utils.h>
 
+#include <iostream>
+using namespace std;
+
 #define LOOP 10000
 
 int main(int argc, char **argv)
@@ -15,7 +18,8 @@ int main(int argc, char **argv)
 	memset(Im, 0, Bob.size * sizeof(float));
 	memset(Wg, 0, Bob.size * sizeof(float));
 	
-	for(int i=0; i<LOOP; i++)
+    int i;
+	for(i=0; i<LOOP; i++)
     {
 		int j = LRand() % Bob.size;
 		Im[j] = float(Bob.Pix[j]);

@@ -10,9 +10,11 @@
 #include <stdio.h>
 #include <string.h>
 
+using namespace std;
+
 struct MatInfo
 {
-    const char *Name;
+    char *Name;
     TexInfo *TexPtr; // This points to the texture database record.
     double Shininess;
     Vector D, S, A, E;
@@ -33,7 +35,7 @@ public:
     // Inserts if not found.
     inline int FindByName(const char *name)
     {
-        for(int mind=0; mind<MatList.size(); mind++)
+        for(int mind=0; mind<(int)MatList.size(); mind++)
         {
             if(!strcmp(MatList[mind].Name, name))
                 return mind;
@@ -44,7 +46,7 @@ public:
     
     inline void Dump()
     {
-        for(int i=0; i<MatList.size(); i++)
+        for(int i=0; i<(int)MatList.size(); i++)
             cerr << i << ": " << MatList[i].D << " " << MatList[i].Name << endl;
     }
 };
@@ -79,12 +81,12 @@ void LoadMTL(const char *fname)
 {
     cerr << fname << endl;
     FILE *f = fopen(fname, "r");
-    ASSERTERR(f, "Error opening material file");
+    ASSERT_RM(f, "Error opening material file");
     MatInfo M;
     char TmpBuf[4096];
     
     while(fgets(TmpBuf,4096,f)) {
-        size_t l = strlen(TmpBuf);
+        // size_t l = strlen(TmpBuf);
         if(!strncmp(TmpBuf, "newmtl", 6)) {
             if(M.Name)
                 Mats.MatList.push_back(M);
@@ -147,13 +149,13 @@ inline bool GetFace(char *OBuf, vector<Vector> &tverts, vector<Vector> &tnormals
         
         v[i]--; uv[i]--; n[i]--;
         
-        ASSERTERR(v[i]>=0, "Vertex index underflow.");
-        ASSERTERR(uv[i]>=0, "Texcoord index underflow.");
-        ASSERTERR(n[i]>=0, "Normal index underflow.");
+        ASSERT_RM(v[i]>=0, "Vertex index underflow.");
+        ASSERT_RM(uv[i]>=0, "Texcoord index underflow.");
+        ASSERT_RM(n[i]>=0, "Normal index underflow.");
         
-        ASSERTERR(v[i]<tverts.size(), "Vertex index overflow.");
-        ASSERTERR(uv[i]<ttexcoords.size(), "Texcoord index overflow.");
-        ASSERTERR(n[i]<tnormals.size(), "Normal index overflow.");
+        ASSERT_RM(v[i]<(int)tverts.size(), "Vertex index overflow.");
+        ASSERT_RM(uv[i]<(int)ttexcoords.size(), "Texcoord index overflow.");
+        ASSERT_RM(n[i]<(int)tnormals.size(), "Normal index overflow.");
         
         buf += j;
         i++;
@@ -169,11 +171,11 @@ inline bool GetFace(char *OBuf, vector<Vector> &tverts, vector<Vector> &tnormals
             
             v[i]--; n[i]--;
             
-            ASSERTERR(v[i]>=0, "Vertex index underflow.");
-            ASSERTERR(n[i]>=0, "Normal index underflow.");
+            ASSERT_RM(v[i]>=0, "Vertex index underflow.");
+            ASSERT_RM(n[i]>=0, "Normal index underflow.");
             
-            ASSERTERR(v[i]<tverts.size(), "Vertex index overflow.");
-            ASSERTERR(n[i]<tnormals.size(), "Normal index overflow.");
+            ASSERT_RM(v[i]<(int)tverts.size(), "Vertex index overflow.");
+            ASSERT_RM(n[i]<(int)tnormals.size(), "Normal index overflow.");
             
             buf += j;
             HasTexcoords = false;
@@ -189,11 +191,11 @@ inline bool GetFace(char *OBuf, vector<Vector> &tverts, vector<Vector> &tnormals
             
             v[i]--; uv[i]--;
             
-            ASSERTERR(v[i]>=0, "Vertex index underflow.");
-            ASSERTERR(uv[i]>=0, "Texcoord index underflow.");
+            ASSERT_RM(v[i]>=0, "Vertex index underflow.");
+            ASSERT_RM(uv[i]>=0, "Texcoord index underflow.");
             
-            ASSERTERR(v[i]<tverts.size(), "Vertex index overflow.");
-            ASSERTERR(uv[i]<ttexcoords.size(), "Texcoord index overflow.");
+            ASSERT_RM(v[i]<(int)tverts.size(), "Vertex index overflow.");
+            ASSERT_RM(uv[i]<(int)ttexcoords.size(), "Texcoord index overflow.");
             
             buf += j;
             HasNormals = false;
@@ -208,25 +210,25 @@ inline bool GetFace(char *OBuf, vector<Vector> &tverts, vector<Vector> &tnormals
             // cerr << "xx " << v[i] << " XXX:" << buf << endl;
             v[i]--;
             
-            ASSERTERR(v[i]>=0, "Vertex index underflow.");
-            ASSERTERR(v[i]<tverts.size(), "Vertex index overflow.");
+            ASSERT_RM(v[i]>=0, "Vertex index underflow.");
+            ASSERT_RM(v[i]<(int)tverts.size(), "Vertex index overflow.");
             
-            if(ttexcoords.size() > v[i])
+            if((int)ttexcoords.size() > v[i])
             {
                 // It implies a texcoord also.
                 uv[i] = v[i];
-                ASSERTERR(uv[i]>=0, "Implied Texcoord index underflow.");
-                ASSERTERR(uv[i]<ttexcoords.size(), "Implied Texcoord index overflow.");
+                ASSERT_RM(uv[i]>=0, "Implied Texcoord index underflow.");
+                ASSERT_RM(uv[i]<(int)ttexcoords.size(), "Implied Texcoord index overflow.");
             }
             else
                 HasTexcoords = false;
             
-            if(tnormals.size() > v[i])
+            if((int)tnormals.size() > v[i])
             {
                 // It implies a normal also.
                 n[i] = v[i];
-                ASSERTERR(n[i]>=0, "Implied Normal index underflow.");
-                ASSERTERR(n[i]<tnormals.size(), "Implied Normal index overflow.");
+                ASSERT_RM(n[i]>=0, "Implied Normal index underflow.");
+                ASSERT_RM(n[i]<(int)tnormals.size(), "Implied Normal index overflow.");
             }
             else
                 HasNormals = false;
@@ -272,8 +274,8 @@ inline bool GetFace(char *OBuf, vector<Vector> &tverts, vector<Vector> &tnormals
 bool Model::LoadOBJ(const char *fname, const unsigned int RequiredAttribs,
         const unsigned int AcceptedAttribs)
 {
-    FILE *f = fopen(fname, "r");
-    ASSERTERR(f, "Error opening input file");
+	FILE *f = fopen(fname, "r");
+    ASSERT_RM(f, "Error opening input file");
     
     Objs.clear();
     TriObject *Obj = new TriObject;
@@ -305,7 +307,7 @@ bool Model::LoadOBJ(const char *fname, const unsigned int RequiredAttribs,
             // a face
             bool OK = GetFace(&TmpBuf[1], tverts, tnormals, ttexcoords,
                 Obj->verts, Obj->normals, Obj->texcoords);
-            ASSERTERR(OK, "Couldn't get the vertex indices.");
+            ASSERT_RM(OK, "Couldn't get the vertex indices.");
         } else if(TmpBuf[0] == 'g') {
             char GName[64];
             char X[64];
@@ -317,12 +319,12 @@ bool Model::LoadOBJ(const char *fname, const unsigned int RequiredAttribs,
             
             // See if the group name exists.
             int ii;
-            for(ii=0; ii<Objs.size(); ii++) {
+            for(ii=0; ii<(int)Objs.size(); ii++) {
                 if(!strcmp(Objs[ii]->Name, GName))
                     break;
             }
             
-            if(ii == Objs.size()) {
+            if(ii == (int)Objs.size()) {
                 // Group is new. Set it up.
                 // cerr << "Another group.\n";
                 TriObject *Obj2 = new TriObject;
@@ -375,25 +377,30 @@ bool Model::LoadOBJ(const char *fname, const unsigned int RequiredAttribs,
     
     fclose(f);
     
+#if 1
+	ASSERT_R(0);
+	// There is a problem with the .erase call in VC2005.
+#else
     // We've read it all. Now we need to post-process it.
-    for(int j=0; j<Objs.size(); j++) {
+    for(int j=0; j<(int)Objs.size(); j++) {
         Obj = (TriObject *) Objs[j];
         
-        if(Obj->verts.size() < 1) {
+        if((int)Obj->verts.size() < 1) {
             delete Obj;
-            Objs.erase(&Objs[j]);
+            std::vector<BaseObject *>::iterator bob(&Objs[j]);
+            Objs.erase(bob);
             j--;
             continue;
         }
         
         // Build the BBox.
-        for(int i=0; i<Obj->verts.size(); i++)
+        for(int i=0; i<(int)Obj->verts.size(); i++)
             Obj->Box += Obj->verts[i];
         
         Box += Obj->Box;
         
         Obj->PrimType = L_TRIANGLES;
     }
-    
+#endif
     return false;
 }

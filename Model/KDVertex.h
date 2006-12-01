@@ -16,8 +16,8 @@ struct KDVertex
 	inline KDVertex() {Vert = NULL;}
 	
 	inline KDVertex(Vertex *Ver) : Vert(Ver) {}
-	
-	friend inline bool lessX(const KDVertex &a, const KDVertex &b)
+
+    static bool lessX(const KDVertex &a, const KDVertex &b)
 	{
 #ifdef TMP_DEBUG
 		of << &a << " " << a.Vert->V << " lessX " << &b << " " << b.Vert->V << endl;
@@ -26,7 +26,7 @@ struct KDVertex
 		return a.Vert->V.x < b.Vert->V.x;
 	}
 	
-	friend inline bool lessY(const KDVertex &a, const KDVertex &b)
+    static bool lessY(const KDVertex &a, const KDVertex &b)
 	{
 #ifdef TMP_DEBUG
 		of << a.Vert->V << " lessY " << b.Vert->V << endl;
@@ -34,7 +34,7 @@ struct KDVertex
 		return a.Vert->V.y < b.Vert->V.y;
 	}
 	
-	friend inline bool lessZ(const KDVertex &a, const KDVertex &b)
+    static bool lessZ(const KDVertex &a, const KDVertex &b)
 	{
 #ifdef TMP_DEBUG
 		of << a.Vert->V << " lessZ " << b.Vert->V << endl;
@@ -43,7 +43,7 @@ struct KDVertex
 	}
 	
 	// These three are for breaking ties in the KDTree.
-	friend inline bool lessFX(const KDVertex &a, const KDVertex &b)
+    static bool lessFX(const KDVertex &a, const KDVertex &b)
 	{
 		if(a.Vert->V.x < b.Vert->V.x) return true;
 		else if(a.Vert->V.x > b.Vert->V.x) return false;
@@ -52,7 +52,7 @@ struct KDVertex
 		else return a.Vert->V.z < b.Vert->V.z;
 	}
 	
-	friend inline bool lessFY(const KDVertex &a, const KDVertex &b)
+    static bool lessFY(const KDVertex &a, const KDVertex &b)
 	{
 		if(a.Vert->V.y < b.Vert->V.y) return true;
 		else if(a.Vert->V.y > b.Vert->V.y) return false;
@@ -61,7 +61,7 @@ struct KDVertex
 		else return a.Vert->V.x < b.Vert->V.x;
 	}
 	
-	friend inline bool lessFZ(const KDVertex &a, const KDVertex &b)
+    static bool lessFZ(const KDVertex &a, const KDVertex &b)
 	{
 		if(a.Vert->V.z < b.Vert->V.z) return true;
 		else if(a.Vert->V.z > b.Vert->V.z) return false;

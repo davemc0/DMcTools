@@ -19,7 +19,11 @@ extern "C" {
 
 #ifdef DMC_USE_PNG
 extern "C" {
+#ifdef DMC_MACHINE_win
 #include <png.h>
+#else
+#include "/usr/include/png.h"
+#endif
 }
 #endif
 
@@ -29,26 +33,14 @@ extern "C" {
 }
 #endif
 
-#ifdef DMC_USE_HDR
+#ifdef DMC_USE_RGBE
 #include "RGBEio.h"
 #endif
 
-#ifdef DMC_MACHINE_sgi
 #include <fstream>
 #include <string>
 using namespace std;
-#endif
 
-#ifdef DMC_MACHINE_win
-#include <fstream>
-#include <string>
-using namespace std;
-#endif
-
-#ifdef DMC_MACHINE_hp
-#include <fstream.h>
-#include <string.h>
-#endif
 
 #define RAS_MAGIC 0x59a66a95
 #define GIF_MAGIC 0x47494638
@@ -195,7 +187,7 @@ baseImage *LoadtImage(const char *fname)
     
     if(loader.Pix == NULL) {
         // I can't deal with deleting this data here.
-        ASSERT0(loader.secret == NULL); // This may be too strong.
+        ASSERT_R(loader.secret == NULL); // This may be too strong.
     }
 
     return (baseImage *)loader.secret;
@@ -213,7 +205,7 @@ template <class _ImgType> void tLoad(const char *fname, _ImgType *out)
     
     if(loader.Pix == NULL) {
         // I can't deal with deleting this data here.
-        ASSERT0(loader.secret == NULL); // This may be too strong.
+        ASSERT_R(loader.secret == NULL); // This may be too strong.
         return;
     }
 
@@ -287,7 +279,7 @@ template <class _ImgType> void tLoad(const char *fname, _ImgType *out)
         }
         break;
     default:
-        ASSERT0(0);
+        ASSERT_R(0);
         break;
     }
     loader.Pix = NULL;
@@ -324,10 +316,10 @@ template <class _ImgType> void tSave(const char *fname, const _ImgType *img)
 {
     ImageLoadSave saver;
     saver.SetImage((unsigned char *)img->pp(), img->w(), img->h(),
-        img->chan(), (typeid(_ImgType::PixType::ElType)==typeid(unsigned int)),
-        (typeid(_ImgType::PixType::ElType)==typeid(unsigned short)),
-        (typeid(_ImgType::PixType::ElType)==typeid(float)));
-    bool rslt = saver.Save(fname);
+        img->chan(), (typeid(typename _ImgType::PixType::ElType)==typeid(unsigned int)),
+        (typeid(typename _ImgType::PixType::ElType)==typeid(unsigned short)),
+        (typeid(typename _ImgType::PixType::ElType)==typeid(float)));
+    saver.Save(fname);
     saver.Pix = NULL; saver.wid = saver.hgt = saver.chan = 0;
 }
 
@@ -435,7 +427,7 @@ void ImageLoadSave::ucLoad(const char *fname, int ch)
                 }
                 break;
             default:
-                ASSERT0(0);
+                ASSERT_R(0);
                 break;
             }
             break;
@@ -644,9 +636,9 @@ bool ImageLoadSave::LoadRas(const char *fname)
                 InFile.read((char *)Colors, wid);
                 
                 for(int x=0; x<wid; ) {
-                    Pix[y*wid+x++] = ColorMap[Colors[x]][0];
-                    Pix[y*wid+x++] = ColorMap[Colors[x]][1];
-                    Pix[y*wid+x++] = ColorMap[Colors[x]][2];
+                    Pix[y*wid+x] = ColorMap[Colors[x]][0]; x++;
+                    Pix[y*wid+x] = ColorMap[Colors[x]][1]; x++;
+                    Pix[y*wid+x] = ColorMap[Colors[x]][2]; x++;
                 }
             }
         } else {
@@ -775,13 +767,13 @@ bool ImageLoadSave::LoadPPM(const char *fname)
 
 bool ImageLoadSave::SavePPM(const char *fname) const
 {
-    ASSERTERR(fname, "NULL fname");
+    ASSERT_RM(fname, "NULL fname");
     if(Pix==NULL || chan < 1 || wid < 1 || hgt < 1) {
         cerr << "Image is not defined. Not saving.\n";
         return DMC_ERROR;
     }
     
-    ASSERTERR(!(chan < 1 || chan > 4), "Can't save a X channel image as a PPM.");
+    ASSERT_RM(!(chan < 1 || chan > 4), "Can't save a X channel image as a PPM.");
     
     ofstream OutFile(fname, ios::out | ios::binary);
     if(!OutFile.is_open()) {
@@ -799,7 +791,7 @@ bool ImageLoadSave::SavePPM(const char *fname) const
     if(is_uint || is_float || is_ushort) {
         // Need to convert multibyte words to big-endian before saving.
         unsigned char *Tmp = new unsigned char[size_bytes()];
-        ASSERTERR(Tmp, "memory alloc failed");
+        ASSERT_RM(Tmp, "memory alloc failed");
         memcpy(Tmp, Pix, size_bytes());
         if(is_ushort)
             ConvertShort((unsigned short *)Tmp, size()*chan);
@@ -904,14 +896,14 @@ bool ImageLoadSave::LoadRGB(const char *fname)
     tmpR = new unsigned char[raw.sizeX*256];
     tmpG = new unsigned char[raw.sizeX*256];
     tmpB = new unsigned char[raw.sizeX*256];
-    ASSERTERR(raw.tmp && tmpR && tmpG && tmpB, "memory alloc failed");
+    ASSERT_RM(raw.tmp && tmpR && tmpG && tmpB, "memory alloc failed");
     
     if((raw.type & 0xFF00)==0x0100) {
         int x = raw.sizeY * raw.sizeZ;
         int y = x * sizeof(unsigned int);
         raw.rowStart = new unsigned int[x];
         raw.rowSize = new int[x];
-        ASSERTERR(raw.rowStart && raw.rowSize, "memory alloc failed");
+        ASSERT_RM(raw.rowStart && raw.rowSize, "memory alloc failed");
         
         raw.rleEnd = 512 + (2 * y);
         fseek(raw.file, 512, SEEK_SET);
@@ -1510,7 +1502,7 @@ bool ImageLoadSave::LoadPNG(const char *fname)
     png_bytep* row_pointers = new png_bytep[hgt];
     unsigned int row_stride = wid*chan;
     unsigned char *rowptr = Pix;
-    for (unsigned int row = 0; row < hgt; row++) {
+    for (int row = 0; row < hgt; row++) {
         row_pointers[row] = rowptr;
         rowptr += row_stride;
     }
@@ -1600,7 +1592,7 @@ bool ImageLoadSave::SavePNG(const char *fname) const
     png_bytep* row_pointers = new png_bytep[hgt];
     unsigned int row_stride = wid*chan;
     unsigned char *rowptr = Pix;
-    for (unsigned int row = 0; row < hgt; row++) {
+    for (int row = 0; row < hgt; row++) {
         row_pointers[row] = rowptr;
         rowptr += row_stride;
     }
@@ -1666,7 +1658,7 @@ bool ImageLoadSave::LoadMAT(const char *fname)
    
     // Copy the data out.
     // XXX
-    ASSERT0(0);
+    ASSERT_R(0);
 
     mxDestroyArray(pa);
     
@@ -1706,7 +1698,7 @@ bool ImageLoadSave::SaveMAT(const char *fname) const
     if(is_ushort) {
         TheClass = mxUINT16_CLASS;
     } else {
-        ASSERT0(0);
+        ASSERT_R(0);
     }
 
     int dims[3];
@@ -1714,7 +1706,7 @@ bool ImageLoadSave::SaveMAT(const char *fname) const
     dims[1] = wid;
     dims[2] = chan;
     pa = mxCreateNumericArray(chan > 1 ? 3:2, dims, TheClass, mxREAL);
-    ASSERTERR(pa, "memory alloc failed");
+    ASSERT_RM(pa, "memory alloc failed");
     mxSetName(pa, "Img");
     
     if(is_ushort) {
@@ -1730,7 +1722,7 @@ bool ImageLoadSave::SaveMAT(const char *fname) const
             }
         }
     } else {
-        ASSERT0(0);
+        ASSERT_R(0);
     }
 
     status = matPutArray(pmat, pa);
@@ -1768,7 +1760,7 @@ bool ImageLoadSave::SaveMAT(const char *fname) const
 //////////////////////////////////////////////////////
 // HDR (RGBE) File Format
 
-#ifdef DMC_USE_HDR
+#ifdef DMC_USE_RGBE
 
 // Currently this loads and saves f3Images, not rgbeImages.
 // I will add this later.
@@ -1837,8 +1829,8 @@ float DMcExposureGlobal = 1.0f;
 
 bool ImageLoadSave::SaveHDR(const char* fname) const
 {
-    ASSERT0(is_float && chan==3);
-    ASSERT0(Pix);
+    ASSERT_R(is_float && chan==3);
+    ASSERT_R(Pix);
 
     FILE *filep = fopen(fname, "wb");
     if(filep == NULL) {
@@ -1893,7 +1885,7 @@ bool ImageLoadSave::SaveHDR(const char* fname) const
     return false;
 }
 
-#else /* DMC_USE_HDR */
+#else /* DMC_USE_RGBE */
 
 bool ImageLoadSave::LoadHDR(const char *fname)
 {
@@ -1907,5 +1899,5 @@ bool ImageLoadSave::SaveHDR(const char *fname) const
     return DMC_ERROR;
 }
 
-#endif /* DMC_USE_HDR */
+#endif /* DMC_USE_RGBE */
 

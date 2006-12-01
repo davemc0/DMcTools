@@ -15,6 +15,8 @@
 #include <memory.h>
 #include <stdio.h>
 
+using namespace std;
+
 #ifdef DMC_MACHINE_sgi
 #pragma set woff 1552
 #endif
@@ -427,11 +429,11 @@ struct GIFInfo {
      
      // the +256's are so we can read truncated GIF files without fear of seg violation
      dataptr = RawGIF = new byte[filesize+256];
-     ASSERTERR(dataptr, "memory alloc failed");
+     ASSERT_RM(dataptr, "memory alloc failed");
      memset(dataptr, 0, filesize+256);
      
      Raster = new byte[filesize+256];
-     ASSERTERR(Raster, "memory alloc failed");
+     ASSERT_RM(Raster, "memory alloc failed");
      memset(Raster, 0, filesize+256);
      
      if(fread(dataptr, (size_t) filesize, (size_t) 1, fp) != 1)
@@ -546,7 +548,7 @@ struct GIFInfo {
                  
                  if(cmtlen>0) { // build into one un-blocked comment
                      char *cmt = new char[cmtlen + 1];
-                     ASSERTERR(cmt, "memory alloc failed");
+                     ASSERT_RM(cmt, "memory alloc failed");
                      
                      sp = cmt;
                      do {
@@ -679,7 +681,7 @@ struct GIFInfo {
      // don't mention bad block if file was trunc'd, as it's all bogus
      if((dataptr - origptr) < filesize) {
          sprintf(str, "Unknown block type (0x%02x) at offset 0x%lx",
-             block, (dataptr - origptr) - 1);
+                 block, (long unsigned int)((dataptr - origptr) - 1));
          
          if(!gotimage) return gifError(str);
          else gifWarning(str);
@@ -947,7 +949,7 @@ struct GIFWriter
             
             fflush(fp);
             
-            ASSERTERR(!ferror(fp), "unable to write GIF file");
+            ASSERT_RM(!ferror(fp), "unable to write GIF file");
         }
     }
     

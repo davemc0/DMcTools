@@ -10,7 +10,6 @@
 #include <Util/Utils.h>
 
 #include <vector>
-using namespace std;
 
 class CameraInfo
 {
@@ -84,21 +83,21 @@ public:
     
     inline void Dump()
     {
-        cerr << CameraName<<" "<<CameraID<<" "<<CameraType<<" "<<Position<<" "<<Orientation
-            <<" "<<OrientationTh<<" "<<FocalDistance<<" "<<HeightValue<<endl;
+        std::cerr << CameraName<<" "<<CameraID<<" "<<CameraType<<" "<<Position<<" "<<Orientation
+                  <<" "<<OrientationTh<<" "<<FocalDistance<<" "<<HeightValue<<std::endl;
     }
 };
 
 class CameraDB
 {
 public:
-    vector<CameraInfo *> CameraList;
+    std::vector<CameraInfo *> CameraList;
     
     // Returns -1 if not found.
     inline CameraInfo *FindByName(const char *name)
     {
-        ASSERT0(name); 
-        for(int tind=0; tind<CameraList.size(); tind++) {
+        ASSERT_R(name); 
+        for(int tind=0; tind<(int)CameraList.size(); tind++) {
             if(!strcmp(CameraList[tind]->CameraName, name))
                 return CameraList[tind];
         }
@@ -119,7 +118,7 @@ public:
     // Adds it if not found.
     inline CameraInfo *FindByNameOrAdd(const char *name)
     {
-        ASSERT0(name); 
+        ASSERT_R(name); 
         CameraInfo *x = FindByName(name);
         if(x == NULL) {
             x = Add();
@@ -130,8 +129,8 @@ public:
     
     inline void Dump()
     {
-        for(int i=0; i<CameraList.size(); i++) {
-            cerr << i << ": ";
+        for(int i=0; i<(int)CameraList.size(); i++) {
+            std::cerr << i << ": ";
             CameraList[i]->Dump();
         }
     }

@@ -8,6 +8,8 @@
 
 #include <stdio.h>
 
+using namespace std;
+
 bool Model::SaveOBJ(const char *fname)
 {
     // XXX Should rewrite this to loop through the objects and write each one.
@@ -25,7 +27,7 @@ bool Model::SaveOBJ(const char *fname)
     }
     
     FILE *out = fopen(fname, "w");
-    ASSERTERR(out, "Couldn't open file to save OBJ file.");
+    ASSERT_RM(out, "Couldn't open file to save OBJ file.");
     
     fprintf(out, "#Wavefront .OBJ format\n# Saved by DaveMc's OBJ code.\n\ng\n");
     
@@ -35,23 +37,23 @@ bool Model::SaveOBJ(const char *fname)
     bool DoTexcoords = Ob->texcoords.size() == Ob->verts.size();
     
     int i;
-    for(i=0; i<Ob->verts.size(); i++)
+    for(i=0; i<(int)Ob->verts.size(); i++)
         fprintf(out, "v %f %f %f\n", Ob->verts[i].x, Ob->verts[i].y, Ob->verts[i].z);
     fprintf(out, "# %d vertices.\n\n", Ob->verts.size());
     
     if(DoTexcoords) {
-        for(i=0; i<Ob->texcoords.size(); i++)
+        for(i=0; i<(int)Ob->texcoords.size(); i++)
             fprintf(out, "vt %f %f\n", Ob->texcoords[i].x, Ob->texcoords[i].y);
     }
     fprintf(out, "# %d texcoords.\n\n", Ob->texcoords.size());
     
     if(DoNormals) {
-        for(i=0; i<Ob->normals.size(); i++)
+        for(i=0; i<(int)Ob->normals.size(); i++)
             fprintf(out, "vn %f %f %f\n", Ob->normals[i].x, Ob->normals[i].y, Ob->normals[i].z);
     }
     fprintf(out, "# %d normals.\n\n", Ob->normals.size());
     
-    for(i=0; i<Ob->verts.size(); i+=3) {
+    for(i=0; i<(int)Ob->verts.size(); i+=3) {
         fprintf(out, "f ");
         for(int j=0; j<3; j++) {
             fprintf(out, "%d", i+j+1);

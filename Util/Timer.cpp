@@ -2,7 +2,6 @@
 // Timer.cpp - A wall clock timer.
 //
 // Copyright David K. McAllister, Mar. 1998.
-//#define MIDL_PASS
 
 #include "toolconfig.h"
 #include <Util/Timer.h>
@@ -12,27 +11,25 @@
 #include <windows.h>
 #include <sys/timeb.h>
 
+#ifndef _WIN64
 #define DMC_USE_PENTIUM_TIMER
 #endif
+#endif
 
-#ifdef DMC_MACHINE_sgi
+#if defined(DMC_MACHINE_sgi) || defined(DMC_MACHINE_hp) || defined(DMC_MACHINE_gcc)
 #include <sys/times.h>
 #include <limits.h>
 #include <unistd.h>
 
+#ifdef CLK_TCK
 static double clock_interval = 1./double(CLK_TCK);
+#else
+static double clock_interval = 1./double(CLOCKS_PER_SEC);
+#endif
 #endif
 
-#ifdef DMC_MACHINE_hp
-#include <limits.h>
-#include <sys/times.h>
-
-static double clock_interval = 1./double(CLK_TCK);
-#endif
-
-#ifdef DMC_MACHINE_win
 #ifdef DMC_USE_PENTIUM_TIMER
-__forceinline  void GetPentiumCounter(DWORD &hix, DWORD &lox)
+__forceinline void GetPentiumCounter(DWORD &hix, DWORD &lox)
 {
     DWORD hi, lo;
 
@@ -66,7 +63,7 @@ double Timer::GetCurTime()
     return ThisTime;
 }
 
-#else
+#elif defined(DMC_MACHINE_win)
 
 // Slow, inaccurate timer.
 double Timer::GetCurTime()
@@ -81,25 +78,17 @@ double Timer::GetCurTime()
 	return dtime;
 }
 
-#endif
-#endif
+#elif defined(DMC_MACHINE_sgi) || defined(DMC_MACHINE_hp) ||  defined(DMC_MACHINE_gcc)
 
-#ifdef DMC_MACHINE_sgi
 double Timer::GetCurTime()
 {
 	struct tms buffer;
 	double dtime=double(times(&buffer)) * clock_interval;
 	return dtime;
 }
-#endif
 
-#ifdef DMC_MACHINE_hp
-double Timer::GetCurTime()
-{
-	struct tms buffer;
-	double dtime=double(times(&buffer)) * clock_interval;
-	return dtime;
-}
+#else
+#error Need a timer for this architecture.
 #endif
 
 // Create the timer. It is stopped.

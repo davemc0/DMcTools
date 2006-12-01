@@ -8,20 +8,13 @@
 
 #include "toolconfig.h"
 
-#ifdef DMC_MACHINE_sgi
-#include <iostream>
-using namespace std;
-#endif
-
 #ifdef DMC_MACHINE_win
 #include <basetsd.h>
-#include <iostream>
-using namespace std;
 #endif
 
-#ifdef DMC_MACHINE_hp
-#include <iostream.h>
-#endif
+#include <iostream>
+
+#include <stddef.h>
 
 typedef unsigned char byte;
 

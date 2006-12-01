@@ -9,16 +9,15 @@
 #include <Model/BaseObject.h>
 
 #include <vector>
-using namespace std;
 
 struct RenderObject : public BaseObject
 {
-    vector<f3Vector> verts;
-	vector<f3Vector> normals; // Must have a length of 0 or VertexCount.
-	vector<f3Vector> tangents; // Must have a length of 0 or verts.size().
-	vector<f3Vector> texcoords; // Must have a length of 0 or verts.size().
-	vector<f3Vector> dcolors; // Must have a length of 0 or verts.size().
-	vector<int> indices; // Pointers into the other lists.
+    std::vector<f3Vector> verts;
+	std::vector<f3Vector> normals; // Must have a length of 0 or VertexCount.
+	std::vector<f3Vector> tangents; // Must have a length of 0 or verts.size().
+	std::vector<f3Vector> texcoords; // Must have a length of 0 or verts.size().
+	std::vector<f3Vector> dcolors; // Must have a length of 0 or verts.size().
+	std::vector<int> indices; // Pointers into the other lists.
 
 	inline RenderObject()
 	{
@@ -29,10 +28,10 @@ struct RenderObject : public BaseObject
 	virtual void Dump() const;
 
     // Sets the OBJ_WHATEVER flag.
-    virtual void GenColors() {ASSERT0(0);}
-    virtual void GenNormals() {ASSERT0(0);}
-    virtual void GenTexCoords() {ASSERT0(0);}
-    virtual void GenTangents() {ASSERT0(0);}
+    virtual void GenColors() {ASSERT_R(0);}
+    virtual void GenNormals() {ASSERT_R(0);}
+    virtual void GenTexCoords() {ASSERT_R(0);}
+    virtual void GenTangents() {ASSERT_R(0);}
 	
     // Clears the OBJ_WHATEVER flag.
     virtual void RemoveColors()

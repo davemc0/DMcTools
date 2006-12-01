@@ -12,7 +12,6 @@
 #include <Math/Vector.h>
 
 #include <vector>
-using namespace std;
 
 // These should be true if the data is valid, i.e. intended to be used.
 #define OBJ_NONE 0
@@ -78,6 +77,8 @@ struct BaseObject
         for(int i=0; i<OBJ_ALL+1; i++)
             DispLists[i] = -1;
 	}
+
+    virtual ~BaseObject() {}
 
 	virtual void Dump() const = 0;
 	

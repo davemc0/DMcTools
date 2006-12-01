@@ -9,7 +9,6 @@
 #include <Math/Vector.h>
 
 #include <algorithm>
-using namespace std;
 
 template<class _Tp>
 class KDItem
@@ -30,12 +29,12 @@ public:
 		if(Tr.lower)
 		{
 			lower = new KDItem(*Tr.lower);
-			ASSERTERR(lower, "memory alloc failed");			
+			ASSERT_RM(lower, "memory alloc failed");			
 		}
 		if(Tr.higher)
 		{
 			higher = new KDItem(*Tr.higher);
-			ASSERTERR(higher, "memory alloc failed");			
+			ASSERT_RM(higher, "memory alloc failed");			
 		}
 	}
 	
@@ -110,7 +109,7 @@ public:
 		if(Tr.Root)
 		{
 			Root = new KDItem<_Tp>(*Tr.Root);
-			ASSERTERR(Root, "memory alloc failed");		
+			ASSERT_RM(Root, "memory alloc failed");		
 		}
 		else
 			Root = NULL;
@@ -140,7 +139,7 @@ public:
 	{
 		//cerr << "In\n";
 		KDItem<_Tp> *It = new KDItem<_Tp>(Val);
-		ASSERTERR(It, "memory alloc failed");		
+		ASSERT_RM(It, "memory alloc failed");		
 		
 		// fprintf(stderr, "I: 0x%08x ", long(this));
 		// cerr << Value.size() << Box << " " << It.Vert->V << endl;

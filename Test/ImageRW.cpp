@@ -2,19 +2,8 @@
 #include <Util/Assert.h>
 #include <Util/Timer.h>
 
-#ifdef DMC_MACHINE_sgi
 #include <iostream>
 using namespace std;
-#endif
-
-#ifdef DMC_MACHINE_win
-#include <iostream>
-using namespace std;
-#endif
-
-#ifdef DMC_MACHINE_hp
-#include <iostream.h>
-#endif
 
 #include <stdlib.h>
 

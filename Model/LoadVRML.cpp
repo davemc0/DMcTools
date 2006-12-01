@@ -15,6 +15,8 @@
 #include <stdio.h>
 #include <string.h>
 
+using namespace std;
+
 //////////////////////////////////////////////////////////////////////
 // Prototypes
 
@@ -58,7 +60,7 @@ void yyerror(char *s)
 {
     fprintf(stderr, "* %s, on line %i:\n", s, my_linecount);
     fprintf(stderr, "%s\n", my_linetext); // str includes newline, add one
-    ASSERT0(0);
+    ASSERT_R(0);
 }
 
 // Handle info field.
@@ -91,7 +93,7 @@ void s_DEF_name(char *objname)
 
 void s_Separator_end()
 {
-    ASSERTERR(Stack.size() > 1, "LoadVRML: Internal Separator{} stack bug.");
+    ASSERT_RM(Stack.size() > 1, "LoadVRML: Internal Separator{} stack bug.");
     
     Stack.pop_back();
 }
@@ -100,7 +102,7 @@ void s_Tex2Tran_begin()
 {
     YYObject &S = Stack.back();
     
-    ASSERTERR((!S.InTexture2Transform) && (!S.InTransform), "Shouldn't be in a Texture2Transform.");
+    ASSERT_RM((!S.InTexture2Transform) && (!S.InTransform), "Shouldn't be in a Texture2Transform.");
     
     S.InTexture2Transform = true;
     S.RotationAngle = 0;
@@ -114,7 +116,7 @@ void s_Tex2Tran_end()
 {
     YYObject &S = Stack.back();
     
-    ASSERTERR(S.InTexture2Transform, "Should be in a Texture2Transform.");
+    ASSERT_RM(S.InTexture2Transform, "Should be in a Texture2Transform.");
     
     S.InTexture2Transform = false;
     
@@ -131,7 +133,7 @@ void s_Transform_begin()
 {
     YYObject &S = Stack.back();
     
-    ASSERTERR((!S.InTexture2Transform) && (!S.InTransform), "Shouldn't be in a Texture2Transform.");
+    ASSERT_RM((!S.InTexture2Transform) && (!S.InTransform), "Shouldn't be in a Texture2Transform.");
     
     S.InTransform = true;
     S.RotationAngle = 0;
@@ -147,7 +149,7 @@ void s_Transform_end()
 {
     YYObject &S = Stack.back();
     
-    ASSERTERR(S.InTransform, "Should be in a Texture2Transform.");
+    ASSERT_RM(S.InTransform, "Should be in a Texture2Transform.");
     
     S.InTransform = false;
     
@@ -453,7 +455,7 @@ void s_Center(Vector *c)
     else if(S.InTransform)
         S.Center = *c;
     else
-        ASSERT0(0);
+        ASSERT_R(0);
 }
 
 // Load the specified texture.
@@ -512,7 +514,7 @@ static Vector AvgColor(vector<Vector> *V)
 {
     Vector A(0,0,0);
     int i;
-    for(i=0; i<V->size(); i++)
+    for(i=0; i<(int)V->size(); i++)
         A += (*V)[i];
     return A / double(i);
 }
@@ -548,7 +550,7 @@ void s_Shininesses(vector<double> *V)
     YYObject &S = Stack.back();
     S.shininess = 0;
     int i;
-    for(i=0; i<V->size(); i++)
+    for(i=0; i<(int)V->size(); i++)
         S.shininess += (*V)[i];
     S.shininess /= double(i);
     S.shininess *= 128.0; // Convert to OpenGL style.
@@ -566,7 +568,8 @@ void s_SpecularColors(vector<Vector> *V)
 
 void s_Transparencies(vector<double> *V)
 {
-    YYObject &S = Stack.back();
+    // YYObject &S = 
+    Stack.back();
 }
 
 void s_CoordIndices(vector<int> *V)
@@ -611,7 +614,7 @@ void s_NormalBinding(int Binding)
 static int DoVertex(Mesh &B, YYObject &S, vector<AVertex *> &VertPtrs, int cii, int vic, int FaceNum, AFace *FF)
 {
     int ind = S.VertexIndices[cii]; // The index into the list of vertices.
-    ASSERTERR(ind < S.verts.size() && ind >= 0, "Vertex index out of range.");
+    ASSERT_RM(ind < (int)S.verts.size() && ind >= 0, "Vertex index out of range.");
 
     Vector ObjPos = S.verts[ind];
     Vector Vp = S.Transform * ObjPos;
@@ -623,8 +626,8 @@ static int DoVertex(Mesh &B, YYObject &S, vector<AVertex *> &VertPtrs, int cii, 
     
     // cerr << ind << Vp << endl;
 
-    if(S.TexCoordIndices.size() > 0) {
-        ASSERTERR(S.TexCoordIndices[cii] >= 0 && S.TexCoordIndices[cii] < S.texcoords.size(),
+    if((int)S.TexCoordIndices.size() > 0) {
+        ASSERT_RM(S.TexCoordIndices[cii] >= 0 && S.TexCoordIndices[cii] < (int)S.texcoords.size(),
             "texcoord index out of range");
         Vrt->Tex = S.TexTransform * S.texcoords[S.TexCoordIndices[cii]];
         VertData = VertData | OBJ_TEXCOORDS;
@@ -634,14 +637,14 @@ static int DoVertex(Mesh &B, YYObject &S, vector<AVertex *> &VertPtrs, int cii, 
     {
     case PER_VERTEX:
         // The vertex number indexes the Normal.
-        ASSERTERR(vic >= 0 && vic < S.normals.size(), "normal out of range");
+        ASSERT_RM(vic >= 0 && vic < (int)S.normals.size(), "normal out of range");
         Vrt->Nor = S.normals[vic];
         VertData = VertData | OBJ_NORMALS;
         B.VertexType = B.VertexType | OBJ_NORMALS;
         break;
     case PER_VERTEX_INDEXED:
         // The vertex number indexes the Normal indices, which index the Normal.
-        ASSERTERR(S.NormalIndices[cii] >= 0 && S.NormalIndices[cii] < S.normals.size(),
+        ASSERT_RM(S.NormalIndices[cii] >= 0 && S.NormalIndices[cii] < (int)S.normals.size(),
             "normal index out of range");
         Vrt->Nor = S.normals[S.NormalIndices[cii]];
         VertData = VertData | OBJ_NORMALS;
@@ -650,27 +653,27 @@ static int DoVertex(Mesh &B, YYObject &S, vector<AVertex *> &VertPtrs, int cii, 
     case PER_FACE:
         // The face number indexes the Normal.
         // Replicate the normals.
-        ASSERTERR(FaceNum >= 0 && FaceNum < S.normals.size(), "normal face num out of range");
+        ASSERT_RM(FaceNum >= 0 && FaceNum < (int)S.normals.size(), "normal face num out of range");
         FF->Nor = S.normals[FaceNum];
         B.FaceType = B.FaceType | OBJ_NORMALS;
         break;
     case PER_FACE_INDEXED:
         // The face number indexes the Normal indices, which index the Normal.
-        ASSERTERR(FaceNum >= 0 && FaceNum < S.NormalIndices.size(), "normal face num out of range");
-        ASSERTERR(S.NormalIndices[FaceNum] >= 0 && S.NormalIndices[FaceNum] < S.normals.size(),
+        ASSERT_RM(FaceNum >= 0 && FaceNum < (int)S.NormalIndices.size(), "normal face num out of range");
+        ASSERT_RM(S.NormalIndices[FaceNum] >= 0 && S.NormalIndices[FaceNum] < (int)S.normals.size(),
             "normal face index out of range");
         FF->Nor = S.normals[S.NormalIndices[FaceNum]];
         B.FaceType = B.FaceType | OBJ_NORMALS;
         break;
     case OVERALL:
-        if(S.normals.size() > 0) {
+        if((int)S.normals.size() > 0) {
             VertPtrs[ind]->Nor = S.normals[0];
             FF->Nor = S.normals[FaceNum];
             B.FaceType = B.FaceType | OBJ_NORMALS;
         }
         break;
     default:
-        ASSERTERR(0, "Unknown normal binding.");
+        ASSERT_RM(0, "Unknown normal binding.");
         break;
     }
     
@@ -678,14 +681,14 @@ static int DoVertex(Mesh &B, YYObject &S, vector<AVertex *> &VertPtrs, int cii, 
     {
     case PER_VERTEX:
         // The vertex number indexes the color.
-        ASSERTERR(vic >= 0 && vic < S.dcolors.size(), "Dcolor out of range");
+        ASSERT_RM(vic >= 0 && vic < (int)S.dcolors.size(), "Dcolor out of range");
         Vrt->Col = S.dcolors[vic];
         VertData = VertData | OBJ_COLORS;
         B.VertexType = B.VertexType | OBJ_COLORS;
         break;
     case PER_VERTEX_INDEXED:
         // The vertex number indexes the material indices, which index the color.
-        ASSERTERR(S.MaterialIndices[cii] >= 0 && S.MaterialIndices[cii] < S.dcolors.size(),
+        ASSERT_RM(S.MaterialIndices[cii] >= 0 && S.MaterialIndices[cii] < (int)S.dcolors.size(),
             "Dcolor index out of range");
         Vrt->Col = S.dcolors[S.MaterialIndices[cii]];
         VertData = VertData | OBJ_COLORS;
@@ -694,26 +697,26 @@ static int DoVertex(Mesh &B, YYObject &S, vector<AVertex *> &VertPtrs, int cii, 
     case PER_FACE:
         // The face number indexes the color.
         // Replicate the dcolors.
-        ASSERTERR(FaceNum >= 0 && FaceNum < S.dcolors.size(), "Dcolor face num out of range");
+        ASSERT_RM(FaceNum >= 0 && FaceNum < (int)S.dcolors.size(), "Dcolor face num out of range");
         FF->Col = S.dcolors[FaceNum];
         B.FaceType = B.FaceType | OBJ_COLORS;
         break;
     case PER_FACE_INDEXED:
         // The face number indexes the material indices, which index the color.
-        ASSERTERR(FaceNum >= 0 && FaceNum < S.MaterialIndices.size(), "Dcolor face num out of range");
-        ASSERTERR(S.MaterialIndices[FaceNum] >= 0 && S.MaterialIndices[FaceNum] < S.dcolors.size(),
+        ASSERT_RM(FaceNum >= 0 && FaceNum < (int)S.MaterialIndices.size(), "Dcolor face num out of range");
+        ASSERT_RM(S.MaterialIndices[FaceNum] >= 0 && S.MaterialIndices[FaceNum] < (int)S.dcolors.size(),
             "Dcolor face index out of range");
         FF->Col = S.dcolors[S.MaterialIndices[FaceNum]];
         B.FaceType = B.FaceType | OBJ_COLORS;
         break;
     case OVERALL:
-        if(S.dcolors.size() > 0)
+        if((int)S.dcolors.size() > 0)
             B.dcolor = S.dcolors[0];
-        if(S.alphas.size() > 0)
+        if((int)S.alphas.size() > 0)
             B.alpha = S.alphas[0];
         break;
     default:
-        ASSERTERR(0, "Unknown dcolor binding.");
+        ASSERT_RM(0, "Unknown dcolor binding.");
         break;
     }
     
@@ -727,13 +730,13 @@ static int DoVertex(Mesh &B, YYObject &S, vector<AVertex *> &VertPtrs, int cii, 
         VertPtrs[ind] = Vrt;
     } else {
         // This vertex has been accessed before. Does ours have the same data?
-        AVertex *OldV = VertPtrs[ind];
+        // AVertex *OldV = VertPtrs[ind];
         // The data is the same. Bail.
         
         // The data is different. Add a new vertex.
         // Step through a crazily linked list of shared vertices.
         int ifoo;
-        for(ifoo = ind; ifoo >= 0; ifoo = VertPtrs[ifoo]->Tan.y) {
+        for(ifoo = ind; ifoo >= 0; ifoo = (int)VertPtrs[ifoo]->Tan.y) {
             // Only compare accepted attribs to avoid superfluous splits.
             if(VertexDataSame(VertPtrs[ifoo], Vrt, VertData & AccAttribs)) {
                 // Found it. Do nothing.
@@ -747,7 +750,7 @@ static int DoVertex(Mesh &B, YYObject &S, vector<AVertex *> &VertPtrs, int cii, 
             B.AddVertex(Vrt->V, Vrt);
             Vrt->Tan.y = VertPtrs[ind]->Tan.y; // Point new one to second one.
             VertPtrs.push_back(Vrt);
-            int newind = int(VertPtrs.size()) - 1;
+            int newind = int((int)VertPtrs.size()) - 1;
             VertPtrs[ind]->Tan.y = newind; // Point first one to new one.
             // cerr << ind << " -> " << newind << "Splitting.\n";
             ind = newind;
@@ -762,7 +765,7 @@ static int DoVertex(Mesh &B, YYObject &S, vector<AVertex *> &VertPtrs, int cii, 
 void s_OutputIndexedFaceSet()
 {
     YYObject &S = Stack.back();
-    if(S.VertexIndices.size() < 1) {
+    if((int)S.VertexIndices.size() < 1) {
         // fprintf(stderr, "No vertex indices.\n");
         return;
     }
@@ -777,15 +780,15 @@ void s_OutputIndexedFaceSet()
     B.EdgeType = HAS_ATTRIBS;
     B.FaceType = HAS_ATTRIBS;
     
-    int N = int(S.verts.size());
+    int N = int((int)S.verts.size());
     
     if(S.MaterialBinding == PER_VERTEX) {
-        ASSERT0(S.dcolors.size() == N);
+        ASSERT_R((int)S.dcolors.size() == N);
     }
     if(S.NormalBinding == PER_VERTEX) {
-        ASSERT0(S.normals.size() == N);
+        ASSERT_R((int)S.normals.size() == N);
     }
-    if(S.TexCoordIndices.size() == S.VertexIndices.size())
+    if((int)S.TexCoordIndices.size() == (int)S.VertexIndices.size())
         B.VertexType = B.VertexType | OBJ_TEXCOORDS;
     
     // Create the vertices and add them to the mesh.
@@ -800,16 +803,16 @@ void s_OutputIndexedFaceSet()
 	CopyNameThing = true; // Indicate to copy into the given string, instead of point from it.
     
     // Make sure the texture coord index list is the right size.
-    if(S.TexPtr && S.TexCoordIndices.size() > 0)
-        ASSERTERR(S.TexCoordIndices.size() == S.VertexIndices.size(),
+    if(S.TexPtr && (int)S.TexCoordIndices.size() > 0)
+        ASSERT_RM((int)S.TexCoordIndices.size() == (int)S.VertexIndices.size(),
         "Wrong num. of texcoord indices.");
      
-    if(S.alphas.size() > 0)
-        ASSERTERR(S.alphas.size() == S.dcolors.size(), "Inconsistent alpha list.");
+    if((int)S.alphas.size() > 0)
+        ASSERT_RM(S.alphas.size() == S.dcolors.size(), "Inconsistent alpha list.");
     
     int FaceNum = 0, ci = 0, vertsThisPoly = 0;
     // i is the index into VertexIndices. ci only counts non- negative 1s.
-    for(i=0; i<S.VertexIndices.size(); i++) {
+    for(i=0; i<(int)S.VertexIndices.size(); i++) {
         if(S.VertexIndices[i] != -1) {
             if(vertsThisPoly >= 2) {
                 // Handle arbitrary convex polygons by issuing one tri.
@@ -833,14 +836,14 @@ void s_OutputIndexedFaceSet()
 #ifdef DMC_MODEL_DEBUG
                     // XXX An error check:
                     // Check whether the face already exists.
-                    for(int q=0; q<E0->Faces.size(); q++) {
+                    for(int q=0; q < (int)E0->Faces.size(); q++) {
                         AFace *F = (AFace *)E0->Faces[q];
-                        ASSERT0M(F->e0 != FF->e0 || F->e1 != FF->e1 || F->e2 != FF->e2, "EDup face 0");
-                        ASSERT0M(F->e0 != FF->e0 || F->e1 != FF->e2 || F->e2 != FF->e1, "EDup face 0");
-                        ASSERT0M(F->e0 != FF->e1 || F->e1 != FF->e0 || F->e2 != FF->e2, "EDup face 1");
-                        ASSERT0M(F->e0 != FF->e1 || F->e1 != FF->e2 || F->e2 != FF->e0, "EDup face 1");
-                        ASSERT0M(F->e0 != FF->e2 || F->e1 != FF->e0 || F->e2 != FF->e1, "EDup face 2");
-                        ASSERT0M(F->e0 != FF->e2 || F->e1 != FF->e1 || F->e2 != FF->e0, "EDup face 2");
+                        WARN_R(F->e0 != FF->e0 || F->e1 != FF->e1 || F->e2 != FF->e2, "EDup face 0");
+                        WARN_R(F->e0 != FF->e0 || F->e1 != FF->e2 || F->e2 != FF->e1, "EDup face 0");
+                        WARN_R(F->e0 != FF->e1 || F->e1 != FF->e0 || F->e2 != FF->e2, "EDup face 1");
+                        WARN_R(F->e0 != FF->e1 || F->e1 != FF->e2 || F->e2 != FF->e0, "EDup face 1");
+                        WARN_R(F->e0 != FF->e2 || F->e1 != FF->e0 || F->e2 != FF->e1, "EDup face 2");
+                        WARN_R(F->e0 != FF->e2 || F->e1 != FF->e1 || F->e2 != FF->e0, "EDup face 2");
                     }
 #endif
 
@@ -914,7 +917,7 @@ bool Model::LoadVRML(const char *fname, const unsigned int RequiredAttribs,
     AccAttribs = AcceptedAttribs;
 
     InFile = fopen(fname, "r");
-    ASSERTERR(InFile, "Error opening input file");
+    ASSERT_RM(InFile, "Error opening input file");
     
     // Read first line to verify that it's VRML 1.0. Best to do this
     // here, since it's hard to make lex'er distinguish between this
@@ -947,7 +950,7 @@ bool Model::LoadVRML(const char *fname, const unsigned int RequiredAttribs,
     }
 
     // Check that state stack is balanced -- should always be true.
-    ASSERTERR(Stack.size()==1, "LoadVRML:: Internal error -- Stack depth bad.");
+    ASSERT_RM(Stack.size()==1, "LoadVRML:: Internal error -- Stack depth bad.");
     
     return false;
 }

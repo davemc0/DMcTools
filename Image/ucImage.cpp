@@ -144,7 +144,7 @@ unsigned char *ucImage::doSetChan(const int ch, unsigned char *P)
     
     // Change the image's parameters.
     unsigned char *P2 = new unsigned char[dsize1];
-    ASSERTERR(P2, "memory alloc failed");
+    ASSERT_RM(P2, "memory alloc failed");
     
     if(ch == chan)
     {
@@ -223,16 +223,16 @@ unsigned char *ucImage::doSetChan(const int ch, unsigned char *P)
             case 1:
                 for(i=i2=0; i<dsize; )
                 {
-                    P2[i2++] = (unsigned char)((77 * int(P[i++]) + 150 * int(P[i++]) +
-                        29 * int(P[i++])) >> 8);
+                    P2[i2++] = (unsigned char)((77 * int(P[i]) + 150 * int(P[i+1]) + 29 * int(P[i+2])) >> 8);
+                    i+=3;
                 }
                 break;
             case 2:
                 for(i=i2=0; i<dsize; )
                 {
-                    P2[i2++] = (unsigned char)((77 * int(P[i++]) + 150 * int(P[i++]) +
-                        29 * int(P[i++])) >> 8);
+                    P2[i2++] = (unsigned char)((77 * int(P[i]) + 150 * int(P[i+1]) + 29 * int(P[i+2])) >> 8);
                     P2[i2++] = 255;
+                    i+=3;
                 }
                 break;
             case 4:
@@ -254,15 +254,15 @@ unsigned char *ucImage::doSetChan(const int ch, unsigned char *P)
             case 1:
                 for(i=i2=0; i<dsize; i++)
                 {
-                    P2[i2++] = (unsigned char)((77 * int(P[i++]) + 150 * int(P[i++]) +
-                        29 * int(P[i++])) >> 8);
+                    P2[i2++] = (unsigned char)((77 * int(P[i]) + 150 * int(P[i+1]) + 29 * int(P[i+2])) >> 8);
+                    i+=3;
                 }
                 break;
             case 2:
                 for(i=i2=0; i<dsize; )
                 {
-                    P2[i2++] = (unsigned char)((77 * int(P[i++]) + 150 * int(P[i++]) +
-                        29 * int(P[i++])) >> 8);
+                    P2[i2++] = (unsigned char)((77 * int(P[i]) + 150 * int(P[i+1]) + 29 * int(P[i+2])) >> 8);
+                    i+=3;
                     P2[i2++] = P[i++];
                 }
                 break;
@@ -326,7 +326,7 @@ void ucImage::Set(const int _w, const int _h, const int _ch,
             dsize = dsize1;
             size = wid * hgt;
             Pix = new unsigned char[dsize];
-            ASSERTERR(Pix != NULL, "memory alloc failed");
+            ASSERT_RM(Pix != NULL, "memory alloc failed");
             if(init)
                 fill(0);
         }
@@ -387,7 +387,7 @@ void ucImage::Set(const ucImage &Img, const int _w, const int _h,
             dsize = dsize1;
             size = wid * hgt;
             Pix = new unsigned char[dsize];
-            ASSERTERR(Pix, "memory alloc failed");
+            ASSERT_RM(Pix, "memory alloc failed");
             if(init)
                 fill(0);
         }
@@ -396,7 +396,7 @@ void ucImage::Set(const ucImage &Img, const int _w, const int _h,
 
 ucImage ucImage::operator+(const ucImage &Im) const
 {
-    ASSERT(chan == Im.chan && wid == Im.wid && hgt == Im.hgt);
+    ASSERT_R(chan == Im.chan && wid == Im.wid && hgt == Im.hgt);
     
     ucImage Out(wid, hgt, chan);
     
@@ -411,7 +411,7 @@ ucImage ucImage::operator+(const ucImage &Im) const
 
 ucImage &ucImage::operator+=(const ucImage &Im)
 {
-    ASSERT(chan == Im.chan && wid == Im.wid && hgt == Im.hgt);
+    ASSERT_R(chan == Im.chan && wid == Im.wid && hgt == Im.hgt);
     
     for(int i=0; i<dsize; i++)
     {
@@ -426,8 +426,8 @@ ucImage &ucImage::operator+=(const ucImage &Im)
 // Things work fine if Im is *this.
 void ucImage::SpliceChan(const ucImage &Im, const int src, const int dest)
 {
-    ASSERT(wid == Im.wid && hgt == Im.hgt);
-    ASSERT(src < Im.chan && dest < chan);
+    ASSERT_R(wid == Im.wid && hgt == Im.hgt);
+    ASSERT_R(src < Im.chan && dest < chan);
     
     int tind = dest;
     int sind = src;
@@ -439,7 +439,7 @@ void ucImage::VFlip()
 {
     int lsize = wid * chan;
     unsigned char *tbuf = new unsigned char[lsize];
-    ASSERTERR(tbuf, "memory alloc failed");
+    ASSERT_RM(tbuf, "memory alloc failed");
     
     for(int y=0; y<hgt/2; y++)
     {
@@ -457,9 +457,9 @@ void ucImage::VFlip()
 void ucImage::CopyChunk(const ucImage &Im, const int srcx, const int srcy,
 						const int dstx, const int dsty, const int bwid, const int bhgt)
 {
-    ASSERT0(chan == Im.chan);
-	ASSERT0(srcx>=0 && dstx>=0 && srcy >= 0 && dsty >= 0);
-	ASSERT0(bwid>0 && bhgt>0);
+    ASSERT_R(chan == Im.chan);
+	ASSERT_R(srcx>=0 && dstx>=0 && srcy >= 0 && dsty >= 0);
+	ASSERT_R(bwid>0 && bhgt>0);
     
 	int srcxmax = Min(srcx+bwid, Im.wid);
 	int srcymax = Min(srcy+bhgt, Im.hgt);

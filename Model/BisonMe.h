@@ -5,9 +5,9 @@ typedef union {
   char		*sval;
   double	*mptr;
   Vector	*vec;
-  vector<int>	*ibuf;
-  vector<double> *fbuf;
-  vector<Vector> *vbuf;
+  std::vector<int>	*ibuf;
+  std::vector<double> *fbuf;
+  std::vector<Vector> *vbuf;
 } YYSTYPE;
 #define	T_ERROR	258
 #define	T_INT	259

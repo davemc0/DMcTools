@@ -11,6 +11,8 @@
 #include <Math/HMatrix.h>
 #include <Math/MiscMath.h>
 
+#include <string>
+
 class HVector
 {
 	double *data;
@@ -28,7 +30,7 @@ public:
 		if(_r > 0)
 		{
 			data = new double[_r];
-			ASSERTERR(data, "memory alloc failed");
+			ASSERT_RM(data, "memory alloc failed");
 		}	
 		else
 			data = NULL;
@@ -40,7 +42,7 @@ public:
 		if(A.data)
 		{
 			data = new double[A.r];
-			ASSERTERR(data, "memory alloc failed");
+			ASSERT_RM(data, "memory alloc failed");
 			memcpy(data, A.data, A.r * sizeof(double));
 			r = A.r;
 		}
@@ -59,14 +61,14 @@ public:
 	
 	inline double & operator[](const int i)
 	{
-		ASSERT(data != NULL);
+		ASSERT_D(data != NULL);
 		
 		return data[i];
 	}
 	
 	inline const double & operator[](const int i) const
 	{
-		ASSERT(data != NULL);
+		ASSERT_D(data != NULL);
 		
 		return data[i];
 	}
@@ -79,7 +81,7 @@ public:
 			{
 				delete [] data;
 				data = new double[A.r];
-				ASSERTERR(data, "memory alloc failed");
+				ASSERT_RM(data, "memory alloc failed");
 			}
 			memcpy(data, A.data, A.r * sizeof(double));
 			r = A.r;
@@ -97,7 +99,7 @@ public:
 	
 	inline HVector operator*(const double d) const
 	{
-		ASSERT(data != NULL);
+		ASSERT_R(data != NULL);
 		
 		HVector b(r);
 		
@@ -109,7 +111,7 @@ public:
 	
 	inline HVector & operator*=(const double d)
 	{
-		ASSERT(data != NULL);
+		ASSERT_R(data != NULL);
 		
 		for(int i=0; i<r; i++)
 			data[i] = data[i] * d;
@@ -119,7 +121,7 @@ public:
 	
 	inline HVector & operator/=(const double d)
 	{
-		ASSERT(data != NULL);
+		ASSERT_R(data != NULL);
 		
 		for(int i=0; i<r; i++)
 			data[i] = data[i] / d;
@@ -129,7 +131,7 @@ public:
 	
 	inline HVector & operator+=(const double d)
 	{
-		ASSERT(data != NULL);
+		ASSERT_R(data != NULL);
 		
 		for(int i=0; i<r; i++)
 			data[i] = data[i] + d;
@@ -139,7 +141,7 @@ public:
 	
 	inline HVector & operator-=(const double d)
 	{
-		ASSERT(data != NULL);
+		ASSERT_R(data != NULL);
 		
 		for(int i=0; i<r; i++)
 			data[i] = data[i] - d;
@@ -150,7 +152,7 @@ public:
 	// Add a constant to each element.
 	inline HVector operator+(const double d) const
 	{
-		ASSERT(data != NULL);
+		ASSERT_R(data != NULL);
 		
 		HVector b(r);
 		
@@ -164,9 +166,9 @@ public:
 	
 	inline HVector operator+(const HVector &A) const
 	{
-		ASSERT(data != NULL);
-		ASSERT(A.data != NULL);
-		ASSERT(A.r == r);
+		ASSERT_R(data != NULL);
+		ASSERT_R(A.data != NULL);
+		ASSERT_R(A.r == r);
 		
 		HVector b(r);
 		
@@ -178,9 +180,9 @@ public:
 	
 	inline HVector & operator+=(const HVector &A)
 	{
-		ASSERT(data != NULL);
-		ASSERT(A.data != NULL);
-		ASSERT(A.r == r);
+		ASSERT_R(data != NULL);
+		ASSERT_R(A.data != NULL);
+		ASSERT_R(A.r == r);
 		
 		for(int i=0; i<r; i++)
 			data[i] += A.data[i];
@@ -190,9 +192,9 @@ public:
 	
 	inline HVector operator-(const HVector &A) const
 	{
-		ASSERT(data != NULL);
-		ASSERT(A.data != NULL);
-		ASSERT(A.r == r);
+		ASSERT_R(data != NULL);
+		ASSERT_R(A.data != NULL);
+		ASSERT_R(A.r == r);
 		
 		HVector b(r);
 		
@@ -204,9 +206,9 @@ public:
 	
 	friend inline double Dot(const HVector &A, const HVector &B)
 	{
-		ASSERT(A.data != NULL);
-		ASSERT(B.data != NULL);
-		ASSERT(A.r == B.r);
+		ASSERT_R(A.data != NULL);
+		ASSERT_R(B.data != NULL);
+		ASSERT_R(A.r == B.r);
 		
 		double dot;
 		for(int i=0; i<A.r; i++)
@@ -218,9 +220,9 @@ public:
 	// Swap the data in these two vectors.
 	inline void swap(const HVector &A)
 	{
-		ASSERT(data != NULL);
-		ASSERT(A.data != NULL);
-		ASSERT(A.r == r);
+		ASSERT_R(data != NULL);
+		ASSERT_R(A.data != NULL);
+		ASSERT_R(A.r == r);
 		
 		double tmp;
 		for(int i=0; i<r; i++)
@@ -233,7 +235,7 @@ public:
 	// Warning: Doesn't preserve data on growth.
 	inline void size(int sz)
 	{
-		ASSERT(sz >= 0);
+		ASSERT_D(sz >= 0);
 		
 		if(sz <= r && data)
 		{
@@ -249,7 +251,7 @@ public:
 		if(r > 0)
 		{
 			data = new double[r];
-			ASSERTERR(data, "memory alloc failed");
+			ASSERT_RM(data, "memory alloc failed");
 		}
 		else
 			data = NULL;
@@ -262,8 +264,8 @@ public:
 	
 	inline HVector & zero()
 	{
-		ASSERT(data != NULL);
-		ASSERT(r > 0);
+		ASSERT_R(data != NULL);
+		ASSERT_R(r > 0);
 		
 		memset(data, 0, r * sizeof(double));
 		
@@ -273,8 +275,8 @@ public:
 	// Set all elements to the given value.
 	inline HVector & set(double val)
 	{
-		ASSERT(data != NULL);
-		ASSERT(r > 0);
+		ASSERT_R(data != NULL);
+		ASSERT_R(r > 0);
 		
 		for(int i=0; i<r; i++)
 			data[r] = val;
@@ -283,7 +285,7 @@ public:
 	}
 	
 	//Return a string with this vector printed in it.
-	string print() const;
+	std::string print() const;
 	
 	// Fill the vector with rands on 0.0 -> 1.0.
 	HVector & rand();
@@ -294,7 +296,7 @@ public:
 	
 	inline double length2() const
 	{
-		ASSERT(data != NULL && r > 0);
+		ASSERT_R(data != NULL && r > 0);
 		
 		double l2 = 0;
 		for(int i=0; i<r; i++)
@@ -318,7 +320,7 @@ public:
 	friend HVector Mean(const HVector *VA, const int count);
 };
 
-ostream& operator<<(ostream& os, const HVector& p);
-istream& operator>>(istream& os, HVector& p);
+std::ostream& operator<<(std::ostream& os, const HVector& p);
+std::istream& operator>>(std::istream& os, HVector& p);
 
 #endif

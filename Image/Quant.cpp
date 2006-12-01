@@ -7,19 +7,10 @@
 #include <Image/Quant.h>
 #include <Util/Assert.h>
 
-#ifdef DMC_MACHINE_sgi
 #include <iostream>
 using namespace std;
-#endif
-
-#ifdef DMC_MACHINE_win
-#include <iostream>
-using namespace std;
-#endif
 
 #include <memory.h>
-
-#define DMC_DEBUG
 
 static inline int DiffP(const pixel &a, const pixel &b)
 {
@@ -251,11 +242,11 @@ DMCINT64 Quantizer::RefineColorMap(byte *pic8)
     int *redBig = new int[MaxColors];
     int *greenBig = new int[MaxColors];
     int *blueBig = new int[MaxColors];
-    ASSERTERR(redBig && greenBig && blueBig, "memory alloc failed");
+    ASSERT_RM(redBig && greenBig && blueBig, "memory alloc failed");
     
     // The number of pixels in each cluster.
     int *countBig = new int[MaxColors];
-    ASSERTERR(countBig, "memory alloc failed");
+    ASSERT_RM(countBig, "memory alloc failed");
     
     // Compute best fit to that map.
     DMCINT64 OldError = 0x7fffffff;
@@ -290,11 +281,11 @@ DMCINT64 Quantizer::RefineColorMapFast(color_count *CHist, int hsize)
     int *redBig = new int[MaxColors];
     int *greenBig = new int[MaxColors];
     int *blueBig = new int[MaxColors];
-    ASSERTERR(redBig && greenBig && blueBig, "memory alloc failed");
+    ASSERT_RM(redBig && greenBig && blueBig, "memory alloc failed");
     
     // The number of pixels in each cluster.
     int *countBig = new int[MaxColors];
-    ASSERTERR(countBig, "memory alloc failed");
+    ASSERT_RM(countBig, "memory alloc failed");
     
     // Compute best fit to that map.
     DMCINT64 OldError = 0x7fffffff;
@@ -336,7 +327,7 @@ color_count *Quantizer::MakeHist(int &num_colors_in_hist)
 {
     num_colors_in_hist = 0;
     color_count *CHist = new color_count[HASH_SIZE];
-    ASSERTERR(CHist, "memory alloc failed");
+    ASSERT_RM(CHist, "memory alloc failed");
     
     memset(CHist, 0, sizeof(color_count) * HASH_SIZE);
     
@@ -418,7 +409,7 @@ void Quantizer::MedianCut(color_count* CHist, int num_colors_in_hist,
     int bi, i;
     
     box *bv = new box[MaxColors]; // The bounding boxes for the colors that map to a given entry
-    ASSERTERR(bv, "memory alloc failed");
+    ASSERT_RM(bv, "memory alloc failed");
     
     memset(cmap, 0, MaxColors * sizeof(pixel));
     
@@ -540,7 +531,7 @@ byte *Quantizer::Quant(byte *pic24, int sz, int MaxCols, bool IsGray)
     size = sz;
     
     byte *pic8 = new byte[size];
-    ASSERTERR(pic8, "memory alloc failed");
+    ASSERT_RM(pic8, "memory alloc failed");
     
     if(IsGray)
     {

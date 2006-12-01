@@ -1,7 +1,7 @@
 
 /*
  *  Time: Utility class for dealing with time
- *  $Id: Time.h,v 1.6 1999/09/24 18:55:08 moulding Exp $
+ *  $Id: //hw/fermi1_gf100/investigation/FB_Compression/DMcTools/Util/sparker_Time.h#1 $
  *
  *  Written by:
  *   Author: Steve Parker

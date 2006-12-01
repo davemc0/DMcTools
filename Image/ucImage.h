@@ -91,38 +91,38 @@ public:
 	
 	inline Pixel & operator() (const int x, const int y) const
 	{
-		ASSERT(x>=0 && x<wid);
-		ASSERT(y>=0 && y<hgt);
+		ASSERT_D(x>=0 && x<wid);
+		ASSERT_D(y>=0 && y<hgt);
 		return ((Pixel *)Pix)[y*wid+x];
 	}
 	
 	// Returns this pixel as a Pixel.
 	inline Pixel & operator[] (const int i) const
 	{
-		ASSERT(i<size);
+		ASSERT_D(i<size);
 		return ((Pixel *)Pix)[i];
 	}
 	
 	// Returns this pixel as a byte (can be used as lvalue.)
 	inline unsigned char &ch(const int x, const int y) const
 	{
-		ASSERT(x>=0 && x<wid);
-		ASSERT(y>=0 && y<hgt);
+		ASSERT_D(x>=0 && x<wid);
+		ASSERT_D(y>=0 && y<hgt);
 		return Pix[(y*wid+x)*chan];
 	}
 	
 	// Returns a pointer to the start of this pixel.
 	inline unsigned char *chp(const int x, const int y) const
 	{
-		ASSERT(x>=0 && x<wid);
-		ASSERT(y>=0 && y<hgt);
+		ASSERT_D(x>=0 && x<wid);
+		ASSERT_D(y>=0 && y<hgt);
 		return &Pix[(y*wid+x)*chan];
 	}
 	
 	// Returns a pointer to the start of this pixel.
 	inline unsigned char *chp(const int i) const
 	{
-		ASSERT(i<size);
+		ASSERT_D(i<size);
 		return &Pix[i*chan];
     }
     

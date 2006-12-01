@@ -16,7 +16,7 @@
 #include <iostream>
 #include <limits>
 
-namespace basePixel
+class basePixel
 {
     // I declared these static since they don't depend on member data.
     // I was having trouble with them not being able to find a proper this.
@@ -26,13 +26,13 @@ namespace basePixel
     // true if you depend on the pixel type casting operators in the tPixelN
     // derived classes. We'll see. What about a five-channel image?
     
-    //public:
+    public:
     // Convert to type d from type s for pixels.
     // This encodes the assumptions of 0.N for N-bit fixed point.
     // Float and double map min -> max intensity to 0.0 -> 1.0, a la OpenGL.
     // These float to int converts are slow.
     // The float to fixed do a Clamp.
-    
+
     static void pixel_cast(unsigned char &d, const unsigned char &s) {d = s;}
     static void pixel_cast(unsigned short &d, const unsigned char &s) {unsigned short t=s; d=(t<<8)|t;}
     static void pixel_cast(unsigned int &d, const unsigned char &s) {unsigned int t=s; d=(t<<24)|(t<<16)|(t<<8)|t;}
@@ -54,23 +54,23 @@ namespace basePixel
     static void pixel_cast(float &d, const unsigned int &s) {d = s/double(0xffffffff);}
     static void pixel_cast(double &d, const unsigned int &s) {d = s/double(0xffffffff);}
     
-    static void pixel_cast(unsigned char &d, const float &s) {d = Clamp(0.0f,s*float(0xff),float(0xff));}
-    static void pixel_cast(unsigned short &d, const float &s) {d = Clamp(0.0f,s*float(0xffff),float(0xffff));}
-    static void pixel_cast(unsigned int &d, const float &s) {d = Clamp(0.0f,s*double(0xffffffff),double(0xffffffff));}
+    static void pixel_cast(unsigned char &d, const float &s) {d = (unsigned char)Clamp(0.0f,s*float(0xff),float(0xff));}
+    static void pixel_cast(unsigned short &d, const float &s) {d = (unsigned short)Clamp(0.0f,s*float(0xffff),float(0xffff));}
+    static void pixel_cast(unsigned int &d, const float &s) {d = (unsigned int)Clamp(0.0f,s*double(0xffffffff),double(0xffffffff));}
     static void pixel_cast(half &d, const float &s) {d = half(s);}
     static void pixel_cast(float &d, const float &s) {d = s;}
     static void pixel_cast(double &d, const float &s) {d = double(s);}
     
-    static void pixel_cast(unsigned char &d, const half &s) {d = Clamp(0.0f,float(s)*float(0xff),float(0xff));}
-    static void pixel_cast(unsigned short &d, const half &s) {d = Clamp(0.0f,float(s)*float(0xffff),float(0xffff));}
-    static void pixel_cast(unsigned int &d, const half &s) {d = Clamp(0.0f,s*double(0xffffffff),double(0xffffffff));}
+    static void pixel_cast(unsigned char &d, const half &s) {d = (unsigned char)Clamp(0.0f,float(s)*float(0xff),float(0xff));}
+    static void pixel_cast(unsigned short &d, const half &s) {d = (unsigned short)Clamp(0.0f,float(s)*float(0xffff),float(0xffff));}
+    static void pixel_cast(unsigned int &d, const half &s) {d = (unsigned int)Clamp(0.0f,s*double(0xffffffff),double(0xffffffff));}
     static void pixel_cast(half &d, const half &s) {d = s;}
     static void pixel_cast(float &d, const half &s) {d = float(s);}
     static void pixel_cast(double &d, const half &s) {d = double(s);}
     
-    static void pixel_cast(unsigned char &d, const double &s) {d = Clamp(0.0f,s*double(0xff),double(0xff));}
-    static void pixel_cast(unsigned short &d, const double &s) {d = Clamp(0.0f,s*double(0xffff),double(0xffff));}
-    static void pixel_cast(unsigned int &d, const double &s) {d = Clamp(0.0f,s*double(0xffffffff),double(0xffffffff));}
+    static void pixel_cast(unsigned char &d, const double &s) {d = (unsigned char)Clamp(0.0f,s*double(0xff),double(0xff));}
+    static void pixel_cast(unsigned short &d, const double &s) {d = (unsigned short)Clamp(0.0f,s*double(0xffff),double(0xffff));}
+    static void pixel_cast(unsigned int &d, const double &s) {d = (unsigned int)Clamp(0.0f,s*double(0xffffffff),double(0xffffffff));}
     static void pixel_cast(half &d, const double &s) {d = half(s);}
     static void pixel_cast(float &d, const double &s) {d = float(s);}
     static void pixel_cast(double &d, const double &s) {d = s;}
@@ -130,13 +130,11 @@ namespace basePixel
     }
 };
 
-using namespace basePixel;
+// using namespace basePixel;
 
 template<class _ElType, int _Chan>
-class tPixel
-// XXX : public basePixel
-// Subclassing this didn't work on SGI because it adds an extra element to the sizeof
-// the pixel. Bleh!
+class tPixel : public basePixel
+// Subclassing this didn't work on SGI because it adds an extra element to the sizeof the pixel. Bleh!
 {
     _ElType els[_Chan]; // This is the data of the pixel.
     
@@ -200,14 +198,14 @@ public:
     // Return an element of this pixel.
     _ElType &operator[](int p)
     {
-        ASSERT(p >= 0 && p < _Chan);
+        ASSERT_D(p >= 0 && p < _Chan);
         return els[p];
     }
     
     // Return a const element of this pixel.
     const _ElType &operator[](int p) const
     {
-        ASSERT(p >= 0 && p < _Chan);
+        ASSERT_D(p >= 0 && p < _Chan);
         return els[p];
     }
     
@@ -241,8 +239,7 @@ public:
     {
         // static because it doesn't access this.
         // That's why there's no const afterwards.
-        return numeric_limits<_ElType>::is_integer;
-        // return typeid(_ElType) == typeid(double) || typeid(_ElType) == typeid(float);
+        return std::numeric_limits<_ElType>::is_integer;
     }
     
     // True if the elements are signed (all except unsigned char,unsigned short,unsigned int).
@@ -250,7 +247,7 @@ public:
     {
         // static because it doesn't access this.
         // That's why there's no const afterwards.
-        return numeric_limits<_ElType>::is_signed;
+        return std::numeric_limits<_ElType>::is_signed;
     }
     
     // Return the maximum channel value.
@@ -525,11 +522,11 @@ tPixel<_ElType,_Chan> Clamp(const tPixel<_ElType,_Chan> &cmin, const tPixel<_ElT
 
 // Print out the pixel.
 template<class _ElType, int _Chan>
-inline ostream &operator<<(ostream &out, const tPixel<_ElType,_Chan> &p)
+inline std::ostream &operator<<(std::ostream &out, const tPixel<_ElType,_Chan> &p)
 {
     out << '[';
     for(int i=0; i<p.chan(); i++) {
-        if(numeric_limits<_ElType>::digits <= 8)
+        if(std::numeric_limits<_ElType>::digits <= 8)
             out << int(p[i]);
         else
             out << p[i];
@@ -540,7 +537,7 @@ inline ostream &operator<<(ostream &out, const tPixel<_ElType,_Chan> &p)
 
 // Read in the pixel.
 template<class _ElType, int _Chan>
-inline istream& operator>>(istream& is, tPixel<_ElType,_Chan>& p)
+inline std::istream& operator>>(std::istream& is, tPixel<_ElType,_Chan>& p)
 {
     char st;
     for(int i=0; i<_Chan; i++) {

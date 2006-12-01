@@ -12,6 +12,8 @@
 
 #include <map>
 
+using namespace std;
+
 // Assume an eight-space tab.
 void WritableVRMLTriObject::indent()
 {
@@ -42,10 +44,10 @@ void WritableVRMLTriObject::writeMaterials()
 	{
 		indent(); fprintf(out, "diffuseColor [\n");
 		IncIndent();
-		for(int i=0; i<dcolors.size(); i++)
+		for(int i=0; i<(int)dcolors.size(); i++)
 		{
 			indent(); writeVector(dcolors[i]);
-			if(i==dcolors.size()-1)
+			if(i==(int)dcolors.size()-1)
 				fprintf(out, "]\n\n");
 			else
 				fprintf(out, ",\n");
@@ -57,10 +59,10 @@ void WritableVRMLTriObject::writeMaterials()
 	{
 		indent(); fprintf(out, "ambientColor [\n");
 		IncIndent();
-		for(int i=0; i<dcolors.size(); i++)
+		for(int i=0; i<(int)dcolors.size(); i++)
 		{
 			indent(); writeVector(acolor);
-			if(i==dcolors.size()-1)
+			if(i==(int)dcolors.size()-1)
 				fprintf(out, "]\n\n");
 			else
 				fprintf(out, ",\n");
@@ -72,10 +74,10 @@ void WritableVRMLTriObject::writeMaterials()
 	{
 		indent(); fprintf(out, "specularColor [\n");
 		IncIndent();
-		for(int i=0; i<dcolors.size(); i++)
+		for(int i=0; i<(int)dcolors.size(); i++)
 		{
 			indent(); writeVector(scolor);
-			if(i==dcolors.size()-1)
+			if(i==(int)dcolors.size()-1)
 				fprintf(out, "]\n\n");
 			else
 				fprintf(out, ",\n");
@@ -87,10 +89,10 @@ void WritableVRMLTriObject::writeMaterials()
 	{
 		indent(); fprintf(out, "emissiveColor [\n");
 		IncIndent();
-		for(int i=0; i<dcolors.size(); i++)
+		for(int i=0; i< (int)dcolors.size(); i++)
 		{
 			indent(); writeVector(ecolor);
-			if(i==dcolors.size()-1)
+			if(i==(int)dcolors.size()-1)
 				fprintf(out, "]\n\n");
 			else
 				fprintf(out, ",\n");
@@ -102,10 +104,10 @@ void WritableVRMLTriObject::writeMaterials()
 	{
 		indent(); fprintf(out, "shininess [\n");
 		IncIndent();
-		for(int i=0; i<dcolors.size(); i++)
+		for(int i=0; i< (int)dcolors.size(); i++)
 		{
 			indent();
-			if(i==dcolors.size()-1)
+			if(i==(int)dcolors.size()-1)
 				fprintf(out, "%0.3f]\n\n", shininess / 128.0);
 			else
 				fprintf(out, "%0.3f,\n", shininess / 128.0);
@@ -118,10 +120,10 @@ void WritableVRMLTriObject::writeMaterials()
 	if(alphas.size() == dcolors.size())
 	{
 		// Alpha per vertex.
-		for(int i=0; i<alphas.size(); i++)
+		for(int i=0; i< (int)alphas.size(); i++)
 		{
 			indent();
-			if(i==alphas.size()-1)
+			if(i==(int)alphas.size()-1)
 				fprintf(out, "%0.3f]\n\n", 1-alphas[i]);
 			else
 				fprintf(out, "%0.3f,\n", 1-alphas[i]);
@@ -134,10 +136,10 @@ void WritableVRMLTriObject::writeMaterials()
 		if(alphas.size() == 1)
 			Alpha = 1 - alphas[0];
 		
-		for(int i=0; i<dcolors.size(); i++)
+		for(int i=0; i< (int)dcolors.size(); i++)
 		{
 			indent();
-			if(i==dcolors.size()-1)
+			if(i==(int)dcolors.size()-1)
 				fprintf(out, "%0.3f]\n\n", Alpha);
 			else
 				fprintf(out, "%0.3f,\n", Alpha);
@@ -171,10 +173,10 @@ void WritableVRMLTriObject::writeNormals()
 		
 		indent(); fprintf(out, "vector [\n");
 		IncIndent();
-		for(int i=0; i<normals.size(); i++)
+		for(int i=0; i< (int)normals.size(); i++)
 		{
 			indent(); writeVector(normals[i]);
-			if(i==normals.size()-1)
+			if(i==(int)normals.size()-1)
 				fprintf(out, "]\n\n");
 			else
 				fprintf(out, ",\n");
@@ -217,10 +219,10 @@ void WritableVRMLTriObject::writeTexCoords()
 		
 		indent(); fprintf(out, "point [\n");
 		IncIndent();
-		for(int i=0; i<texcoords.size(); i++)
+		for(int i=0; i< (int)texcoords.size(); i++)
 		{
 			indent(); fprintf(out, "%0.3f %0.3f", texcoords[i].x, texcoords[i].y);
-			if(i==texcoords.size()-1)
+			if(i==(int)texcoords.size()-1)
 				fprintf(out, "]\n\n");
 			else
 				fprintf(out, ",\n");
@@ -242,9 +244,9 @@ void WritableVRMLTriObject::writeVertices()
 		
 		indent(); fprintf(out, "point [\n");
 		IncIndent();
-		for(int i=0; i<verts.size(); i++) {
+		for(int i=0; i< (int)verts.size(); i++) {
 			indent(); writeVector(verts[i]);
-			if(i==verts.size()-1)
+			if(i==(int)verts.size()-1)
 				fprintf(out, "]\n\n");
 			else
 				fprintf(out, ",\n");
@@ -265,12 +267,12 @@ void WritableVRMLTriObject::writeIndices()
 		
 		indent(); fprintf(out, "coordIndex [\n");
 		IncIndent();
-		for(int i=0; i<verts.size();)
+		for(int i=0; i< (int)verts.size();)
 		{
 			indent();
 			for(int j=0; j<((PrimType==L_TRIANGLES)?3:4); j++)
 				fprintf(out, "%d, ", i++);
-			if(i==verts.size())
+			if(i==(int)verts.size())
 				fprintf(out, "-1]\n\n");
 			else
 				fprintf(out, "-1,\n");
@@ -282,12 +284,12 @@ void WritableVRMLTriObject::writeIndices()
 			// Have a material per vertex.
 			indent(); fprintf(out, "materialIndex [\n");
 			IncIndent();
-			for(int i=0; i<verts.size();)
+			for(int i=0; i< (int)verts.size();)
 			{
 				indent();
 				for(int j=0; j<((PrimType==L_TRIANGLES)?3:4); j++)
 					fprintf(out, "%d, ", i++);
-				if(i==verts.size())
+				if(i==(int)verts.size())
 					fprintf(out, "-1]\n\n");
 				else
 					fprintf(out, "-1,\n");
@@ -300,12 +302,12 @@ void WritableVRMLTriObject::writeIndices()
 			// Have a normal per vertex.
 			indent(); fprintf(out, "normalIndex [\n");
 			IncIndent();
-			for(int i=0; i<verts.size();)
+			for(int i=0; i< (int)verts.size();)
 			{
 				indent();
 				for(int j=0; j<((PrimType==L_TRIANGLES)?3:4); j++)
 					fprintf(out, "%d, ", i++);
-				if(i==verts.size())
+				if(i==(int)verts.size())
 					fprintf(out, "-1]\n\n");
 				else
 					fprintf(out, "-1,\n");
@@ -318,12 +320,12 @@ void WritableVRMLTriObject::writeIndices()
 			// Have a texcoord per vertex.
 			indent(); fprintf(out, "textureCoordIndex [\n");
 			IncIndent();
-			for(int i=0; i<verts.size();)
+			for(int i=0; i< (int)verts.size();)
 			{
 				indent();
 				for(int j=0; j<((PrimType==L_TRIANGLES)?3:4); j++)
 					fprintf(out, "%d, ", i++);
-				if(i==verts.size())
+				if(i==(int)verts.size())
 					fprintf(out, "-1]\n\n");
 				else
 					fprintf(out, "-1,\n");
@@ -402,7 +404,7 @@ void WritableVRMLMesh::writeMaterials()
 		}
 		DecIndent();
 		
-		ASSERT0(vcnt == VertexCount);
+		ASSERT_R(vcnt == VertexCount);
 		
 		// Output the other valid attributes, replicated per vertex.
 		if(AColorValid)
@@ -662,7 +664,7 @@ void WritableVRMLMesh::writeIndices()
 	
 	indent(); fprintf(out, "coordIndex [\n");
 	IncIndent();
-	for(i=0; i<VIndList.size(); )
+	for(i=0; i<(int)VIndList.size(); )
 	{
 		indent();
 		int i0 = VIndList[i++];
@@ -670,7 +672,7 @@ void WritableVRMLMesh::writeIndices()
 		int i2 = VIndList[i++];
 		fprintf(out, "%d, %d, %d, -1", i0, i1, i2);
 		
-		if(i < VIndList.size()-1)
+		if(i < (int)VIndList.size()-1)
 			fprintf(out, ",\n");
 		else
 			fprintf(out, "]\n\n");
@@ -682,7 +684,7 @@ void WritableVRMLMesh::writeIndices()
 		// Have a material per vertex.
 		indent(); fprintf(out, "materialIndex [\n");
 		IncIndent();
-		for(i=0; i<VIndList.size(); )
+		for(i=0; i<(int)VIndList.size(); )
 		{
 			indent();
 			int i0 = VIndList[i++];
@@ -690,7 +692,7 @@ void WritableVRMLMesh::writeIndices()
 			int i2 = VIndList[i++];
 			fprintf(out, "%d, %d, %d, -1", i0, i1, i2);
 			
-			if(i < VIndList.size()-1)
+			if(i < (int)VIndList.size()-1)
 				fprintf(out, ",\n");
 			else
 				fprintf(out, "]\n\n");
@@ -703,7 +705,7 @@ void WritableVRMLMesh::writeIndices()
 		// Have a normal per vertex.
 		indent(); fprintf(out, "normalIndex [\n");
 		IncIndent();
-		for(i=0; i<VIndList.size(); )
+		for(i=0; i<(int)VIndList.size(); )
 		{
 			indent();
 			int i0 = VIndList[i++];
@@ -711,7 +713,7 @@ void WritableVRMLMesh::writeIndices()
 			int i2 = VIndList[i++];
 			fprintf(out, "%d, %d, %d, -1", i0, i1, i2);
 			
-			if(i < VIndList.size()-1)
+			if(i < (int)VIndList.size()-1)
 				fprintf(out, ",\n");
 			else
 				fprintf(out, "]\n\n");
@@ -724,7 +726,7 @@ void WritableVRMLMesh::writeIndices()
 		// Have a texcoord per vertex.
 		indent(); fprintf(out, "textureCoordIndex [\n");
 		IncIndent();
-		for(i=0; i<VIndList.size(); )
+		for(i=0; i<(int)VIndList.size(); )
 		{
 			indent();
 			int i0 = VIndList[i++];
@@ -732,7 +734,7 @@ void WritableVRMLMesh::writeIndices()
 			int i2 = VIndList[i++];
 			fprintf(out, "%d, %d, %d, -1", i0, i1, i2);
 			
-			if(i < VIndList.size()-1)
+			if(i < (int)VIndList.size()-1)
 				fprintf(out, ",\n");
 			else
 				fprintf(out, "]\n\n");
@@ -767,14 +769,14 @@ void WritableVRMLMesh::Write(FILE *_out, int ind)
 bool Model::SaveVRML(const char *fname)
 {
 	FILE *out = fopen(fname, "w");
-	ASSERTERR(out, "Couldn't open file to save VRML file.");
+	ASSERT_RM(out, "Couldn't open file to save VRML file.");
 	
 	fprintf(out, "#VRML V1.0 ascii\n\n");
 	
 	fprintf(out, "Separator\n{\n ShapeHints\n {\n vertexOrdering COUNTERCLOCKWISE\n creaseAngle %0.3f\n }\n\n",
 		Objs[0]->creaseAngle);
 	
-	for(int i=0; i<Objs.size(); i++) {
+	for(int i=0; i<(int)Objs.size(); i++) {
 		cerr << "Saving Object: " << i << endl;
         if(Objs[i]->ObjectType == DMC_TRI_OBJECT)
             WritableVRMLTriObject(*((TriObject *)Objs[i])).Write(out, 2);

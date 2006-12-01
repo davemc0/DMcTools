@@ -10,10 +10,10 @@
 
 class BBox
 {
-	bool valid;
-    bool sphere_valid;
     Vector Ctr;
     double Rad;
+	bool valid;
+    bool sphere_valid;
 	
     inline void validate_sphere()
     {
@@ -32,7 +32,7 @@ public:
 	
 	inline BBox() {valid = false;}
 	inline BBox(const Vector &_min, const Vector &_max)
-		: MinV(_min), MaxV(_max), valid(true), sphere_valid(false)
+		:  valid(true), sphere_valid(false), MinV(_min), MaxV(_max)
 	{}
 
 	inline void Reset() {valid = false;}
@@ -64,7 +64,7 @@ public:
 	// XXX For speed we will return true if the P+-r box intersects the bbox.
 	inline bool SphereIntersect(const Vector &P, const double r) const
 	{
-		ASSERT(r >= 0.0);
+		ASSERT_D(r >= 0.0);
 		return (!(P.x+r < MinV.x || P.y+r < MinV.y || P.z+r < MinV.z ||
 			P.x-r > MaxV.x || P.y-r > MaxV.y || P.z-r > MaxV.z));
 	}
@@ -120,13 +120,13 @@ public:
 	inline bool is_valid() const {return valid;}
 };
 
-inline ostream& operator<<(ostream& os, const BBox& b)
+inline std::ostream& operator<<(std::ostream& os, const BBox& b)
 {
 	os << b.MinV.print() << b.MaxV.print();
 	return os;
 }
 
-inline istream& operator>>(istream& is, BBox& b)
+inline std::istream& operator>>(std::istream& is, BBox& b)
 {
 	is >> b.MinV >> b.MaxV;
 	return is;

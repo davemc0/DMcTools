@@ -144,9 +144,9 @@ typedef union {
   char		*sval;
   double	*mptr;
   Vector	*vec;
-  vector<int>	*ibuf;
-  vector<double> *fbuf;
-  vector<Vector> *vbuf;
+    std::vector<int>	*ibuf;
+    std::vector<double> *fbuf;
+    std::vector<Vector> *vbuf;
 } YYSTYPE;
 #line 43 "BisonMe.y"
 
@@ -1649,7 +1649,7 @@ case 155:
 case 156:
 #line 446 "BisonMe.y"
 {yyval.mptr = new double[16];
-	             ASSERTERR(yyval.mptr, "new matrix failed");
+	             ASSERT_RM(yyval.mptr, "new matrix failed");
 		     yyval.mptr[0] = yyvsp[-15].fval;   yyval.mptr[1] = yyvsp[-14].fval;   yyval.mptr[2] = yyvsp[-13].fval;   yyval.mptr[3] = yyvsp[-12].fval;
                      yyval.mptr[4] = yyvsp[-11].fval;   yyval.mptr[5] = yyvsp[-10].fval;   yyval.mptr[6] = yyvsp[-9].fval;   yyval.mptr[7] = yyvsp[-8].fval;
                      yyval.mptr[8] = yyvsp[-7].fval;   yyval.mptr[9] = yyvsp[-6].fval;  yyval.mptr[10] = yyvsp[-5].fval; yyval.mptr[11] = yyvsp[-4].fval;
@@ -1785,7 +1785,7 @@ case 192:
     break;}
 case 193:
 #line 520 "BisonMe.y"
-{yyval.vbuf=new vector<Vector>; yyval.vbuf->push_back(*yyvsp[0].vec); delete yyvsp[0].vec;;
+{yyval.vbuf=new std::vector<Vector>; yyval.vbuf->push_back(*yyvsp[0].vec); delete yyvsp[0].vec;;
     break;}
 case 194:
 #line 521 "BisonMe.y"
@@ -1793,7 +1793,7 @@ case 194:
     break;}
 case 195:
 #line 524 "BisonMe.y"
-{yyval.vbuf=new vector<Vector>; yyval.vbuf->push_back(Vector(yyvsp[-2].fval, yyvsp[-1].fval, yyvsp[0].fval));;
+{yyval.vbuf=new std::vector<Vector>; yyval.vbuf->push_back(Vector(yyvsp[-2].fval, yyvsp[-1].fval, yyvsp[0].fval));;
     break;}
 case 196:
 #line 527 "BisonMe.y"
@@ -1809,7 +1809,7 @@ case 198:
     break;}
 case 199:
 #line 534 "BisonMe.y"
-{yyval.vbuf=new vector<Vector>; yyval.vbuf->push_back(*yyvsp[0].vec); delete yyvsp[0].vec;;
+{yyval.vbuf=new std::vector<Vector>; yyval.vbuf->push_back(*yyvsp[0].vec); delete yyvsp[0].vec;;
     break;}
 case 200:
 #line 535 "BisonMe.y"
@@ -1817,7 +1817,7 @@ case 200:
     break;}
 case 201:
 #line 538 "BisonMe.y"
-{yyval.vbuf=new vector<Vector>; yyval.vbuf->push_back(Vector(yyvsp[-1].fval, yyvsp[0].fval, 0));;
+{yyval.vbuf=new std::vector<Vector>; yyval.vbuf->push_back(Vector(yyvsp[-1].fval, yyvsp[0].fval, 0));;
     break;}
 case 202:
 #line 541 "BisonMe.y"
@@ -1833,11 +1833,11 @@ case 204:
     break;}
 case 205:
 #line 546 "BisonMe.y"
-{yyval.ibuf = new vector<int>;;
+{yyval.ibuf = new std::vector<int>;;
     break;}
 case 206:
 #line 549 "BisonMe.y"
-{yyval.ibuf = new vector<int>; yyval.ibuf->push_back(yyvsp[0].ival);;
+{yyval.ibuf = new std::vector<int>; yyval.ibuf->push_back(yyvsp[0].ival);;
     break;}
 case 207:
 #line 550 "BisonMe.y"
@@ -1857,7 +1857,7 @@ case 210:
     break;}
 case 211:
 #line 559 "BisonMe.y"
-{yyval.fbuf = new vector<double>; yyval.fbuf->push_back(yyvsp[0].fval);;
+{yyval.fbuf = new std::vector<double>; yyval.fbuf->push_back(yyvsp[0].fval);;
     break;}
 case 212:
 #line 560 "BisonMe.y"
@@ -1865,7 +1865,7 @@ case 212:
     break;}
 case 213:
 #line 563 "BisonMe.y"
-{yyval.fbuf = new vector<double>; yyval.fbuf->push_back(yyvsp[0].fval);;
+{yyval.fbuf = new std::vector<double>; yyval.fbuf->push_back(yyvsp[0].fval);;
     break;}
 case 214:
 #line 566 "BisonMe.y"
@@ -1961,7 +1961,7 @@ yyerrlab:   /* here on detecting error */
 	  count = 0;
 	  /* Start X at -yyn if nec to avoid negative indexes in yycheck.  */
 	  for (x = (yyn < 0 ? -yyn : 0);
-	       x < (sizeof(yytname) / sizeof(char *)); x++)
+	       (unsigned int)x < (sizeof(yytname) / sizeof(char *)); x++)
 	    if (yycheck[x + yyn] == x)
 	      size += int(strlen(yytname[x])) + 15, count++;
 	  msg = (char *) malloc(size + 15);
@@ -1973,7 +1973,7 @@ yyerrlab:   /* here on detecting error */
 		{
 		  count = 0;
 		  for (x = (yyn < 0 ? -yyn : 0);
-		       x < (sizeof(yytname) / sizeof(char *)); x++)
+		       (unsigned int)(x) < (sizeof(yytname) / sizeof(char *)); x++)
 		    if (yycheck[x + yyn] == x)
 		      {
 			strcat(msg, count == 0 ? ", expecting `" : " or `");

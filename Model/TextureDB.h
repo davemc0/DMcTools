@@ -9,7 +9,6 @@
 #include <Image/ucImage.h>
 
 #include <vector>
-using namespace std;
 
 #define NUM_TEX_IDS 10
 
@@ -73,7 +72,7 @@ struct TexInfo
 class TextureDB
 {
 public:
-	vector<TexInfo *> TexList;
+	std::vector<TexInfo *> TexList;
 	
 	// Returns -1 if not found.
 	inline TexInfo *FindByName(const char *name);

@@ -28,8 +28,8 @@ public:
     // XXX Is this a good idea?
     rgbePixel(const tPixel<unsigned char,4> &p)
     {
-        cerr << "Questionable code!\n";
-        ASSERT0(0);
+        std::cerr << "Questionable code!\n";
+        ASSERT_R(0);
         for(int i=0; i<chan(); i++) (*this)[i] = p[i];
     }
     
@@ -98,7 +98,7 @@ public:
     // Luminance.
     unsigned char Luminance() const
     {
-        ASSERT0(0); // Not implemented.
+        ASSERT_R(0); // Not implemented.
         return (unsigned char)(0);
     }
 };

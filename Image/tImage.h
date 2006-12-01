@@ -77,8 +77,6 @@ and for loading and saving unsigned char images.
 #include <Image/Pixel.h>
 #include <Image/RGBE.h>
 
-// template<class _PixType> class tImage;
-
 // This class is used to give commonality to all images.
 // This lets them be passed around as a baseImage *.
 // The functions defined here basically allow you to do your own run-time type checking.
@@ -122,6 +120,8 @@ public:
     
     // Size of image data in bytes.
     virtual int size_bytes() const = 0;
+
+    virtual ~baseImage() {}
 };
 
 // For loading an image into whatever kind of tImage is most appropriate.
@@ -240,7 +240,7 @@ public:
     // Size of one element of one pixel.
     int size_element() const
     {
-        return sizeof(_PixType::ElType);
+        return sizeof(typename _PixType::ElType);
     }
     
     // Size of one pixel.
@@ -306,60 +306,60 @@ public:
     // Returns const pixel x,y.
     const _PixType & operator() (const int x, const int y) const
     {
-        ASSERT(x>=0 && x<w());
-        ASSERT(y>=0 && y<h());
+        ASSERT_D(x>=0 && x<w());
+        ASSERT_D(y>=0 && y<h());
         return *pp(ind(x,y));
     }
     
     // Returns pixel x,y.
     _PixType & operator() (const int x, const int y)
     {
-        ASSERT(x>=0 && x<w());
-        ASSERT(y>=0 && y<h());
+        ASSERT_D(x>=0 && x<w());
+        ASSERT_D(y>=0 && y<h());
         return *pp(ind(x,y));
     }
     
     // Returns const pixel i.
     const _PixType & operator[] (const int i) const
     {
-        ASSERT(i>=0 && i<size());
+        ASSERT_D(i>=0 && i<size());
         return *pp(i);
     }
     
     // Returns pixel i.
     _PixType & operator[] (const int i)
     {
-        ASSERT(i>=0 && i<size());
+        ASSERT_D(i>=0 && i<size());
         return *pp(i);
     }
     
     // Returns a const pointer to this pixel.
     const _PixType *pp(const int x, const int y) const
     {
-        ASSERT(x>=0 && x<w());
-        ASSERT(y>=0 && y<h());
+        ASSERT_D(x>=0 && x<w());
+        ASSERT_D(y>=0 && y<h());
         return pp(ind(x,y));
     }
     
     // Returns a pointer to this pixel.
     _PixType *pp(const int x, const int y)
     {
-        ASSERT(x>=0 && x<w());
-        ASSERT(y>=0 && y<h());
+        ASSERT_D(x>=0 && x<w());
+        ASSERT_D(y>=0 && y<h());
         return pp(ind(x,y));
     }
     
     // Returns a const pointer to this pixel.
     const _PixType *pp(const int i=0) const
     {
-        ASSERT(i>=0 && i<size());
+        ASSERT_D(i>=0 && i<size());
         return &(Pix[i]);
     }
     
     // Returns a pointer to this pixel.
     _PixType *pp(const int i=0)
     {
-        ASSERT(i>=0 && i<size());
+        ASSERT_D(i>=0 && i<size());
         return &(Pix[i]);
     }
         
@@ -376,7 +376,7 @@ public:
     // Both channel-wise extrema at once.
     void GetMinMax(_PixType &cmin, _PixType &cmax) const
     {
-        ASSERT0(size() > 0);
+        ASSERT_R(size() > 0);
         cmax = (*this)[0];
         cmin = (*this)[0];
         for(int i=1; i<size(); i++) {
@@ -388,7 +388,7 @@ public:
     // Max over all pixels for each channel.
     _PixType max_chan() const
     {
-        ASSERT0(size() > 0);
+        ASSERT_R(size() > 0);
         _PixType cmax = (*this)[0];
         for(int i=1; i<size(); i++) cmax = Max(cmax, (*this)[i]);
         return cmax;
@@ -397,7 +397,7 @@ public:
     // Min over all pixels for each channel.
     _PixType min_chan() const
     {
-        ASSERT0(size() > 0);
+        ASSERT_R(size() > 0);
         _PixType cmin = (*this)[0];
         for(int i=1; i<size(); i++) cmin = Min(cmin, (*this)[i]);
         return cmin;
@@ -407,7 +407,7 @@ public:
     // WARNING: This is likely to overflow for fixed point pixel types.
     _PixType sum_chan() const
     {
-        ASSERT0(size() > 0);
+        ASSERT_R(size() > 0);
         _PixType csum = 0;
         for(int i=0; i<size(); i++) csum += (*this)[i];
         return csum;
@@ -469,7 +469,7 @@ public:
         
         if(size() > 0) {
             Pix = new _PixType[size()];
-            ASSERTERR(Pix, "memory alloc failed");
+            ASSERT_RM(Pix, "memory alloc failed");
             // cerr << "Pix = " << Pix << endl;
             if(doFill) fill();
         }
@@ -512,8 +512,8 @@ public:
     template<class _PixTypeSrc>
         void CopyChan(const tImage<_PixTypeSrc> &SrcIm, const int src_ch, const int dest_ch)
     {
-        ASSERT0(w() == SrcIm.w() && h() == SrcIm.h());
-        ASSERT0(src_ch < SrcIm.chan() && dest_ch < chan());
+        ASSERT_R(w() == SrcIm.w() && h() == SrcIm.h());
+        ASSERT_R(src_ch < SrcIm.chan() && dest_ch < chan());
         
         for(int i=0; i<size(); i++) (*this)[i][dest_ch] = SrcIm[i][src_ch];
     }
@@ -629,7 +629,7 @@ public:
     {
         // You actually use the specialized versions of this function
         // at the end of this file.
-        ASSERT0(0);
+        ASSERT_R(0);
     }
     
     // Detects type from filename. Won't modify number of channels.
@@ -637,7 +637,7 @@ public:
     {
         // You actually use the specialized versions of this function
         // at the end of this file.
-        ASSERT0(0);
+        ASSERT_R(0);
     }
     
     //////////////////////////////////////////////////////////////////////
@@ -647,25 +647,25 @@ public:
     
     tImage<_PixType> &operator+=(const tImage<_PixType> &p)
     {
-        ASSERT0(size() == p.size());
+        ASSERT_R(size() == p.size());
         for(int i=0; i<size(); i++) (*this)[i] += p[i];
         return *this; 
     }
     tImage<_PixType> &operator-=(const tImage<_PixType> &p)
     {
-        ASSERT0(size() == p.size());
+        ASSERT_R(size() == p.size());
         for(int i=0; i<size(); i++) (*this)[i] -= p[i];
         return *this; 
     }
     tImage<_PixType> &operator*=(const tImage<_PixType> &p)
     {
-        ASSERT0(size() == p.size());
+        ASSERT_R(size() == p.size());
         for(int i=0; i<size(); i++) (*this)[i] *= p[i];
         return *this; 
     }
     tImage<_PixType> &operator/=(const tImage<_PixType> &p)
     {
-        ASSERT0(size() == p.size());
+        ASSERT_R(size() == p.size());
         for(int i=0; i<size(); i++) (*this)[i] /= p[i];
         return *this; 
     }
@@ -721,7 +721,7 @@ template<class _PixType, class _Pred>
 void ifunc(tImage<_PixType> &r, const tImage<_PixType> &p, _Pred _fnc)
 {
     r.SetSize(p.w(), p.h());
-    cerr << r.w() << "y" << r.h() << " " << p.w() << "i" << p.h() << endl;
+
     for(int i=0; i<p.size(); i++) 
         for(int j=0; j<_PixType::chan(); j++) r[i][j] = _fnc(p[i][j]);
 }
@@ -772,34 +772,34 @@ bool operator!=(const tImage<_PixType> &p1, const tImage<_PixType> &p2)
 template<class _PixType>
 tImage<_PixType> operator+(const tImage<_PixType> &p1, const tImage<_PixType> &p2)
 {
-    ASSERT0(p1.size() == p2.size());
+    ASSERT_R(p1.size() == p2.size());
     tImage<_PixType> r(p1.w(), p1.h());
-    for(int i=0; i<p.size(); i++) r[i] = p1[i] + p2[i];
+    for(int i=0; i<p1.size(); i++) r[i] = p1[i] + p2[i];
     return r; 
 }
 template<class _PixType>
 tImage<_PixType> operator-(const tImage<_PixType> &p1, const tImage<_PixType> &p2)
 {
-    ASSERT0(p1.size() == p2.size());
+    ASSERT_R(p1.size() == p2.size());
     tImage<_PixType> r(p1.w(), p1.h());
-    for(int i=0; i<p.size(); i++) r[i] = p1[i] - p2[i];
+    for(int i=0; i<p1.size(); i++) r[i] = p1[i] - p2[i];
     return r; 
 }
 template<class _PixType>
 tImage<_PixType> operator*(const tImage<_PixType> &p1, const tImage<_PixType> &p2)
 {
-    ASSERT0(p1.size() == p2.size());
+    ASSERT_R(p1.size() == p2.size());
     tImage<_PixType> r(p1.w(), p1.h());
-    for(int i=0; i<p.size(); i++) r[i] = p1[i] * p2[i];
+    for(int i=0; i<p1.size(); i++) r[i] = p1[i] * p2[i];
     return r; 
 }
 // WARNING: Be careful for divide by zero.
 template<class _PixType>
 tImage<_PixType> operator/(const tImage<_PixType> &p1, const tImage<_PixType> &p2)
 {
-    ASSERT0(p1.size() == p2.size());
+    ASSERT_R(p1.size() == p2.size());
     tImage<_PixType> r(p1.w(), p1.h());
-    for(int i=0; i<p.size(); i++) r[i] = p1[i] / p2[i];
+    for(int i=0; i<p1.size(); i++) r[i] = p1[i] / p2[i];
     return r; 
 }
 
@@ -873,7 +873,7 @@ template<class _PixType>
 tImage<_PixType> Interpolate(const tImage<_PixType> &p1, const tImage<_PixType> &p2,
                              _PixType weight)
 {
-    ASSERT0(p1.size() == p2.size());
+    ASSERT_R(p1.size() == p2.size());
     tImage<_PixType> r(p1.w(), p1.h());
     for(int i=0; i<p1.size(); i++) r[i] = p1[i] + (p2[i] - p1[i]) * weight;
     return r; 
@@ -883,9 +883,9 @@ tImage<_PixType> Interpolate(const tImage<_PixType> &p1, const tImage<_PixType> 
 template<class _PixType>
 tImage<_PixType> Max(const tImage<_PixType> &p1, const tImage<_PixType> &p2)
 {
-    ASSERT0(p1.size() == p2.size());
+    ASSERT_R(p1.size() == p2.size());
     tImage<_PixType> r(p1.w(), p1.h());
-    for(int i=0; i<size(); i++) r[i] = Max(p1[i], p2[i]);
+    for(int i=0; i<p1.size(); i++) r[i] = Max(p1[i], p2[i]);
     return r;
 }
 
@@ -893,9 +893,9 @@ tImage<_PixType> Max(const tImage<_PixType> &p1, const tImage<_PixType> &p2)
 template<class _PixType>
 tImage<_PixType> Min(const tImage<_PixType> &p1, const tImage<_PixType> &p2)
 {
-    ASSERT0(p1.size() == p2.size());
+    ASSERT_R(p1.size() == p2.size());
     tImage<_PixType> r(p1.w(), p1.h());
-    for(int i=0; i<size(); i++) r[i] = Min(p1[i], p2[i]);
+    for(int i=0; i<p1.size(); i++) r[i] = Min(p1[i], p2[i]);
     return r;
 }
 
@@ -903,7 +903,7 @@ tImage<_PixType> Min(const tImage<_PixType> &p1, const tImage<_PixType> &p2)
 template<class _PixType>
 tImage<_PixType> Abs(const tImage<_PixType> &p)
 {
-    tImage<_PixType> r(p1.w(), p1.h());
+    tImage<_PixType> r(p.w(), p.h());
     for(int i=0; i<p.size(); i++) r[i] = Abs(p[i]);
     return r;
 }

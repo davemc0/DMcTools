@@ -12,7 +12,6 @@
 #include <Math/Vector.h>
 
 #include <vector>
-using namespace std;
 
 struct Edge;
 struct Face;
@@ -23,8 +22,8 @@ struct Vertex
     
     Vertex *next, *prev;
     
-    vector<Edge *> Edges;
-    vector<Face *> Faces;
+    std::vector<Edge *> Edges;
+    std::vector<Face *> Faces;
     
     inline Vertex()
     {
@@ -46,7 +45,7 @@ struct Vertex
     }
     
     // Remove myself from this list of vertices.
-    inline void ListRemove(vector<Vertex *> &Ll)
+    inline void ListRemove(std::vector<Vertex *> &Ll)
     {
         for(unsigned int i=0; i<Ll.size(); )
             if(this == Ll[i]) {
@@ -61,7 +60,7 @@ struct Edge
 {
     Edge *next, *prev; // For the linked list of all edges.
     
-    vector<Face *> Faces; // Should be 1 or 2 if manifold.
+    std::vector<Face *> Faces; // Should be 1 or 2 if manifold.
     Vertex *v0, *v1;
     
     inline ~Edge()
@@ -80,9 +79,9 @@ struct Edge
     }
     
     // Remove myself from this list of edges.
-    inline void ListRemove(vector<Edge *> &Ll)
+    inline void ListRemove(std::vector<Edge *> &Ll)
     {
-        for(int i=0; i<Ll.size(); )
+        for(int i=0; i<(int)Ll.size(); )
             if(this == Ll[i]) {
                 Ll[i] = Ll.back();
                 Ll.pop_back();
@@ -114,9 +113,9 @@ struct Face
     }
     
     // Remove myself from this list of faces.
-    inline void ListRemove(vector<Face *> &Ll)
+    inline void ListRemove(std::vector<Face *> &Ll)
     {
-        for(int i=0; i<Ll.size(); )
+        for(int i=0; i<(int)Ll.size(); )
             if(this == Ll[i]) {
                 Ll[i] = Ll.back();
                 Ll.pop_back();

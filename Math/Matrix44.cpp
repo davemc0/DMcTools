@@ -99,7 +99,7 @@ bool Matrix44::build_inverse(double m[4][4]) const
 		}
 		
 		// Subtract scaled rows to eliminate column i.
-		ASSERT(m[i][i]!=0);
+		ASSERT_D(m[i][i]!=0);
 		double denom = 1./m[i][i];
 		for(j=i+1; j<4; j++)
 		{
@@ -112,7 +112,7 @@ bool Matrix44::build_inverse(double m[4][4]) const
 	// Diagonalize m using Jordan.
 	for(i=1; i<4; i++)
 	{
-		ASSERT(m[i][i]!=0);
+		ASSERT_D(m[i][i]!=0);
 		double denom = 1./m[i][i];
 		for(int j=0; j<i; j++)
 		{
@@ -125,7 +125,7 @@ bool Matrix44::build_inverse(double m[4][4]) const
 	// Normalize m to the identity and copy p over m.
 	for(i=0; i<4; i++)
 	{
-		ASSERT(m[i][i]!=0);
+		ASSERT_D(m[i][i]!=0);
 		double factor = 1./m[i][i];
 		for(int j=0; j<4; j++)
 		{
@@ -188,34 +188,34 @@ void Matrix44::pre_mulmat(double to[4][4], const double from[4][4])
 //////////////////////////////////////////////////////////
 // Public member functions.
 
-string Matrix44::print() const
+std::string Matrix44::print() const
 {
 	char xx[40];
 	
-	string st;
+    std::string st;
 	for(int i=0; i<4; i++)
 	{
-		st += string("[");
-		st += gcvt(mat[i][0], PRDIG, xx) + string(", ");
-		st += gcvt(mat[i][1], PRDIG, xx) + string(", ");
-		st += gcvt(mat[i][2], PRDIG, xx) + string(", ");
-		st += gcvt(mat[i][3], PRDIG, xx) + string("]\n");
+		st += std::string("[");
+		st += gcvt(mat[i][0], PRDIG, xx) + std::string(", ");
+		st += gcvt(mat[i][1], PRDIG, xx) + std::string(", ");
+		st += gcvt(mat[i][2], PRDIG, xx) + std::string(", ");
+		st += gcvt(mat[i][3], PRDIG, xx) + std::string("]\n");
 	}
 	
 	return st;
 }
 
-string Matrix44::printInv() const
+std::string Matrix44::printInv() const
 {
 	char xx[40];
 	
-	string st;
+	std::string st;
 	for(int i=0; i<4; i++)
 	{
-		st += string("[");
+		st += std::string("[");
 		for(int j=0; j<4; j++)
-			st += gcvt(imat[i][j], PRDIG, xx) + string(", ");
-		st += string("]\n");
+			st += gcvt(imat[i][j], PRDIG, xx) + std::string(", ");
+		st += std::string("]\n");
 	}
 	
 	return st;
@@ -436,7 +436,7 @@ void Matrix44::Transpose()
 
 void Matrix44::Frustum(double l, double r, double b, double t, double n, double f)
 {
-	ASSERT(n>0 && f>0);
+	ASSERT_R(n>0 && f>0);
 	double m[4][4];
 	
 	m[0][0] = (n+n)/(r-l);
@@ -531,7 +531,7 @@ void Matrix44::Ortho(double l, double r, double b, double t, double n, double f)
 
 void Matrix44::Perspective(double fovy, double aspect, double znear, double zfar)
 {
-	ASSERT(znear>0 && zfar>0);
+	ASSERT_D(znear>0 && zfar>0);
 	double top = znear * tan(fovy * 0.5);
 	double bottom = -top;
 	double left = bottom * aspect;
@@ -661,7 +661,7 @@ bool Matrix44::CheckNaN() const
 {
 	double *m = (double *)mat;
 	for(int i=0; i<16; i++)
-		ASSERTERR(!IsNaN(m[i]), "Matrix has a NaN");
+		ASSERT_RM(!IsNaN(m[i]), "Matrix has a NaN");
 	
 	return true;
 }

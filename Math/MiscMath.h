@@ -13,18 +13,11 @@
 
 #include <math.h>
 
-#ifdef DMC_MACHINE_win
 #include <float.h>
 
 #ifndef DMC_MAXFLOAT
 #define DMC_MAXFLOAT FLT_MAX
-#endif
-#endif
-
-#ifdef DMC_MACHINE_sgi
-#ifndef DMC_MAXFLOAT
-#define DMC_MAXFLOAT MAXFLOAT
-#endif
+// MAXFLOAT
 #endif
 
 #ifndef M_PI

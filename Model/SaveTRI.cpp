@@ -8,6 +8,6 @@
 // Returns false on success.
 bool Model::SaveTRI(const char *fname)
 {
-	ASSERTERR(0, "Not written.");
+	ASSERT_RM(0, "Not written.");
     return true;
 }

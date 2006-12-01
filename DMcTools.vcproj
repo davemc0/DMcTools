@@ -1,101 +1,294 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.10"
+	Version="8.00"
 	Name="DMcTools"
 	ProjectGUID="{EC42DB71-11A4-4387-8D55-F545CAD99A7D}"
-	Keyword="Win32Proj">
+	Keyword="Win32Proj"
+	>
 	<Platforms>
 		<Platform
-			Name="Win32"/>
+			Name="Win32"
+		/>
+		<Platform
+			Name="x64"
+		/>
 	</Platforms>
+	<ToolFiles>
+	</ToolFiles>
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
 			OutputDirectory="Debug"
 			IntermediateDirectory="Debug"
 			ConfigurationType="4"
-			CharacterSet="2">
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
+			CharacterSet="2"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=".,..,../Goodies/include"
+				AdditionalIncludeDirectories=".,..,Half,../Goodies/include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
-				MinimalRebuild="TRUE"
+				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="5"
+				RuntimeLibrary="3"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="TRUE"
-				DebugInformationFormat="4"/>
+				Detect64BitPortabilityProblems="true"
+				DebugInformationFormat="4"
+				EnablePREfast="false"
+			/>
 			<Tool
-				Name="VCCustomBuildTool"/>
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="$(OutDir)/DMcTools.lib"/>
+				OutputFile="$(OutDir)/DMcTools.lib"
+			/>
 			<Tool
-				Name="VCMIDLTool"/>
+				Name="VCALinkTool"
+			/>
 			<Tool
-				Name="VCPostBuildEventTool"/>
+				Name="VCXDCMakeTool"
+			/>
 			<Tool
-				Name="VCPreBuildEventTool"/>
+				Name="VCBscMakeTool"
+			/>
 			<Tool
-				Name="VCPreLinkEventTool"/>
+				Name="VCFxCopTool"
+			/>
 			<Tool
-				Name="VCResourceCompilerTool"/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"/>
-			<Tool
-				Name="VCXMLDataGeneratorTool"/>
-			<Tool
-				Name="VCManagedWrapperGeneratorTool"/>
-			<Tool
-				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+				Name="VCPostBuildEventTool"
+			/>
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
 			OutputDirectory="Release"
 			IntermediateDirectory="Release"
 			ConfigurationType="4"
-			CharacterSet="2">
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
+			CharacterSet="2"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				GlobalOptimizations="TRUE"
 				InlineFunctionExpansion="2"
-				EnableIntrinsicFunctions="TRUE"
+				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
-				OptimizeForProcessor="3"
-				AdditionalIncludeDirectories=".,..,../Goodies/include"
+				OmitFramePointers="true"
+				EnableFiberSafeOptimizations="true"
+				WholeProgramOptimization="false"
+				AdditionalIncludeDirectories=".,..,Half,../Goodies/include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
-				RuntimeLibrary="4"
+				StringPooling="true"
+				RuntimeLibrary="2"
+				EnableFunctionLevelLinking="true"
 				EnableEnhancedInstructionSet="2"
+				FloatingPointModel="2"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="TRUE"
-				DebugInformationFormat="3"/>
+				Detect64BitPortabilityProblems="true"
+				DebugInformationFormat="3"
+			/>
 			<Tool
-				Name="VCCustomBuildTool"/>
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="$(OutDir)/DMcTools.lib"/>
+				OutputFile="$(OutDir)/DMcTools.lib"
+			/>
 			<Tool
-				Name="VCMIDLTool"/>
+				Name="VCALinkTool"
+			/>
 			<Tool
-				Name="VCPostBuildEventTool"/>
+				Name="VCXDCMakeTool"
+			/>
 			<Tool
-				Name="VCPreBuildEventTool"/>
+				Name="VCBscMakeTool"
+			/>
 			<Tool
-				Name="VCPreLinkEventTool"/>
+				Name="VCFxCopTool"
+			/>
 			<Tool
-				Name="VCResourceCompilerTool"/>
+				Name="VCPostBuildEventTool"
+			/>
+		</Configuration>
+		<Configuration
+			Name="Debug|x64"
+			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
+			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
+			ConfigurationType="4"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
+			CharacterSet="2"
+			>
 			<Tool
-				Name="VCWebServiceProxyGeneratorTool"/>
+				Name="VCPreBuildEventTool"
+			/>
 			<Tool
-				Name="VCXMLDataGeneratorTool"/>
+				Name="VCCustomBuildTool"
+			/>
 			<Tool
-				Name="VCManagedWrapperGeneratorTool"/>
+				Name="VCXMLDataGeneratorTool"
+			/>
 			<Tool
-				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+				TargetEnvironment="3"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories=".,..,Half,../Goodies/include"
+				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
+				MinimalRebuild="true"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="1"
+				EnableEnhancedInstructionSet="0"
+				UsePrecompiledHeader="0"
+				WarningLevel="3"
+				Detect64BitPortabilityProblems="true"
+				DebugInformationFormat="3"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="$(OutDir)/DMcTools.lib"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
+		</Configuration>
+		<Configuration
+			Name="Release|x64"
+			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
+			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
+			ConfigurationType="4"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
+			CharacterSet="2"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+				TargetEnvironment="3"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				InlineFunctionExpansion="2"
+				EnableIntrinsicFunctions="true"
+				FavorSizeOrSpeed="1"
+				AdditionalIncludeDirectories=".,..,Half,../Goodies/include"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
+				ExceptionHandling="1"
+				RuntimeLibrary="0"
+				EnableEnhancedInstructionSet="0"
+				UsePrecompiledHeader="0"
+				WarningLevel="3"
+				Detect64BitPortabilityProblems="true"
+				DebugInformationFormat="3"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="$(OutDir)/DMcTools.lib"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
 		</Configuration>
 	</Configurations>
 	<References>
@@ -104,272 +297,376 @@
 		<Filter
 			Name="Source Files"
 			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx"
-			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}">
+			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
+			>
 			<File
-				RelativePath=".\Model\BisonMe.cpp">
+				RelativePath=".\Model\BisonMe.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\Image\Bmp.cpp">
+				RelativePath=".\Image\Bmp.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\Model\Camera.cpp">
+				RelativePath=".\Model\Camera.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\Math\CatmullRomSpline.cpp">
+				RelativePath=".\Math\CatmullRomSpline.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\Math\DownSimplex.cpp">
+				RelativePath=".\Math\DownSimplex.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\Image\EnvMap.cpp">
+				RelativePath=".\Image\Filter.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\Image\Filter.cpp">
+				RelativePath=".\Image\Gif.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\Image\Gif.cpp">
+				RelativePath=".\Half\half.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\Math\HermiteSpline.cpp">
+				RelativePath=".\Math\HermiteSpline.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\Math\HVector.cpp">
+				RelativePath=".\Math\HVector.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\Image\ImageAlgorithms.cpp">
+				RelativePath=".\Image\ImageAlgorithms.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\Image\ImageLoadSave.cpp">
+				RelativePath=".\Image\ImageLoadSave.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\Model\LoadOBJ.cpp">
+				RelativePath=".\Model\LoadOBJ.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\Model\LoadPLY.cpp">
+				RelativePath=".\Model\LoadPLY.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\Model\LoadTRI.cpp">
+				RelativePath=".\Model\LoadTRI.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\Model\LoadVRML.cpp">
+				RelativePath=".\Model\LoadVRML.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\Math\Matrix44.cpp">
+				RelativePath=".\Math\Matrix44.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\Model\Mesh.cpp">
+				RelativePath=".\Model\Mesh.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\Model\Model.cpp">
+				RelativePath=".\Model\Model.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\Math\Perlin.cpp">
+				RelativePath=".\Math\Perlin.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\Math\Quadric.cpp">
+				RelativePath=".\Math\Quadric.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\Image\Quant.cpp">
+				RelativePath=".\Image\Quant.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\Model\RenderObject.cpp">
+				RelativePath=".\Model\RenderObject.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\Image\RGBEio.cpp">
+				RelativePath=".\Image\RGBEio.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\Model\SaveOBJ.cpp">
+				RelativePath=".\Model\SaveOBJ.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\Model\SavePLY.cpp">
+				RelativePath=".\Model\SavePLY.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\Model\SaveTRI.cpp">
+				RelativePath=".\Model\SaveTRI.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\Model\SaveVRML.cpp">
+				RelativePath=".\Model\SaveVRML.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\Image\Targa.cpp">
+				RelativePath=".\Image\Targa.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\Model\TextureDB.cpp">
+				RelativePath=".\Model\TextureDB.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\Util\Timer.cpp">
+				RelativePath=".\Util\Timer.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\Model\TriObject.cpp">
+				RelativePath=".\Model\TriObject.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\Image\ucImage.cpp">
+				RelativePath=".\Image\ucImage.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\Util\Utils.cpp">
+				RelativePath=".\Util\Utils.cpp"
+				>
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
-			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}">
+			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
+			>
 			<File
-				RelativePath=".\Model\AElements.h">
+				RelativePath=".\Model\AElements.h"
+				>
 			</File>
 			<File
-				RelativePath=".\Util\Assert.h">
+				RelativePath=".\Util\Assert.h"
+				>
 			</File>
 			<File
-				RelativePath=".\Math\Auint.h">
+				RelativePath=".\Math\Auint.h"
+				>
 			</File>
 			<File
-				RelativePath=".\Model\BaseObject.h">
+				RelativePath=".\Model\BaseObject.h"
+				>
 			</File>
 			<File
-				RelativePath=".\Math\BBox.h">
+				RelativePath=".\Math\BBox.h"
+				>
 			</File>
 			<File
-				RelativePath=".\Model\BisonMe.h">
+				RelativePath=".\Model\BisonMe.h"
+				>
 			</File>
 			<File
-				RelativePath=".\Model\CameraDB.h">
+				RelativePath=".\Model\CameraDB.h"
+				>
 			</File>
 			<File
-				RelativePath=".\Math\CatmullRomSpline.h">
+				RelativePath=".\Math\CatmullRomSpline.h"
+				>
 			</File>
 			<File
-				RelativePath=".\Image\Color.h">
+				RelativePath=".\Image\Color.h"
+				>
 			</File>
 			<File
-				RelativePath=".\Math\DownSimplex.h">
+				RelativePath=".\Math\DownSimplex.h"
+				>
 			</File>
 			<File
-				RelativePath=".\Image\EnvMap.h">
+				RelativePath=".\Half\eLut.h"
+				>
 			</File>
 			<File
-				RelativePath=".\Image\fImage.h">
+				RelativePath=".\Image\fImage.h"
+				>
 			</File>
 			<File
-				RelativePath=".\Math\HermiteSpline.h">
+				RelativePath=".\Half\half.h"
+				>
 			</File>
 			<File
-				RelativePath=".\Math\HMatrix.h">
+				RelativePath=".\Half\halfFunction.h"
+				>
 			</File>
 			<File
-				RelativePath=".\Math\HVector.h">
+				RelativePath=".\Half\halfLimits.h"
+				>
 			</File>
 			<File
-				RelativePath=".\Image\ImageAlgorithms.h">
+				RelativePath=".\Math\HermiteSpline.h"
+				>
 			</File>
 			<File
-				RelativePath=".\Image\ImageLoadSave.h">
+				RelativePath=".\Math\HMatrix.h"
+				>
 			</File>
 			<File
-				RelativePath=".\Math\KDBoxTree.h">
+				RelativePath=".\Math\HVector.h"
+				>
 			</File>
 			<File
-				RelativePath=".\Math\KDBVector.h">
+				RelativePath=".\Image\ImageAlgorithms.h"
+				>
 			</File>
 			<File
-				RelativePath=".\Math\KDItemTree.h">
+				RelativePath=".\Image\ImageLoadSave.h"
+				>
 			</File>
 			<File
-				RelativePath=".\Math\KDIVector.h">
+				RelativePath=".\Math\KDBoxTree.h"
+				>
 			</File>
 			<File
-				RelativePath=".\Model\KDVertex.h">
+				RelativePath=".\Math\KDBVector.h"
+				>
 			</File>
 			<File
-				RelativePath=".\Model\LightDB.h">
+				RelativePath=".\Math\KDItemTree.h"
+				>
 			</File>
 			<File
-				RelativePath=".\Model\LoadVRML.h">
+				RelativePath=".\Math\KDIVector.h"
+				>
 			</File>
 			<File
-				RelativePath=".\Math\Matrix44.h">
+				RelativePath=".\Model\KDVertex.h"
+				>
 			</File>
 			<File
-				RelativePath=".\Model\Mesh.h">
+				RelativePath=".\Model\LightDB.h"
+				>
 			</File>
 			<File
-				RelativePath=".\Model\MeshElements.h">
+				RelativePath=".\Model\LoadVRML.h"
+				>
 			</File>
 			<File
-				RelativePath=".\Math\MiscMath.h">
+				RelativePath=".\Math\Matrix44.h"
+				>
 			</File>
 			<File
-				RelativePath=".\Model\Model.h">
+				RelativePath=".\Model\Mesh.h"
+				>
 			</File>
 			<File
-				RelativePath=".\Math\Perlin.h">
+				RelativePath=".\Model\MeshElements.h"
+				>
 			</File>
 			<File
-				RelativePath=".\Image\Pixel.h">
+				RelativePath=".\Math\MiscMath.h"
+				>
 			</File>
 			<File
-				RelativePath=".\Image\PullPush.h">
+				RelativePath=".\Model\Model.h"
+				>
 			</File>
 			<File
-				RelativePath=".\Math\Quadric.h">
+				RelativePath=".\Math\Perlin.h"
+				>
 			</File>
 			<File
-				RelativePath=".\Image\Quant.h">
+				RelativePath=".\Image\Pixel.h"
+				>
 			</File>
 			<File
-				RelativePath=".\Model\RenderObject.h">
+				RelativePath=".\Image\PullPush.h"
+				>
 			</File>
 			<File
-				RelativePath=".\Image\RGBE.h">
+				RelativePath=".\Math\Quadric.h"
+				>
 			</File>
 			<File
-				RelativePath=".\Image\RGBEio.h">
+				RelativePath=".\Image\Quant.h"
+				>
 			</File>
 			<File
-				RelativePath=".\Model\SaveVRML.h">
+				RelativePath=".\Model\RenderObject.h"
+				>
 			</File>
 			<File
-				RelativePath=".\Model\TextureDB.h">
+				RelativePath=".\Image\RGBE.h"
+				>
 			</File>
 			<File
-				RelativePath=".\Image\tImage.h">
+				RelativePath=".\Image\RGBEio.h"
+				>
 			</File>
 			<File
-				RelativePath=".\Util\Timer.h">
+				RelativePath=".\Model\SaveVRML.h"
+				>
 			</File>
 			<File
-				RelativePath=".\toolconfig.h">
+				RelativePath=".\Model\TextureDB.h"
+				>
 			</File>
 			<File
-				RelativePath=".\Image\tPixel.h">
+				RelativePath=".\Image\tImage.h"
+				>
 			</File>
 			<File
-				RelativePath=".\Math\TrigTable.h">
+				RelativePath=".\Util\Timer.h"
+				>
 			</File>
 			<File
-				RelativePath=".\Model\TriObject.h">
+				RelativePath=".\Half\toFloat.h"
+				>
 			</File>
 			<File
-				RelativePath=".\Image\ucImage.h">
+				RelativePath=".\toolconfig.h"
+				>
 			</File>
 			<File
-				RelativePath=".\unistd.h">
+				RelativePath=".\Image\tPixel.h"
+				>
 			</File>
 			<File
-				RelativePath=".\Util\Utils.h">
+				RelativePath=".\Math\TrigTable.h"
+				>
 			</File>
 			<File
-				RelativePath=".\Math\Vector.h">
+				RelativePath=".\Model\TriObject.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Image\ucImage.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Util\Utils.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Math\Vector.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Math\VectorField.h"
+				>
 			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx"
-			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}">
+			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
+			>
 		</Filter>
 		<File
-			RelativePath=".\Image\Makefile">
+			RelativePath=".\Image\Makefile"
+			>
 		</File>
 		<File
-			RelativePath=".\ReadMe.txt">
+			RelativePath=".\ReadMe.txt"
+			>
 		</File>
 	</Files>
 	<Globals>

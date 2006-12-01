@@ -8,19 +8,11 @@
 
 #include <Image/ImageLoadSave.h>
 
+#include <iostream>
+using namespace std;
+
 #ifdef DMC_MACHINE_sgi
-#include <iostream>
-using namespace std;
 #pragma set woff 1552
-#endif
-
-#ifdef DMC_MACHINE_win
-#include <iostream>
-using namespace std;
-#endif
-
-#ifdef DMC_MACHINE_hp
-#include <iostream.h>
 #endif
 
 typedef unsigned char byte;
@@ -103,7 +95,7 @@ static int loadBMP1(FILE *fp, byte *Pix, unsigned int w, unsigned int h)
 				bitnum = 0;
 			}
 			
-			if(j<w) {
+			if(j<(int)w) {
 				*pp++ = (c & 0x80) ? 1 : 0;
 				c <<= 1;
 			}
@@ -134,7 +126,7 @@ static int loadBMP4(FILE *fp, byte *Pix, unsigned int w, unsigned int h, unsigne
 					nybnum = 0;
 				}
 				
-				if(j<w) {
+				if(j<(int)w) {
 					*pp++ = (c & 0xf0) >> 4;
 					c <<= 4;
 				}
@@ -147,7 +139,7 @@ static int loadBMP4(FILE *fp, byte *Pix, unsigned int w, unsigned int h, unsigne
 		x = y = 0;
 		pp = Pix + x + (h-y-1)*w;
 		
-		while (y<h) {
+		while (y<(int)h) {
 			c = getc(fp); if(c == EOF) { rv = 1; break; }
 			
 			if(c) { /* encoded mode */
@@ -219,7 +211,7 @@ static int loadBMP8(FILE *fp, byte *Pix, unsigned int w, unsigned int h, unsigne
 		x = y = 0;
 		pp = Pix + x + (h-y-1)*w;
 		
-		while (y<h) {
+		while (y<(int)h) {
 			c = getc(fp); if(c == EOF) { rv = 1; break; }
 			
 			if(c) { /* encoded mode */
@@ -271,7 +263,7 @@ static int loadBMP24(FILE *fp, byte *Pix, unsigned int w, unsigned int h)
 	int padb = (4 - ((w*3) % 4)) & 0x03; /* # of pad bytes to read at EOscanline */
 	int linebytecnt = padb + 3 * w;
 	unsigned char * lbuf = new unsigned char[linebytecnt];
-	ASSERTERR(lbuf, "memory alloc failed");
+	ASSERT_RM(lbuf, "memory alloc failed");
 
 	for(int i=h-1; i>=0; i--) {
 	byte *pp = Pix + (i * w * 3);
@@ -307,7 +299,7 @@ static int loadBMP32(FILE *fp, byte *Pix, unsigned int w, unsigned int h)
 	for(i=h-1; i>=0; i--) {
 		pp = Pix + (i * w * 3);
 		
-		for(j=0; j<w; j++) {
+		for(j=0; j<(int)w; j++) {
 			pp[3] = getc(fp); /* alpha */
 			pp[2] = getc(fp); /* blue */
 			pp[1] = getc(fp); /* green */
@@ -328,7 +320,7 @@ static int loadBMP32(FILE *fp, byte *Pix, unsigned int w, unsigned int h)
 // Returns false on success.
 bool ImageLoadSave::LoadBMP(const char *fname)
 {
-	int i, c, c1, rv;
+	int i, c, c1, rv=0;
 	unsigned int bfSize, bfOffBits, biSize, biWidth, biHeight, biPlanes;
 	unsigned int biBitCount, biCompression, biSizeImage, biXPelsPerMeter;
 	unsigned int biYPelsPerMeter, biClrUsed, biClrImportant;
@@ -345,7 +337,8 @@ bool ImageLoadSave::LoadBMP(const char *fname)
 	
 	fseek(fp, 0L, 2); /* figure out the file size */
 	
-	long filesize = ftell(fp);
+	// long filesize = 
+    ftell(fp);
 	fseek(fp, 0L, 0);
 	
 	/* read the file type (first two bytes) */
@@ -511,7 +504,7 @@ bool ImageLoadSave::LoadBMP(const char *fname)
         // It's color mapped.
 
 		if(Gray) {
-		 	ASSERTERR(cmaplen > 2, "Weird gray BMP image."); // XXX How does a one-bit image work?
+		 	ASSERT_RM(cmaplen > 2, "Weird gray BMP image."); // XXX How does a one-bit image work?
 			chan = 1;
             // Convert color map image to monochrome.
 			// Replace the palette indices with the palette entries.

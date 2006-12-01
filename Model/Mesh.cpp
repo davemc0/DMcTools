@@ -62,7 +62,7 @@ inline bool CompareVecs(const Vector &V0, const Vector &V1, double Eps = 1e-1)
 // Given a vertex, find a vertex in the edge list that should be adjacent.
 Vertex *Mesh::FindVertexInEdgeList(const vector<Edge *> &Edg, const Vector &V, Edge * &e) const
 {
-    for(int j=0; j<Edg.size(); j++) {
+    for(int j=0; j<(int)Edg.size(); j++) {
         if(VecEq(Edg[j]->v0->V, V, Sqr(MeshMaxDist))) {
             e = Edg[j]; return Edg[j]->v0;
         } else if(VecEq(Edg[j]->v1->V, V, Sqr(MeshMaxDist))) {
@@ -77,9 +77,9 @@ Vertex *Mesh::FindVertexInEdgeList(const vector<Edge *> &Edg, const Vector &V, E
 // Returns a pointer to this edge. Creates it if necessary.
 Edge *Mesh::FindEdge(Vertex *v0, Vertex *v1, Edge *(*EF)())
 {
-    ASSERT1(v0 != v1);
+    ASSERT_D(v0 != v1);
     
-    for(int i=0; i<v0->Edges.size(); i++) {
+    for(int i=0; i<(int)v0->Edges.size(); i++) {
         Edge *Ed = v0->Edges[i];
         if((Ed->v0 == v0 && Ed->v1 == v1) || (Ed->v0 == v1 && Ed->v1 == v0))
             return Ed;
@@ -134,19 +134,19 @@ Mesh::~Mesh()
 void Mesh::ImportTriObject(const TriObject &Ob, double MeshDistFactor,
                            Vertex *(*VF)(), Edge *(*EF)(), Face *(*FF)())
 {
-    // ASSERTERR(0, "There's a bug in here.");
+    // ASSERT_RM(0, "There's a bug in here.");
     //cerr << "Converting TriObject to Mesh.\n";
     
     // Set the MeshMaxDist relative to the bounding box.
     if(MeshDistFactor >= 0)
         MeshMaxDist = (Ob.Box.MaxV - Ob.Box.MinV).length() * MeshDistFactor;
     
-    ASSERT0M(Ob.verts.size() % 3 == 0, "TriObject must be multiple of three vertices.");
-    ASSERT0(Ob.VertexCount == Ob.verts.size());
+    WARN_R(Ob.verts.size() % 3 == 0, "TriObject must be multiple of three vertices.");
+    ASSERT_R(Ob.VertexCount == (int)Ob.verts.size());
     
     if(VertTree == NULL)
         VertTree = new KDBoxTree<KDVertex>;
-    ASSERTERR(VertTree, "memory alloc failed");		
+    ASSERT_RM(VertTree, "memory alloc failed");		
     
     // These tell whether we are extracting attributes from the TriObject.
     bool DoingColor = false, DoingNormals = false, DoingTexcoords = false;
@@ -177,8 +177,8 @@ void Mesh::ImportTriObject(const TriObject &Ob, double MeshDistFactor,
     if((FaceType & HAS_ATTRIBS) && FF==NULL)
         FF = AFaceFactory;
     
-    // cerr << (Ob.verts.size() / 3) << " triangles.\n";
-    for(int i=0; i<Ob.verts.size(); i+=3) {
+    // cerr << ((int)Ob.verts.size() / 3) << " triangles.\n";
+    for(int i=0; i<(int)Ob.verts.size(); i+=3) {
         cerr << Ob.verts[i] << endl;
         
         bool AddedVert = false;
@@ -272,8 +272,8 @@ void Mesh::ImportTriObject(const TriObject &Ob, double MeshDistFactor,
             // Need to add e12 to all lists.
             e2 = FindEdge(v1, v2, EF);
         
-        ASSERT1M(v0 != v1 && v1 != v2 && v0 != v2, "Degenerate triangle vertices.");
-        ASSERT1M(e0 != e1 && e1 != e2 && e0 != e2, "Degenerate triangle edges.");
+        WARN_R(v0 != v1 && v1 != v2 && v0 != v2, "Degenerate triangle vertices.");
+        WARN_R(e0 != e1 && e1 != e2 && e0 != e2, "Degenerate triangle edges.");
         cerr << 'e';
         
         // Need some check for unique face.
@@ -282,7 +282,7 @@ void Mesh::ImportTriObject(const TriObject &Ob, double MeshDistFactor,
             // Perform the check by looking at the faces of my first vertex.
             // cerr << "Checking for duplicate face.\n";
             int p;
-            for(p = 0; p<v0->Faces.size(); p++) {
+            for(p = 0; p< (int)v0->Faces.size(); p++) {
                 Face *F = v0->Faces[p];
                 if((F->v0 == v0 || F->v0 == v1 || F->v0 == v2) &&
                     (F->v1 == v0 || F->v1 == v1 || F->v1 == v2) &&
@@ -291,7 +291,7 @@ void Mesh::ImportTriObject(const TriObject &Ob, double MeshDistFactor,
                     break;
                 }
             }
-            if(p < v0->Faces.size())
+            if(p < (int)v0->Faces.size())
                 continue;
         }
         cerr << 'f';
@@ -355,9 +355,9 @@ void Mesh::ExportTriObject(TriObject &Ob, unsigned int AcceptedAttribs)
 void Mesh::ExportRenderObject(RenderObject &Ob, unsigned int AcceptedAttribs)
 {
     // This is required because we will be operating on AVertex, etc. objects.
-    ASSERT0(VertexType & HAS_ATTRIBS);
-    ASSERT0(EdgeType & HAS_ATTRIBS);
-    ASSERT0(FaceType & HAS_ATTRIBS);
+    ASSERT_R(VertexType & HAS_ATTRIBS);
+    ASSERT_R(EdgeType & HAS_ATTRIBS);
+    ASSERT_R(FaceType & HAS_ATTRIBS);
 
     // cerr << "ExportRenderObject\n";
     // Copy the BaseObject values.
@@ -404,18 +404,18 @@ void Mesh::ExportRenderObject(RenderObject &Ob, unsigned int AcceptedAttribs)
     }
 
     // Make sure it made the right amount of data.
-    ASSERT0(Ob.VertexCount == Ob.verts.size());
+    ASSERT_R(Ob.VertexCount == (int)Ob.verts.size());
     if(Ob.VertexType & OBJ_COLORS) {
-        ASSERT0(Ob.VertexCount == Ob.dcolors.size());
+        ASSERT_R(Ob.VertexCount == (int)Ob.dcolors.size());
     }
     if(Ob.VertexType & OBJ_NORMALS) {
-        ASSERT0(Ob.VertexCount == Ob.normals.size());
+        ASSERT_R(Ob.VertexCount == (int)Ob.normals.size());
     }
     if(Ob.VertexType & OBJ_TEXCOORDS) {
-        ASSERT0(Ob.VertexCount == Ob.texcoords.size());
+        ASSERT_R(Ob.VertexCount == (int)Ob.texcoords.size());
     }
     if(Ob.VertexType & OBJ_TANGENTS) {
-        ASSERT0(Ob.VertexCount == Ob.tangents.size());
+        ASSERT_R(Ob.VertexCount == (int)Ob.tangents.size());
     }
     
     // Make a list of the vertex indices in order.
@@ -424,9 +424,9 @@ void Mesh::ExportRenderObject(RenderObject &Ob, unsigned int AcceptedAttribs)
         int i0 = VIndMapper[(AVertex *)F->v0];
         int i1 = VIndMapper[(AVertex *)F->v1];
         int i2 = VIndMapper[(AVertex *)F->v2];
-        ASSERT0(i0 >= 0 && i0 < Ob.VertexCount);
-        ASSERT0(i1 >= 0 && i1 < Ob.VertexCount);
-        ASSERT0(i2 >= 0 && i2 < Ob.VertexCount);
+        ASSERT_R(i0 >= 0 && i0 < Ob.VertexCount);
+        ASSERT_R(i1 >= 0 && i1 < Ob.VertexCount);
+        ASSERT_R(i2 >= 0 && i2 < Ob.VertexCount);
         Ob.indices.push_back(i0);
         Ob.indices.push_back(i1);
         Ob.indices.push_back(i2);
@@ -434,8 +434,8 @@ void Mesh::ExportRenderObject(RenderObject &Ob, unsigned int AcceptedAttribs)
     
     // cerr << Ob.Name << fcnt << " " << maxi << " " << ind << endl;
     
-    ASSERT0(Ob.FaceCount == Ob.indices.size() / 3);
-    ASSERT0(Ob.indices.size() % 3 == 0);
+    ASSERT_R(Ob.FaceCount == (int)Ob.indices.size() / 3);
+    ASSERT_R((int)Ob.indices.size() % 3 == 0);
 }
 
 // This is recursive.
@@ -448,7 +448,7 @@ int Mesh::FlipMe(Face *F, set<Face *> &Visited,
     Visited.insert(F);
     int flipcnt = 0;
     
-    ASSERT1M(((F->v0 == v0) + (F->v1 == v0) + (F->v2 == v0) + (F->v0 == v1) + (F->v1 == v1) + (F->v2 == v1) + (F->v0 == v2) + (F->v1 == v2) + (F->v2 == v2)) >= 2, "Faces should share exactly two vertices.");
+    WARN_R(((F->v0 == v0) + (F->v1 == v0) + (F->v2 == v0) + (F->v0 == v1) + (F->v1 == v1) + (F->v2 == v1) + (F->v0 == v2) + (F->v1 == v2) + (F->v2 == v2)) >= 2, "Faces should share exactly two vertices.");
     
     if((F->v0 == v0 && (F->v1 != v1 && F->v2 != v2)) ||
         (F->v1 == v0 && (F->v2 != v1 && F->v0 != v2)) ||
@@ -472,19 +472,19 @@ int Mesh::FlipMe(Face *F, set<Face *> &Visited,
     
     // Fix my neighbors.
     int i;
-    for(i=0; i<F->e0->Faces.size(); i++)
+    for(i=0; i<(int)F->e0->Faces.size(); i++)
     {
         if(F->e0->Faces[i] != F)
             flipcnt += FlipMe(F->e0->Faces[i], Visited, F->v0, F->v2, F->v1);
     }
     
-    for(i=0; i<F->e1->Faces.size(); i++)
+    for(i=0; i<(int)F->e1->Faces.size(); i++)
     {
         if(F->e1->Faces[i] != F)
             flipcnt += FlipMe(F->e1->Faces[i], Visited, F->v0, F->v2, F->v1);
     }
     
-    for(i=0; i<F->e2->Faces.size(); i++)
+    for(i=0; i<(int)F->e2->Faces.size(); i++)
     {
         if(F->e2->Faces[i] != F)
             flipcnt += FlipMe(F->e2->Faces[i], Visited, F->v0, F->v2, F->v1);
@@ -536,54 +536,54 @@ void Mesh::CheckIntegrity(const bool Slow)
     for(Edge *E = Edges; E; E = E->next, ec++)
     {
         if(E != Edges)
-        {ASSERT0M(E->prev, "No prev pointer");}
+        {WARN_R(E->prev, "No prev pointer");}
         
-        ASSERT0M(E->Faces.size() > 0, "Edge must have at least one face!");
-        if(E->Faces.size() < 1 || E->Faces.size() > 2)
-            fprintf(stderr, "Nonmanifold Edge: %d 0x%16lx\n", E->Faces.size(), DMCINT64(E));
+        WARN_R((int)E->Faces.size() > 0, "Edge must have at least one face!");
+        if((int)E->Faces.size() < 1 || (int)E->Faces.size() > 2)
+            fprintf(stderr, "Nonmanifold Edge: %d 0x%08x\n", (int)E->Faces.size(), (DMCINT64)(E));
         
-        ASSERT0M(E->v0 != E->v1, "Edge with the same vertices!");
-        ASSERT0M(E->v0 && E->v1, "Edge vertex pointer is NULL!");
+        WARN_R(E->v0 != E->v1, "Edge with the same vertices!");
+        WARN_R(E->v0 && E->v1, "Edge vertex pointer is NULL!");
         int i;
-        for(i=0; i<E->Faces.size(); i++)
-            ASSERT0M(E->Faces[i], "Edge face pointer is NULL!");
+        for(i=0; i< (int)E->Faces.size(); i++)
+            WARN_R(E->Faces[i], "Edge face pointer is NULL!");
         
-        for(i=0; i<E->v0->Edges.size(); i++) {
+        for(i=0; i< (int)E->v0->Edges.size(); i++) {
             if(E->v0->Edges[i] == E)
                 break;
         }
-        ASSERT0M(i < E->v0->Edges.size(), "Vertex0 doesn't point to its Edge!");
+        WARN_R(i < (int) E->v0->Edges.size(), "Vertex0 doesn't point to its Edge!");
         
-        for(i=0; i<E->v1->Edges.size(); i++) {
+        for(i=0; i< (int)E->v1->Edges.size(); i++) {
             if(E->v1->Edges[i] == E)
                 break;
         }
-        ASSERT0M(i < E->v1->Edges.size(), "Vertex1 doesn't point to its Edge!");
+        WARN_R(i < (int) E->v1->Edges.size(), "Vertex1 doesn't point to its Edge!");
         
-        for(i=0; i<E->Faces.size(); i++)
+        for(i=0; i< (int)E->Faces.size(); i++)
         {
             Face *F = E->Faces[i];
-            ASSERT0M(F->e0 == E || F->e1 == E || F->e2 == E, "Face doesn't point to its Edge!");
+            WARN_R(F->e0 == E || F->e1 == E || F->e2 == E, "Face doesn't point to its Edge!");
         }
         
-        for(i=0; i<E->Faces.size(); i++)
+        for(i=0; i< (int)E->Faces.size(); i++)
         {
             Face *F0 = E->Faces[i];
-            ASSERT0M(F0->v0, "Edge points to dead face");
+            WARN_R(F0->v0, "Edge points to dead face");
             
             // Make sure there is no duplicate face.
-            for(int j=i+1; j<E->Faces.size(); j++)
+            for(int j=i+1; j< (int)E->Faces.size(); j++)
             {
                 Face *F1 = E->Faces[j];
-                ASSERT0M(F0 != F1, "Same face exists twice in an edge");
+                WARN_R(F0 != F1, "Same face exists twice in an edge");
                 
                 // Two faces can't have the same three edges.
-                ASSERT0M(F0->e0 != F1->e0 || F0->e1 != F1->e1 || F0->e2 != F1->e2, "EDup face 0");
-                ASSERT0M(F0->e0 != F1->e0 || F0->e1 != F1->e2 || F0->e2 != F1->e1, "EDup face 0");
-                ASSERT0M(F0->e0 != F1->e1 || F0->e1 != F1->e0 || F0->e2 != F1->e2, "EDup face 1");
-                ASSERT0M(F0->e0 != F1->e1 || F0->e1 != F1->e2 || F0->e2 != F1->e0, "EDup face 1");
-                ASSERT0M(F0->e0 != F1->e2 || F0->e1 != F1->e0 || F0->e2 != F1->e1, "EDup face 2");
-                ASSERT0M(F0->e0 != F1->e2 || F0->e1 != F1->e1 || F0->e2 != F1->e0, "EDup face 2");
+                WARN_R(F0->e0 != F1->e0 || F0->e1 != F1->e1 || F0->e2 != F1->e2, "EDup face 0");
+                WARN_R(F0->e0 != F1->e0 || F0->e1 != F1->e2 || F0->e2 != F1->e1, "EDup face 0");
+                WARN_R(F0->e0 != F1->e1 || F0->e1 != F1->e0 || F0->e2 != F1->e2, "EDup face 1");
+                WARN_R(F0->e0 != F1->e1 || F0->e1 != F1->e2 || F0->e2 != F1->e0, "EDup face 1");
+                WARN_R(F0->e0 != F1->e2 || F0->e1 != F1->e0 || F0->e2 != F1->e1, "EDup face 2");
+                WARN_R(F0->e0 != F1->e2 || F0->e1 != F1->e1 || F0->e2 != F1->e0, "EDup face 2");
             }
         }
         
@@ -593,85 +593,85 @@ void Mesh::CheckIntegrity(const bool Slow)
             for(Edge *E1 = E->next; E1; E1 = E1->next)
             {
                 // Make sure there's no duplicate edge.
-                ASSERT0M(E1->v0 != E->v0 || E1->v1 != E->v1, "Duplicate edge");
-                ASSERT0M(E1->v0 != E->v1 || E1->v1 != E->v0, "Duplicate edge");
+                WARN_R(E1->v0 != E->v0 || E1->v1 != E->v1, "Duplicate edge");
+                WARN_R(E1->v0 != E->v1 || E1->v1 != E->v0, "Duplicate edge");
             }
         }
         
-        ASSERT0M((E->v0->next || E->v0->prev) && (E->v1->next || E->v1->prev), "Edge points to dead vertex");
+        WARN_R((E->v0->next || E->v0->prev) && (E->v1->next || E->v1->prev), "Edge points to dead vertex");
     }
     
     // Faces
     for(Face *F = Faces; F; F = F->next, fc++)
     {
         if(F != Faces)
-        {ASSERT0M(F->prev, "No prev pointer");}
+        {WARN_R(F->prev, "No prev pointer");}
         
-        ASSERT0M(F->v0 != F->v1 && F->v1 != F->v2 && F->v0 != F->v2, "Face with the same vertices!");
-        ASSERT0M(F->e0 != F->e1 && F->e1 != F->e2 && F->e0 != F->e2, "Face with the same edges!");
-        ASSERT0M(F->e0 && F->e1 && F->e2, "Face has NULL edge pointer!");
-        ASSERT0M(F->v0 && F->v1 && F->v2, "Face has NULL vertex pointer!");
+        WARN_R(F->v0 != F->v1 && F->v1 != F->v2 && F->v0 != F->v2, "Face with the same vertices!");
+        WARN_R(F->e0 != F->e1 && F->e1 != F->e2 && F->e0 != F->e2, "Face with the same edges!");
+        WARN_R(F->e0 && F->e1 && F->e2, "Face has NULL edge pointer!");
+        WARN_R(F->v0 && F->v1 && F->v2, "Face has NULL vertex pointer!");
         
         int i;
-        for(i=0; i<F->e0->Faces.size(); i++)
+        for(i=0; i< (int)F->e0->Faces.size(); i++)
         {
             if(F->e0->Faces[i] == F)
                 break;
         }
-        ASSERT0M(i < F->e0->Faces.size(), "Edge0 doesn't point to its face!");
+        WARN_R(i < (int) F->e0->Faces.size(), "Edge0 doesn't point to its face!");
         
-        for(i=0; i<F->e1->Faces.size(); i++)
+        for(i=0; i< (int)F->e1->Faces.size(); i++)
         {
             if(F->e1->Faces[i] == F)
                 break;
         }
-        ASSERT0M(i < F->e1->Faces.size(), "Edge1 doesn't point to its face!");
+        WARN_R(i < (int) F->e1->Faces.size(), "Edge1 doesn't point to its face!");
         
-        for(i=0; i<F->e2->Faces.size(); i++)
+        for(i=0; i< (int)F->e2->Faces.size(); i++)
         {
             if(F->e2->Faces[i] == F)
                 break;
         }
-        ASSERT0M(i < F->e2->Faces.size(), "Edge2 doesn't point to its face!");
+        WARN_R(i < (int) F->e2->Faces.size(), "Edge2 doesn't point to its face!");
         
-        for(i=0; i<F->v0->Faces.size(); i++)
+        for(i=0; i< (int)F->v0->Faces.size(); i++)
         {
             if(F->v0->Faces[i] == F)
                 break;
         }
-        ASSERT0M(i < F->v0->Faces.size(), "Vertex0 doesn't point to its face!");
+        WARN_R(i < (int) F->v0->Faces.size(), "Vertex0 doesn't point to its face!");
         
-        for(i=0; i<F->v1->Faces.size(); i++)
+        for(i=0; i< (int)F->v1->Faces.size(); i++)
         {
             if(F->v1->Faces[i] == F)
                 break;
         }
-        ASSERT0M(i < F->v1->Faces.size(), "Vertex1 doesn't point to its face!");
+        WARN_R(i < (int) F->v1->Faces.size(), "Vertex1 doesn't point to its face!");
         
-        for(i=0; i<F->v2->Faces.size(); i++)
+        for(i=0; i< (int)F->v2->Faces.size(); i++)
         {
             if(F->v2->Faces[i] == F)
                 break;
         }
-        ASSERT0M(i < F->v2->Faces.size(), "Vertex2 doesn't point to its face!");
+        WARN_R(i < (int) F->v2->Faces.size(), "Vertex2 doesn't point to its face!");
         
         // Make sure I don't point to any dead vertices or edges.
-        ASSERT0M((F->v0->next || F->v0->prev) && (F->v1->next || F->v1->prev) && (F->v2->next || F->v2->prev), "Face points to dead vertex");
+        WARN_R((F->v0->next || F->v0->prev) && (F->v1->next || F->v1->prev) && (F->v2->next || F->v2->prev), "Face points to dead vertex");
 								
-        ASSERT0M(F->e0->v0 && F->e1->v0 && F->e2->v0, "Face points to dead edge");
+        WARN_R(F->e0->v0 && F->e1->v0 && F->e2->v0, "Face points to dead edge");
 								
         if(Slow)
         {
             for(Face *F1 = F->next; F1; F1 = F1->next)
             {
-                ASSERT0M(F != F1, "Same face exists twice in the list");
+                WARN_R(F != F1, "Same face exists twice in the list");
                 
-                ASSERT0M(F->v0 != F1->v0 || F->v1 != F1->v1 || F->v2 != F1->v2, "Dup face 0");
-                ASSERT0M(F->v0 != F1->v0 || F->v1 != F1->v2 || F->v2 != F1->v1, "Dup face 0");
-                ASSERT0M(F->v0 != F1->v1 || F->v1 != F1->v0 || F->v2 != F1->v2, "Dup face 1");
-                ASSERT0M(F->v0 != F1->v1 || F->v1 != F1->v2 || F->v2 != F1->v0, "Dup face 1");
-                ASSERT0M(F->v0 != F1->v2 || F->v1 != F1->v0 || F->v2 != F1->v1, "Dup face 2");
-                ASSERT0M(F->v0 != F1->v2 || F->v1 != F1->v1 || F->v2 != F1->v0, "Dup face 2");
+                WARN_R(F->v0 != F1->v0 || F->v1 != F1->v1 || F->v2 != F1->v2, "Dup face 0");
+                WARN_R(F->v0 != F1->v0 || F->v1 != F1->v2 || F->v2 != F1->v1, "Dup face 0");
+                WARN_R(F->v0 != F1->v1 || F->v1 != F1->v0 || F->v2 != F1->v2, "Dup face 1");
+                WARN_R(F->v0 != F1->v1 || F->v1 != F1->v2 || F->v2 != F1->v0, "Dup face 1");
+                WARN_R(F->v0 != F1->v2 || F->v1 != F1->v0 || F->v2 != F1->v1, "Dup face 2");
+                WARN_R(F->v0 != F1->v2 || F->v1 != F1->v1 || F->v2 != F1->v0, "Dup face 2");
             }
         }
     }
@@ -680,70 +680,70 @@ void Mesh::CheckIntegrity(const bool Slow)
     for(Vertex *V = Verts; V; V = V->next, vc++) {
         // cerr << 'v';
         if(V != Verts) {
-            ASSERT0M(V->prev, "No prev pointer");
-            ASSERT0M(V->prev->next == V, "Broken vertex link");
+            WARN_R(V->prev, "No prev pointer");
+            WARN_R(V->prev->next == V, "Broken vertex link");
         }
         
-        ASSERT0M(V->Edges.size() >= 2, "Vertex must be part of at least two edges!");
-        ASSERT0M(V->Faces.size() >= 1, "Vertex must be part of at least one face!");
+        WARN_R(V->Edges.size() >= 2, "Vertex must be part of at least two edges!");
+        WARN_R(V->Faces.size() >= 1, "Vertex must be part of at least one face!");
         
         int i;
-        for(i=0; i<V->Edges.size(); i++) {
+        for(i=0; i< (int)V->Edges.size(); i++) {
             if(V->Edges[i]->v0 == V || V->Edges[i]->v1 == V)
                 break;
         }
-        ASSERT0M(i < V->Edges.size() || V->Edges.size()==0, "Edge doesn't point to its vertex!");
+        WARN_R(i < (int) V->Edges.size() || V->Edges.size()==0, "Edge doesn't point to its vertex!");
         
-        for(i=0; i<V->Faces.size(); i++) {
+        for(i=0; i< (int)V->Faces.size(); i++) {
             if(V->Faces[i]->v0 == V || V->Faces[i]->v1 == V || V->Faces[i]->v2 == V)
                 break;
         }
-        ASSERT0M(i < V->Faces.size() || V->Faces.size()==0, "Face doesn't point to its vertex!");
+        WARN_R(i < (int) V->Faces.size() || V->Faces.size()==0, "Face doesn't point to its vertex!");
         
         // Make sure I don't point to any dead faces or edges.
-        for(i=0; i<V->Edges.size(); i++) {
-            ASSERT0M(V->Edges[i]->Faces.size(), "Vertex points to edge with no face.");
+        for(i=0; i< (int)V->Edges.size(); i++) {
+            WARN_R(V->Edges[i]->Faces.size(), "Vertex points to edge with no face.");
             
-            for(int j=i+1; j<V->Edges.size(); j++)
-                ASSERT0M(V->Edges[i] != V->Edges[j], "Vertex points to the same edge twice!");
+            for(int j=i+1; j< (int)V->Edges.size(); j++)
+                WARN_R(V->Edges[i] != V->Edges[j], "Vertex points to the same edge twice!");
          }
         
         // Make sure I don't have any duplicate faces.
-        for(i=0; i<V->Faces.size(); i++) {
+        for(i=0; i< (int)V->Faces.size(); i++) {
             // cerr << "f"<<V->Faces.size();
             Face *F0 = V->Faces[i];
-            ASSERT0M(F0->v0, "Vertex points to dead face");
+            WARN_R(F0->v0, "Vertex points to dead face");
             
             // Make sure there is no duplicate face.
             int j;
-            for(j=i+1; j<V->Faces.size(); j++) {
+            for(j=i+1; j< (int)V->Faces.size(); j++) {
                 Face *F1 = V->Faces[j];
-                ASSERT0M(F0 != F1, "Same face exists twice in a vertex");
+                WARN_R(F0 != F1, "Same face exists twice in a vertex");
                 
-                ASSERT0M(F0->v0 != F1->v0 || F0->v1 != F1->v1 || F0->v2 != F1->v2, "Dup face 00");
-                ASSERT0M(F0->v0 != F1->v0 || F0->v1 != F1->v2 || F0->v2 != F1->v1, "Dup face 01");
-                ASSERT0M(F0->v0 != F1->v1 || F0->v1 != F1->v0 || F0->v2 != F1->v2, "Dup face 10");
-                ASSERT0M(F0->v0 != F1->v1 || F0->v1 != F1->v2 || F0->v2 != F1->v0, "Dup face 11");
-                ASSERT0M(F0->v0 != F1->v2 || F0->v1 != F1->v0 || F0->v2 != F1->v1, "Dup face 20");
-                ASSERT0M(F0->v0 != F1->v2 || F0->v1 != F1->v1 || F0->v2 != F1->v0, "Dup face 21");
+                WARN_R(F0->v0 != F1->v0 || F0->v1 != F1->v1 || F0->v2 != F1->v2, "Dup face 00");
+                WARN_R(F0->v0 != F1->v0 || F0->v1 != F1->v2 || F0->v2 != F1->v1, "Dup face 01");
+                WARN_R(F0->v0 != F1->v1 || F0->v1 != F1->v0 || F0->v2 != F1->v2, "Dup face 10");
+                WARN_R(F0->v0 != F1->v1 || F0->v1 != F1->v2 || F0->v2 != F1->v0, "Dup face 11");
+                WARN_R(F0->v0 != F1->v2 || F0->v1 != F1->v0 || F0->v2 != F1->v1, "Dup face 20");
+                WARN_R(F0->v0 != F1->v2 || F0->v1 != F1->v1 || F0->v2 != F1->v0, "Dup face 21");
             }
             
             // Make sure V points to two edges of the face.
             int cnt = 0;
-            for(j=0; j<V->Edges.size(); j++) {
+            for(j=0; j< (int)V->Edges.size(); j++) {
                 if(V->Edges[j] == F0->e0 || V->Edges[j] == F0->e1 || V->Edges[j] == F0->e2)
                     cnt++;
             }
             
             // cerr << cnt << endl;
-            ASSERT0M(cnt == 2, "Vertex must have 2 edges of each of its faces.");
+            WARN_R(cnt == 2, "Vertex must have 2 edges of each of its faces.");
         }
     }
     
     Dump();
-    ASSERT0M(VertexCount == vc, "Bad vertex count");
-    ASSERT0M(FaceCount == fc, "Bad face count");
-    ASSERT0M(EdgeCount == ec, "Bad edge count");
+    WARN_R(VertexCount == vc, "Bad vertex count");
+    WARN_R(FaceCount == fc, "Bad face count");
+    WARN_R(EdgeCount == ec, "Bad edge count");
 }
 
 // Remove vertices that aren't used.
@@ -775,14 +775,14 @@ void Mesh::RemoveUnusedVertices()
 
 void Mesh::GenColorsFromFaceColors()
 {
-    ASSERTERR(VertexType & HAS_ATTRIBS, "Mesh must have attributes.");
-    ASSERTERR(FaceType & OBJ_COLORS, "Faces must have colors.");
+    ASSERT_RM(VertexType & HAS_ATTRIBS, "Mesh must have attributes.");
+    ASSERT_RM(FaceType & OBJ_COLORS, "Faces must have colors.");
     
     // Accumulate the facet Colors into vertex Colors.
     for(Vertex *V = Verts; V; V = V->next) {
         Vector AccNorm(((AFace *)(V->Faces[0]))->Col);
         // Loop on all the faces of this vertex.
-        for(int k=1; k<V->Faces.size(); k++) {
+        for(int k=1; k<(int)V->Faces.size(); k++) {
             AccNorm += ((AFace *)(V->Faces[k]))->Col;
         }
         
@@ -796,7 +796,7 @@ void Mesh::GenColorsFromFaceColors()
 
 void Mesh::GenFaceNormals()
 {
-    ASSERTERR(FaceType & HAS_ATTRIBS, "Mesh must have attributes.");
+    ASSERT_RM(FaceType & HAS_ATTRIBS, "Mesh must have attributes.");
     
     // cerr << 'n';
     // Generate the facet normals.
@@ -886,7 +886,7 @@ Vertex * Mesh::SplitVertexAtFace(Face *F, Vertex *V, Vertex *SV)
     } else if(F->v2 == V) {
         F->v2 = SplitV;
     } else {
-        ASSERT0(0);
+        ASSERT_R(0);
     }
 
     // Add the face index to the vertices and edges.
@@ -906,9 +906,9 @@ void Mesh::GenNormalsFromFaceNormals()
 {
     // cerr << Name << " GenNormalsFromFaceNormals " << creaseAngle << endl;
 
-    ASSERTERR(VertexType & HAS_ATTRIBS, "Mesh must have attributes.");
-    ASSERTERR(FaceType & HAS_ATTRIBS, "Mesh must have attributes.");
-    ASSERTERR(FaceType & OBJ_NORMALS, "Mesh must have facet normals.");
+    ASSERT_RM(VertexType & HAS_ATTRIBS, "Mesh must have attributes.");
+    ASSERT_RM(FaceType & HAS_ATTRIBS, "Mesh must have attributes.");
+    ASSERT_RM(FaceType & OBJ_NORMALS, "Mesh must have facet normals.");
 
     double CosCrease = cos(creaseAngle);
     
@@ -919,17 +919,17 @@ void Mesh::GenNormalsFromFaceNormals()
     for(AVertex *V = (AVertex *)Verts; V; V = (AVertex *)V->next, i++) {
         // cerr << V->Nor << endl;
         // CheckIntegrity();
-        ASSERT0(V->Faces.size());
-        ASSERT0(V->Faces[0]);
+        ASSERT_R(V->Faces.size());
+        ASSERT_R(V->Faces[0]);
         
         Vertex *SplitV = NULL;
 
         Vector AccNorm(((AFace *)(V->Faces[0]))->Nor);
         // Loop on all the rest of the faces of this vertex. Accumulate those with
         // an angle less than creaseAngle into a smooth normal.
-        for(int k=1; k<V->Faces.size(); ) {
+        for(int k=1; k<(int)V->Faces.size(); ) {
             AFace *F = (AFace *)V->Faces[k];
-            ASSERT0(F);
+            ASSERT_R(F);
 #if 1
             // This is for if crease angle and vertex splitting works.
             Vector AccNormN = AccNorm;
@@ -976,8 +976,8 @@ void Mesh::GenNormalsFromFaceNormals()
 // If normals already exist nothing is changed.
 void Mesh::GenNormals()
 {
-    ASSERTERR(VertexType & HAS_ATTRIBS, "Mesh must have attributes.");
-    ASSERTERR(creaseAngle >= 0 && creaseAngle <= M_PI, "Bad creaseAngle.");
+    ASSERT_RM(VertexType & HAS_ATTRIBS, "Mesh must have attributes.");
+    ASSERT_RM(creaseAngle >= 0 && creaseAngle <= M_PI, "Bad creaseAngle.");
     
     if(!(VertexType & OBJ_NORMALS)) {
         // cerr << "GenNormals: " << Name << endl;
@@ -1001,7 +1001,7 @@ void Mesh::GenNormals()
 // It is ok to have texcoords without a texture defined.
 void Mesh::GenTexCoords()
 {
-    ASSERTERR(VertexType & HAS_ATTRIBS, "Mesh must have attributes.");
+    ASSERT_RM(VertexType & HAS_ATTRIBS, "Mesh must have attributes.");
     
     // If texcoords already exist nothing is changed.
     if(!(VertexType & OBJ_TEXCOORDS)) {
@@ -1076,9 +1076,9 @@ inline Vector ComputeFaceTangent(const Vector &P1, const Vector &P2, const Vecto
 
 void Mesh::GenFaceTangents()
 {
-    ASSERTERR(FaceType & HAS_ATTRIBS, "Mesh must have attributes.");
-    ASSERTERR(VertexType & HAS_ATTRIBS, "Mesh must have attributes.");
-    ASSERTERR(VertexType & OBJ_TEXCOORDS, "Vertices must have texcoords to gen tangents.");
+    ASSERT_RM(FaceType & HAS_ATTRIBS, "Mesh must have attributes.");
+    ASSERT_RM(VertexType & HAS_ATTRIBS, "Mesh must have attributes.");
+    ASSERT_RM(VertexType & OBJ_TEXCOORDS, "Vertices must have texcoords to gen tangents.");
     
     // Need face normals first.
     if(!(FaceType & OBJ_NORMALS)) {
@@ -1099,16 +1099,16 @@ void Mesh::GenFaceTangents()
 // they average to zero.
 void Mesh::GenTangentsFromFaceTangents()
 {
-    ASSERTERR(VertexType & HAS_ATTRIBS, "Mesh must have attributes.");
+    ASSERT_RM(VertexType & HAS_ATTRIBS, "Mesh must have attributes.");
 
     // Accumulate the facet Tangents into vertex Tangents.
     for(AVertex *V = (AVertex *)Verts; V; V = (AVertex *)V->next) {
         // cerr << "v";
-        ASSERT0(V->Faces.size());
+        ASSERT_R(V->Faces.size());
         
         Vector AccTan(((AFace *)(V->Faces[0]))->Tan);
         // Loop on all the faces of this vertex.
-        for(int k=1; k<V->Faces.size(); k++) {
+        for(int k=1; k<(int)V->Faces.size(); k++) {
             AccTan += ((AFace *)(V->Faces[k]))->Tan;
         }
         
@@ -1131,7 +1131,7 @@ void Mesh::GenTangentsFromFaceTangents()
 // If Tangents already exist nothing is changed.
 void Mesh::GenTangents()
 {
-    ASSERTERR(VertexType & HAS_ATTRIBS, "Mesh must have attributes.");
+    ASSERT_RM(VertexType & HAS_ATTRIBS, "Mesh must have attributes.");
     
     if(VertexType & OBJ_TANGENTS)
         // If Tangents already exist nothing is changed.
@@ -1163,12 +1163,12 @@ void Mesh::ApplyTransform(Matrix44 &Mat)
     }
     
     // XXX Need to transform the normals and tangents.
-    ASSERT0(!(VertexType & (OBJ_NORMALS | OBJ_TANGENTS)));
+    ASSERT_R(!(VertexType & (OBJ_NORMALS | OBJ_TANGENTS)));
 }
 
 void Mesh::ApplyTextureTransform(Matrix44 &Mat)
 {
-    ASSERT0(VertexType & OBJ_TEXCOORDS);
+    ASSERT_R(VertexType & OBJ_TEXCOORDS);
 
     for(Vertex *V = Verts; V; V = V->next) {
         ((AVertex *)V)->Tex = Mat * ((AVertex *)V)->Tex;

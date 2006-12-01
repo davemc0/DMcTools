@@ -10,24 +10,47 @@
 #include <Util/Assert.h>
 #include <Math/MiscMath.h>
 
-#ifdef DMC_MACHINE_sgi
 #include <string>
-#endif
-
-#ifdef DMC_MACHINE_win
-#include <string>
-#endif
-
-#ifdef DMC_MACHINE_hp
-#include <string>
-#endif
 
 // #define DMC_VEC_DEBUG
+
 #ifdef DMC_VEC_DEBUG
-#define ASSERTVEC(x) ASSERT0(x)
+#define ASSERTVEC(x) ASSERT_R(x)
 #else
 #define ASSERTVEC(x)
 #endif
+
+template<class _ElType> class t3Vector;
+
+template<class _ElType>
+inline t3Vector<_ElType> Solve(const t3Vector<_ElType> &p, const t3Vector<_ElType> &u, const t3Vector<_ElType> &v, const t3Vector<_ElType> &w)
+{
+    _ElType det = 1/(w.z*u.x*v.y-w.z*u.y*v.x-u.z*w.x*v.y-u.x*v.z*w.y+v.z*w.x*u.y+u.z*v.x*w.y);
+    
+    return t3Vector<_ElType>(((v.x*w.y-w.x*v.y)*p.z+(v.z*w.x-v.x*w.z)*p.y+(w.z*v.y-v.z*w.y)*p.x)*det,
+        -((u.x*w.y-w.x*u.y)*p.z+(u.z*w.x-u.x*w.z)*p.y+(u.y*w.z-u.z*w.y)*p.x)*det,
+        ((u.x*v.y-u.y*v.x)*p.z+(v.z*u.y-u.z*v.y)*p.x+(u.z*v.x-u.x*v.z)*p.y)*det);
+}
+
+template<class _ElType>
+inline t3Vector<_ElType> LinearInterp(const t3Vector<_ElType>& v1, const t3Vector<_ElType>& v2, _ElType t)
+{
+    ASSERTVEC(v1.init && v2.init);
+    return t3Vector<_ElType>(v1.x+(v2.x-v1.x)*t,
+        v1.y+(v2.y-v1.y)*t,
+        v1.z+(v2.z-v1.z)*t);
+}
+
+template<class _ElType>
+inline t3Vector<_ElType> CubicInterp(const t3Vector<_ElType>& v1, const t3Vector<_ElType>& v2, _ElType f)
+{
+    ASSERTVEC(v1.init && v2.init);
+    
+    _ElType t = f*f*(3-2*f);
+    return t3Vector<_ElType>(v1.x+(v2.x-v1.x)*t,
+        v1.y+(v2.y-v1.y)*t,
+        v1.z+(v2.z-v1.z)*t);
+}
 
 template<class _ElType>
 class t3Vector
@@ -39,6 +62,8 @@ private:
     int init;
 #endif
 public:
+	typedef _ElType ElType; // The type of an element of the vector.
+
     inline t3Vector(_ElType dx, _ElType dy, _ElType dz): x(dx), y(dy), z(dz)
 #ifdef DMC_VEC_DEBUG
         , init(true)
@@ -80,14 +105,14 @@ public:
     // Return an element of this Vector.
     _ElType  &operator[](int p)
     {
-        ASSERT(p >= 0 && p < _Chan);
+        ASSERTVEC(p >= 0 && p < _Chan);
         return ((_ElType *)this)[p];
     }
     
     // Return a const element of this Vector.
     const _ElType  &operator[](int p) const
     {
-        ASSERT(p >= 0 && p < _Chan);
+        ASSERTVEC(p >= 0 && p < _Chan);
         return ((_ElType *)this)[p];
     }
     
@@ -118,7 +143,15 @@ public:
         v.normalize();
         return v;
     }
-    
+
+    // A member function declaration means three things:
+    // 1. The function can access private stuff in the class
+    // 2. The function is in the scope of the class
+    // 3. The function must be invoked with a this pointer
+    // 
+    // static member functions remove the third property.
+    // friend member functions remove the second and third properties.
+
     friend inline _ElType Dot(const t3Vector<_ElType>& v1, const t3Vector<_ElType>& v2)
     {
         ASSERTVEC(v1.init && v2.init);
@@ -158,18 +191,23 @@ public:
     }
     
     // Find the point p in terms of the u,v,w basis.
-    friend inline t3Vector<_ElType> Solve(const t3Vector<_ElType> &p, const t3Vector<_ElType> &u, const t3Vector<_ElType> &v, const t3Vector<_ElType> &w);
+    friend t3Vector<_ElType> Solve<>(const t3Vector<_ElType> &p, const t3Vector<_ElType> &u, const t3Vector<_ElType> &v, const t3Vector<_ElType> &w);
     
     // Compute the plane (N and D) given the triangle.
     inline void ComputePlane(const t3Vector<_ElType> &V0, const t3Vector<_ElType> &V1, const t3Vector<_ElType> &V2,
         t3Vector<_ElType> &N, _ElType &D);
     
-    friend inline t3Vector<_ElType> LinearInterp(const t3Vector<_ElType>&, const t3Vector<_ElType>&, _ElType);
-    friend inline t3Vector<_ElType> CubicInterp(const t3Vector<_ElType>&, const t3Vector<_ElType>&, _ElType);
+    friend t3Vector<_ElType> LinearInterp<>(const t3Vector<_ElType>&, const t3Vector<_ElType>&, _ElType);
+    friend t3Vector<_ElType> CubicInterp<>(const t3Vector<_ElType>&, const t3Vector<_ElType>&, _ElType);
     
     void find_orthogonal(t3Vector<_ElType>&, t3Vector<_ElType>&) const;
     
-    string print() const;
+    std::string print() const;
+
+	void Zero()
+	{
+		x = y = z = _ElType(0);
+	}
 };
 
 template<class _ElType>
@@ -311,26 +349,6 @@ inline t3Vector<_ElType> t3Vector<_ElType>::operator-() const
 }
 
 template<class _ElType>
-inline t3Vector<_ElType> LinearInterp(const t3Vector<_ElType>& v1, const t3Vector<_ElType>& v2, _ElType t)
-{
-    ASSERTVEC(v1.init && v2.init);
-    return t3Vector<_ElType>(v1.x+(v2.x-v1.x)*t,
-        v1.y+(v2.y-v1.y)*t,
-        v1.z+(v2.z-v1.z)*t);
-}
-
-template<class _ElType>
-inline t3Vector<_ElType> CubicInterp(const t3Vector<_ElType>& v1, const t3Vector<_ElType>& v2, _ElType f)
-{
-    ASSERTVEC(v1.init && v2.init);
-    
-    _ElType t = f*f*(3-2*f);
-    return t3Vector<_ElType>(v1.x+(v2.x-v1.x)*t,
-        v1.y+(v2.y-v1.y)*t,
-        v1.z+(v2.z-v1.z)*t);
-}
-
-template<class _ElType>
 inline t3Vector<_ElType>& t3Vector<_ElType>::operator*=(const _ElType d)
 {
     ASSERTVEC(init);
@@ -382,12 +400,12 @@ inline bool VecEq(const t3Vector<_ElType> &V0, const t3Vector<_ElType> &V1, cons
 #define PRDIG 8
 
 template<class _ElType>
-inline string t3Vector<_ElType>::print() const
+inline std::string t3Vector<_ElType>::print() const
 {
     char xx[40], yy[40], zz[40];
-    return string("[") + gcvt(x, PRDIG, xx) +
-        string(", ") + gcvt(y, PRDIG, yy) +
-        string(", ") + gcvt(z, PRDIG, zz)
+    return std::string("[") + gcvt(x, PRDIG, xx) +
+        std::string(", ") + gcvt(y, PRDIG, yy) +
+        std::string(", ") + gcvt(z, PRDIG, zz)
 #ifdef DMC_VEC_DEBUG
         + (init ? "" : " **uninit!")
 #endif
@@ -406,16 +424,6 @@ inline void t3Vector<_ElType>::find_orthogonal(t3Vector<_ElType>& v1, t3Vector<_
     v1.normalize();
     v2=Cross(*this, v1);
     v2.normalize();
-}
-
-template<class _ElType>
-inline t3Vector<_ElType> Solve(const t3Vector<_ElType> &p, const t3Vector<_ElType> &u, const t3Vector<_ElType> &v, const t3Vector<_ElType> &w)
-{
-    _ElType det = 1/(w.z*u.x*v.y-w.z*u.y*v.x-u.z*w.x*v.y-u.x*v.z*w.y+v.z*w.x*u.y+u.z*v.x*w.y);
-    
-    return t3Vector<_ElType>(((v.x*w.y-w.x*v.y)*p.z+(v.z*w.x-v.x*w.z)*p.y+(w.z*v.y-v.z*w.y)*p.x)*det,
-        -((u.x*w.y-w.x*u.y)*p.z+(u.z*w.x-u.x*w.z)*p.y+(u.y*w.z-u.z*w.y)*p.x)*det,
-        ((u.x*v.y-u.y*v.x)*p.z+(v.z*u.y-u.z*v.y)*p.x+(u.z*v.x-u.x*v.z)*p.y)*det);
 }
 
 // Given three points, find the plane that they lie on.

@@ -77,7 +77,7 @@ public:
 	}
 #endif
 	
-	double MaxVal; // Tells the maximum value ofthe noise function. Min = -Max.
+	double MaxVal; // Tells the maximum value of the noise function. Min = -Max.
 	
 	// X Y and Z should be on 0.0 -> 1.0.
 	double Noise(double x);

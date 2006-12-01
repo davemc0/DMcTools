@@ -13,8 +13,6 @@
 
 #include <iostream>
 
-using namespace std;
-
 // Returns 0 on MIPS, PA-RISC, SPARC
 // Returns 1 on Intel x86
 static inline bool AmLittleEndian()
@@ -135,7 +133,6 @@ inline double DRand(double low, double high)
 inline int LRand()
 {
 #ifdef DMC_MACHINE_win
-	// XXX Was rand() * rand().
 	return abs((rand() ^ (rand() << 15) ^ (rand() << 30)));
 #else
 	return int(lrand48());
@@ -180,11 +177,11 @@ inline void ToUpper(char *str)
 extern int HashString(const char *);
 
 // Used for setting up the floating point output the way I like it.
-inline void FloatFmt(ostream& os, int prec = 8)
+inline void FloatFmt(std::ostream& os, int prec = 8)
 {
 	os.precision(prec);
-	os.setf(ios_base::fixed,ios_base::floatfield);
-	os.setf(ios_base::fixed|ios_base::showpoint|ios_base::showpos, ios_base::floatfield);
+	os.setf(std::ios_base::fixed,std::ios_base::floatfield);
+	os.setf(std::ios_base::fixed|std::ios_base::showpoint|std::ios_base::showpos, std::ios_base::floatfield);
 }
 
 #endif
