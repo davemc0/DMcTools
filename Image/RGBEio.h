@@ -53,7 +53,7 @@ typedef float COLORMAT[3][3]; /* color coordinate conversion matrix */
 
 #define multcolor(c1,c2) ((c1)[0]*=(c2)[0],(c1)[1]*=(c2)[1],(c1)[2]*=(c2)[2])
 
-#ifdef NTSC 
+#ifdef NTSC
 #define CIE_x_r 0.670 /* standard NTSC primaries */
 #define CIE_y_r 0.330
 #define CIE_x_g 0.210
@@ -100,7 +100,7 @@ typedef float COLORMAT[3][3]; /* color coordinate conversion matrix */
 #define SKYEFFICACY D65EFFICACY /* skylight */
 #define DAYEFFICACY D65EFFICACY /* combined sky and solar */
 
-#define luminance_rgbe(col) (WHTEFFICACY * bright(col)) 
+#define luminance_rgbe(col) (WHTEFFICACY * bright(col))
 
 /***** ...end of stuff specific to RGB colors *****/
 
@@ -144,7 +144,7 @@ typedef float COLORMAT[3][3]; /* color coordinate conversion matrix */
 #define COLCORSTR "COLORCORR="
 #define LCOLCORSTR 10
 #define iscolcor(hl) (!strncmp(hl,COLCORSTR,LCOLCORSTR))
-#define colcorval(cc,hl) sscanf(hl+LCOLCORSTR,"%f %f %f", &(cc)[RED],&(cc)[GRN],&(cc)[BLU]) 
+#define colcorval(cc,hl) sscanf(hl+LCOLCORSTR,"%f %f %f", &(cc)[RED],&(cc)[GRN],&(cc)[BLU])
 #define fputcolcor(cc,fp) fprintf(fp,"%s %f %f %f\n",COLCORSTR, (cc)[RED],(cc)[GRN],(cc)[BLU])
 
 /*
@@ -173,7 +173,7 @@ int fwritergbe(RGBE *scanline, int len, FILE *fp); /* write out a rgbe scanline 
 int freadrgbe(RGBE* scanline, int len, FILE *fp); /* read in an encoded rgbe scanline */
 
 int oldreadrgbe(RGBE *scanline, int len, FILE *fp); /* read in an old rgbe scanline */
- 
+
 int fwritescan(COLOR *scanline, RGBE *helpit, int len, FILE *fp); /* write out a scanline */
 
 int freadscan(COLOR *scanline, RGBE *helpit, int len, FILE *fp); /* read in a scanline */

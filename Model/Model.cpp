@@ -24,18 +24,18 @@ bool Model::Save(const char *fname)
 
     const char *extc = strrchr(fname, '.');
     extc++;
-    
+
     if(strlen(extc) != 3) {
         cerr << "Can't grok filename " << fname << endl;
         return status;
     }
-    
-	char *extp = strdup(extc);
+
+    char *extp = strdup(extc);
 
     extp[0] |= 0x20;
     extp[1] |= 0x20;
     extp[2] |= 0x20;
-    
+
     if(!strcmp(extp, "wrl"))
         status = SaveVRML(fname);
     else if(!strcmp(extp, "obj"))
@@ -48,7 +48,7 @@ bool Model::Save(const char *fname)
         cerr << "Can't grok filename " << fname << endl;
         status = true;
     }
-    
+
     cerr << "Model has " << int(Objs.size()) << " objects.\n";
 
     return status;
@@ -63,18 +63,18 @@ bool Model::Load(const char *fname, const unsigned int RequiredAttribs,
 
     const char *extc = strrchr(fname, '.');
     extc++;
-    
+
     if(strlen(extc) != 3) {
         cerr << "Can't grok filename " << fname << endl;
         return status;
     }
-    
-	char *extp = strdup(extc);
+
+    char *extp = strdup(extc);
 
     extp[0] |= 0x20;
     extp[1] |= 0x20;
     extp[2] |= 0x20;
-    
+
     if(!strcmp(extp, "wrl"))
         status = LoadVRML(fname, RequiredAttribs, AcceptedAttribs);
     else if(!strcmp(extp, "obj"))
@@ -87,14 +87,14 @@ bool Model::Load(const char *fname, const unsigned int RequiredAttribs,
         cerr << "Can't grok filename " << fname << endl;
         status = true;
     }
-    
+
     // SaveVRML("foo.wrl");
     // ((Mesh*)Objs[0])->CheckIntegrity();
     // RemoveNormals(); // XXX
 
     if(!status)
         ModifyAttribs(RequiredAttribs, AcceptedAttribs);
-    
+
     return status;
 }
 
@@ -134,33 +134,33 @@ void Model::Flatten()
 
     if((int)Objs.size() < 2)
         return;
-    
+
     TriObject *NOb = (TriObject *) Objs[0];
-    
+
     for(int i=1; i<(int)Objs.size(); i++) {
         const TriObject *O = (TriObject *) Objs[i];
-        
+
         if((int) O->verts.size() < 1)
             continue;
-        
+
         if((int) O->dcolors.size() > 1)
             ASSERT_RM(O->dcolors.size() == O->verts.size(), "TriObject Bad dcolors.size()");
-        
+
         if((int) O->normals.size() > 1)
             ASSERT_RM(O->normals.size() == O->verts.size(), "TriObject Bad normals.size()");
-        
+
         if((int) O->texcoords.size() > 1)
             ASSERT_RM(O->texcoords.size() == O->verts.size(), "TriObject Bad texcoords.size()");
-        
+
         if((int) NOb->dcolors.size() > 1)
             ASSERT_RM(NOb->dcolors.size() == NOb->verts.size(), "List Bad dcolors.size()");
-        
+
         if((int) NOb->normals.size() > 1)
             ASSERT_RM(NOb->normals.size() == NOb->verts.size(), "List Bad normals.size()");
-        
+
         if((int) NOb->texcoords.size() > 1)
             ASSERT_RM(NOb->texcoords.size() == NOb->verts.size(), "List Bad texcoords.size()");
-        
+
         if((int) NOb->dcolors.size() == 1 && ((O->dcolors.size() == 1 && O->dcolors[0] != NOb->dcolors[0])
             || O->dcolors.size() > 1)) {
             // Expand my colors.
@@ -168,7 +168,7 @@ void Model::Flatten()
             NOb->dcolors.clear();
             NOb->dcolors.insert(NOb->dcolors.begin(), NOb->verts.size(), col);
         }
-        
+
         if((int) NOb->dcolors.size() != 1) {
             if((int) O->dcolors.size() == 1) {
                 // Expand its colors.
@@ -185,7 +185,7 @@ void Model::Flatten()
                 NOb->dcolors.insert(NOb->dcolors.end(), O->dcolors.begin(), O->dcolors.end());
             }
         }
-        
+
         if((int) NOb->normals.size() == 1 && ((O->normals.size() == 1 && O->normals[0] != NOb->normals[0])
             || O->normals.size() > 1)) {
             // Expand my normals.
@@ -193,7 +193,7 @@ void Model::Flatten()
             NOb->normals.clear();
             NOb->normals.insert(NOb->normals.begin(), NOb->verts.size(), col);
         }
-        
+
         if((int) NOb->normals.size() != 1) {
             if((int) O->normals.size() == 1) {
                 // Expand its normals.
@@ -210,7 +210,7 @@ void Model::Flatten()
                 NOb->normals.insert(NOb->normals.end(), O->normals.begin(), O->normals.end());
             }
         }
-        
+
         if((int) NOb->texcoords.size() == 1 && ((O->texcoords.size() == 1
             && O->texcoords[0] != NOb->texcoords[0]) || O->texcoords.size() > 1)) {
             // Expand my texcoords.
@@ -218,7 +218,7 @@ void Model::Flatten()
             NOb->texcoords.clear();
             NOb->texcoords.insert(NOb->texcoords.begin(), NOb->verts.size(), col);
         }
-        
+
         if((int) NOb->texcoords.size() != 1) {
             if((int) O->texcoords.size() == 1) {
                 // Expand its texcoords.
@@ -235,10 +235,10 @@ void Model::Flatten()
                 NOb->texcoords.insert(NOb->texcoords.end(), O->texcoords.begin(), O->texcoords.end());
             }
         }
-        
+
         NOb->verts.insert(NOb->verts.end(), O->verts.begin(), O->verts.end());
     }
-    
+
     if(Objs.size() > 1) {
         for(int i=1; i<(int)Objs.size(); i++) {
             delete Objs[i]; // XXX Do we need to detect and cast the type?
@@ -249,13 +249,13 @@ void Model::Flatten()
     TriObject *O0 = (TriObject *) Objs[0];
 
     ASSERT_RM(O0->verts.size() % 3 == 0, "Must have a multiple of three vertices in TriObject.");
-    
+
     if(O0->dcolors.size() > 1)
         ASSERT_RM(O0->dcolors.size() == O0->verts.size(), "Bad dcolors.size()");
-    
+
     if(O0->normals.size() > 1)
         ASSERT_RM(O0->normals.size() == O0->verts.size(), "Bad normals.size()");
-    
+
     if(O0->texcoords.size() > 1)
         ASSERT_RM(O0->texcoords.size() == O0->verts.size(), "Bad texcoords.size()");
 }
@@ -273,7 +273,7 @@ void Model::Dump() const
 void Model::RebuildBBox()
 {
     Box.Reset();
-    
+
     for(int i=0; i<(int)Objs.size(); i++) {
         Objs[i]->RebuildBBox();
         Box += Objs[i]->Box;
@@ -284,7 +284,7 @@ void Model::RebuildBBox()
 void Model::ApplyTransform(Matrix44 &Mat)
 {
     Box.Reset();
-    
+
     for(int i=0; i< (int)Objs.size(); i++) {
         Objs[i]->ApplyTransform(Mat);
         Box += Objs[i]->Box;

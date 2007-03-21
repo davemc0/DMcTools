@@ -32,6 +32,6 @@ int main()
         Pp += P;
         Tt += T;
     }
-  
+
     cerr << Pp << " " << Tt << endl;
 }

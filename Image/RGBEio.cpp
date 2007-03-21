@@ -21,18 +21,18 @@ int fwritergbe(RGBE *scanline, int len, FILE *fp)/* write out a rgbe scanline */
 {
     int i, j, beg, cnt=0;
     int c2;
-    
+
     if (len < MINELEN || len > MAXELEN) /* OOBs, write out flat */
         return(int(fwrite((char *)scanline,
-		int(sizeof(RGBE)),
-		len,
-		fp))
-		- len);
+        int(sizeof(RGBE)),
+        len,
+        fp))
+        - len);
     /* put magic header */
     putc(2, fp);
     putc(2, fp);
     putc(len>>8, fp);
-    putc(len&255, fp); 
+    putc(len&255, fp);
     /* put components seperately */
     for (i = 0; i < 4; i++) {
         for (j = 0; j < len; j += cnt) { /* find next run */
@@ -91,7 +91,7 @@ int freadrgbe(RGBE* scanline, int len, FILE *fp)/* read in an encoded rgbe scanl
         scanline[0][RED] = 2;
         scanline[0][EXP] = i;
         return(oldreadrgbe(scanline+1, len-1, fp));
-    } 
+    }
     if ((scanline[0][BLU]<<8 | i) != len)
         return(-1); /* length mismatch! */
     /* read each component */
@@ -116,9 +116,9 @@ int oldreadrgbe(RGBE *scanline, int len, FILE *fp) /* read in an old rgbe scanli
 {
     int rshift;
     int i;
-    
+
     rshift = 0;
-    
+
     while (len > 0) {
         scanline[0][RED] = getc(fp);
         scanline[0][GRN] = getc(fp);
@@ -149,7 +149,7 @@ int fwritescan(COLOR *scanline, RGBE *clrscan, int len, FILE *fp) /* write out a
 {
     int n;
     RGBE *sp = clrscan;
-    
+
     /* convert scanline */
     n = len;
     while (n-- > 0) {
@@ -174,7 +174,7 @@ int freadscan(COLOR *scanline, RGBE *clrscan, int len, FILE *fp) /* read in a sc
         if (clrscan[0][RED] == clrscan[-1][RED] &&
             clrscan[0][GRN] == clrscan[-1][GRN] &&
             clrscan[0][BLU] == clrscan[-1][BLU] &&
-            clrscan[0][EXP] == clrscan[-1][EXP]) 
+            clrscan[0][EXP] == clrscan[-1][EXP])
             copycolor(scanline[0], scanline[-1]);
         else
             rgbe_color(scanline[0], clrscan[0]);
@@ -187,18 +187,18 @@ inline int setrgbe(RGBE rgbe,double r,double g,double b) /* assign a short color
 {
     double d;
     int e;
-    
+
     d = r > g ? r : g;
     if (b > d) d = b;
-    
+
     if (d <= 1e-32) {
         rgbe[RED] = rgbe[GRN] = rgbe[BLU] = 0;
         rgbe[EXP] = 0;
         return(0);
     }
-    
+
     d = frexp(d, &e) * 255.9999 / d;
-    
+
     rgbe[RED] = (unsigned char)(r * d);
     rgbe[GRN] = (unsigned char)(g * d);
     rgbe[BLU] = (unsigned char)(b * d);
@@ -210,7 +210,7 @@ inline int setrgbe(RGBE rgbe,double r,double g,double b) /* assign a short color
 inline int rgbe_color(COLOR col, RGBE rgbe) /* convert short to float color */
 {
     float f;
-    
+
     if (rgbe[EXP] == 0)
         col[RED] = col[GRN] = col[BLU] = 0.f;
     else {

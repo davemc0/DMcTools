@@ -18,50 +18,50 @@ template<class _SpaceType, class _VecType>
 class VectorField
 {
 public:
-	virtual _VecType Sample(const _SpaceType &P) const = 0;
+    virtual _VecType Sample(const _SpaceType &P) const = 0;
 };
 
 
 template<class _SpaceType, class _VecType>
 class RBFVectorField : public VectorField<_SpaceType, _VecType>
 {
-	typedef std::pair<_SpaceType, _VecType> RBFCenter;
+    typedef std::pair<_SpaceType, _VecType> RBFCenter;
 
-	std::vector<RBFCenter> Centers;
-	double Sigma, Mu;
+    std::vector<RBFCenter> Centers;
+    double Sigma, Mu;
 
 public:
-	virtual _VecType Sample(const _SpaceType &P) const
-	{
-		_VecType Sum; Sum.Zero();
-		_VecType::ElType TotalWgt = 0;
+    virtual _VecType Sample(const _SpaceType &P) const
+    {
+        _VecType Sum; Sum.Zero();
+        _VecType::ElType TotalWgt = 0;
 
-		for(std::vector<RBFCenter>::const_iterator it = Centers.begin(); it != Centers.end(); it++) {
-			_SpaceType::ElType dist = _SpaceType::ElType(0);
-			dist = (it->first - P).length();
-			_SpaceType::ElType Wgt = Gaussian(dist, Sigma, Mu);
+        for(std::vector<RBFCenter>::const_iterator it = Centers.begin(); it != Centers.end(); it++) {
+            _SpaceType::ElType dist = _SpaceType::ElType(0);
+            dist = (it->first - P).length();
+            _SpaceType::ElType Wgt = Gaussian(dist, Sigma, Mu);
 
-			TotalWgt += Wgt;
-			Sum += it->second * Wgt;
-		}
+            TotalWgt += Wgt;
+            Sum += it->second * Wgt;
+        }
 
-		Sum /= TotalWgt;
-		// std::cerr << Sum << TotalWgt << std::endl;
+        Sum /= TotalWgt;
+        // std::cerr << Sum << TotalWgt << std::endl;
 
-		return Sum;
-	}
+        return Sum;
+    }
 
-	void Insert(const _SpaceType &P, const _VecType &V)
-	{
-		Centers.push_back(RBFCenter(P, V));
-	}
+    void Insert(const _SpaceType &P, const _VecType &V)
+    {
+        Centers.push_back(RBFCenter(P, V));
+    }
 
-	// Tell it the parameters for interpolation
-	void InterpGaussian(const double _Sigma, const double _Mu)
-	{
-		Sigma = _Sigma;
-		Mu = _Mu;
-	}
+    // Tell it the parameters for interpolation
+    void InterpGaussian(const double _Sigma, const double _Mu)
+    {
+        Sigma = _Sigma;
+        Mu = _Mu;
+    }
 };
 
 

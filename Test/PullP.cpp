@@ -9,39 +9,39 @@ using namespace std;
 
 int main(int argc, char **argv)
 {
-	ucImage Bob(argv[1], 1);
-	cerr << Bob.chan << endl;
-	
-	float *Im = new float[Bob.size];
-	float *Wg = new float[Bob.size];
-	
-	memset(Im, 0, Bob.size * sizeof(float));
-	memset(Wg, 0, Bob.size * sizeof(float));
-	
+    ucImage Bob(argv[1], 1);
+    cerr << Bob.chan << endl;
+
+    float *Im = new float[Bob.size];
+    float *Wg = new float[Bob.size];
+
+    memset(Im, 0, Bob.size * sizeof(float));
+    memset(Wg, 0, Bob.size * sizeof(float));
+
     int i;
-	for(i=0; i<LOOP; i++)
+    for(i=0; i<LOOP; i++)
     {
-		int j = LRand() % Bob.size;
-		Im[j] = float(Bob.Pix[j]);
-		Wg[j] = 1.0f;  float *Im = new float[Bob.size];
-		
+        int j = LRand() % Bob.size;
+        Im[j] = float(Bob.Pix[j]);
+        Wg[j] = 1.0f;  float *Im = new float[Bob.size];
+
     }
-	
-	ucImage Joe(Bob.wid, Bob.hgt, 1);
-	
-	for(i=0; i<Bob.size; i++)
+
+    ucImage Joe(Bob.wid, Bob.hgt, 1);
+
+    for(i=0; i<Bob.size; i++)
     {
-		Joe.Pix[i] = (unsigned char)Im[i];
+        Joe.Pix[i] = (unsigned char)Im[i];
     }
-	
-	Joe.Save("pre.tif");
-	
-	PullPush(Im, Wg, Bob.wid, Bob.hgt);
-	
-	for(i=0; i<Bob.size; i++)
+
+    Joe.Save("pre.tif");
+
+    PullPush(Im, Wg, Bob.wid, Bob.hgt);
+
+    for(i=0; i<Bob.size; i++)
     {
-		Joe.Pix[i] = (unsigned char)Im[i];
+        Joe.Pix[i] = (unsigned char)Im[i];
     }
-	
-	Joe.Save("out.tif");
+
+    Joe.Save("out.tif");
 }

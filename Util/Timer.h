@@ -18,38 +18,38 @@
 
 class Timer
 {
-	double StartTime; // The time the clock was most-recently started.
-	double ElapsedTime; // Total of the time-spans that it was started then stopped.
-	bool Going; // Is the clock going now?
+    double StartTime; // The time the clock was most-recently started.
+    double ElapsedTime; // Total of the time-spans that it was started then stopped.
+    bool Going; // Is the clock going now?
 
 //#ifdef DMC_MACHINE_win
     unsigned int freqHigh, freqLow; // The QueryPerformanceCounter frequency.
     unsigned int high_bias; // How to get more bits in the double.
     double Multiplier; // Multiply Pentium clock ticks by this to get time.
 //#endif
-	
+
 public:
-	// Create a new stopwatch. It is stopped.
-	Timer();
-	
-	// Start the timer and return the total time it's run so far.
-	double Start();
-	
-	// Stop the timer and return the total time it's run so far.
-	double Stop();
-	
-	// Returns the time in seconds and fractions of a second.
-	double Read();
-	
-	// Reset the elapsed time to 0. Doesn't start or stop the
-	// clock. This is like Dad's old silver stopwatch. Return the
-	// elapsed time *before* it was reset.
-	double Reset();
-	
-	// Returns seconds since the epoch.
-	// Warning: On unix, this returns 0 if called before main(),
-	// such as in a constructor.
-	double GetCurTime();
+    // Create a new stopwatch. It is stopped.
+    Timer();
+
+    // Start the timer and return the total time it's run so far.
+    double Start();
+
+    // Stop the timer and return the total time it's run so far.
+    double Stop();
+
+    // Returns the time in seconds and fractions of a second.
+    double Read();
+
+    // Reset the elapsed time to 0. Doesn't start or stop the
+    // clock. This is like Dad's old silver stopwatch. Return the
+    // elapsed time *before* it was reset.
+    double Reset();
+
+    // Returns seconds since the epoch.
+    // Warning: On unix, this returns 0 if called before main(),
+    // such as in a constructor.
+    double GetCurTime();
 };
 
 // This timer is used for a frame rate timer, etc.

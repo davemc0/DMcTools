@@ -19,17 +19,17 @@ struct Face;
 struct Vertex
 {
     Vector V;
-    
+
     Vertex *next, *prev;
-    
+
     std::vector<Edge *> Edges;
     std::vector<Face *> Faces;
-    
+
     inline Vertex()
     {
         next = prev = NULL;
     }
-    
+
     inline ~Vertex()
     {
         // WARNING: If this is the list head, you need to fix it yourself!
@@ -37,13 +37,13 @@ struct Vertex
             next->prev = prev;
         if(prev)
             prev->next = next;
-        
+
 #ifdef DMC_MESH_DEBUG
         next = prev = NULL;
         //cerr << "~Vertex\n";
 #endif
     }
-    
+
     // Remove myself from this list of vertices.
     inline void ListRemove(std::vector<Vertex *> &Ll)
     {
@@ -59,10 +59,10 @@ struct Vertex
 struct Edge
 {
     Edge *next, *prev; // For the linked list of all edges.
-    
+
     std::vector<Face *> Faces; // Should be 1 or 2 if manifold.
     Vertex *v0, *v1;
-    
+
     inline ~Edge()
     {
         // WARNING: If this is the list head, you need to fix it yourself!
@@ -70,14 +70,14 @@ struct Edge
             next->prev = prev;
         if(prev)
             prev->next = next;
-        
+
 #ifdef DMC_MESH_DEBUG
         v0 = NULL;
         next = prev = NULL;
         //cerr << "~Edge\n";
 #endif
     }
-    
+
     // Remove myself from this list of edges.
     inline void ListRemove(std::vector<Edge *> &Ll)
     {
@@ -93,10 +93,10 @@ struct Edge
 struct Face
 {
     Face *next, *prev;
-    
+
     Vertex *v0, *v1, *v2;
     Edge *e0, *e1, *e2;
-    
+
     inline ~Face()
     {
         // WARNING: If this is the list head, you need to fix it yourself!
@@ -104,14 +104,14 @@ struct Face
             next->prev = prev;
         if(prev)
             prev->next = next;
-        
+
 #ifdef DMC_MESH_DEBUG
         v0 = NULL;
         next = prev = NULL;
         //cerr << "~Face\n";
 #endif
     }
-    
+
     // Remove myself from this list of faces.
     inline void ListRemove(std::vector<Face *> &Ll)
     {

@@ -51,43 +51,43 @@ bool sample4(_PixType &res, const _ImgType &Img, const float x, const float y)
     int xh = xl + 4;
     if(xl < 0 || xh > Img.w() || xl > xh)
         return false;
-    
+
     int yl = int(y) - 1;
     int yh = yl + 4;
     if(yl < 0 || yh > Img.h() || yl > yh) // The last is for wraparound of huge floats.
         return false;
-    
+
     res = _PixType(0);
     float Cdx0 = CubicFilterF(x - float(xl));
     float Cdx1 = CubicFilterN(x - float(xl+1));
     float Cdx2 = CubicFilterN(float(xl+2) - x);
     float Cdx3 = CubicFilterF(float(xl+3) - x);
-    
+
     float Cdy;
     Cdy = CubicFilterF(y - float(yl));
     res += Cdx0 * Cdy * static_cast<_PixType>(Img(xl, yl));
     res += Cdx1 * Cdy * static_cast<_PixType>(Img(xl+1, yl));
     res += Cdx2 * Cdy * static_cast<_PixType>(Img(xl+2, yl));
     res += Cdx3 * Cdy * static_cast<_PixType>(Img(xl+3, yl));
-    
+
     Cdy = CubicFilterN(y - float(yl+1));
     res += Cdx0 * Cdy * static_cast<_PixType>(Img(xl, yl+1));
     res += Cdx1 * Cdy * static_cast<_PixType>(Img(xl+1, yl+1));
     res += Cdx2 * Cdy * static_cast<_PixType>(Img(xl+2, yl+1));
     res += Cdx3 * Cdy * static_cast<_PixType>(Img(xl+3, yl+1));
-    
+
     Cdy = CubicFilterN(float(yl+2) - y);
     res += Cdx0 * Cdy * static_cast<_PixType>(Img(xl, yl+2));
     res += Cdx1 * Cdy * static_cast<_PixType>(Img(xl+1, yl+2));
     res += Cdx2 * Cdy * static_cast<_PixType>(Img(xl+2, yl+2));
     res += Cdx3 * Cdy * static_cast<_PixType>(Img(xl+3, yl+2));
-    
+
     Cdy = CubicFilterF(float(yl+3) - y);
     res += Cdx0 * Cdy * static_cast<_PixType>(Img(xl, yl+3));
     res += Cdx1 * Cdy * static_cast<_PixType>(Img(xl+1, yl+3));
     res += Cdx2 * Cdy * static_cast<_PixType>(Img(xl+2, yl+3));
     res += Cdx3 * Cdy * static_cast<_PixType>(Img(xl+3, yl+3));
-    
+
     return true;
 }
 
@@ -104,22 +104,22 @@ bool sample2(_PixType &res, const _ImgType &Img, const float x, const float y)
 {
     int x0 = int(x);
     int y0 = int(y);
-    
+
     if(x0<0 || (x0+1)>=Img.w() || y0<0 || (y0+1)>=Img.h())
         return false;
-    
-    float xt = x - float(x0); 
+
+    float xt = x - float(x0);
     float yt = y - float(y0);
-    
+
     _PixType b00 = Img(x0,y0);
     _PixType b01 = Img(x0+1,y0);
     _PixType b10 = Img(x0,y0+1);
     _PixType b11 = Img(x0+1,y0+1);
-    
+
     _PixType b0 = xt * (b01 - b00) + b00;
     _PixType b1 = xt * (b11 - b10) + b10;
     res = yt * (b1 - b0) + b0;
-    
+
     return true;
 }
 
@@ -134,12 +134,12 @@ bool sample1(_PixType &res, const _ImgType &Img, const float x, const float y)
 {
     int x0 = int(x+0.5f);
     int y0 = int(y+0.5f);
-    
+
     if(x0<0 || x0>=Img.w() || y0<0 || y0>=Img.h())
         return false;
-    
+
     res = Img(x0,y0);
-    
+
     return true;
 }
 
@@ -151,9 +151,9 @@ void ToneMapLog(OutImgType &Out, const InImgType &Img,
                 const ElType Scale, const ElType Bias, const ElType LogBias)
 {
     ASSERT_R(typeid(typename InImgType::PixType::ElType) == typeid(ElType));
-    
+
     Out.SetSize(Img.w(), Img.h());
-    
+
     for(int i=0; i<Img.size(); i++) {
         //cerr << Img[i] << '\t';
         typename InImgType::PixType tmp;
@@ -177,9 +177,9 @@ template<class OutImgType, class InImgType, class ElType>
 void ToneMapLinear(OutImgType &Out, const InImgType &Img, const ElType Scale, const ElType Bias)
 {
     ASSERT_R(typeid(typename InImgType::PixType::ElType) == typeid(ElType));
-    
+
     Out.SetSize(Img.w(), Img.h());
-    
+
     for(int i=0; i<Img.size(); i++) {
         typename InImgType::PixType tmp = Scale * Img[i];
         tmp += Bias;
@@ -201,13 +201,13 @@ void ToneMapExtrema(OutImgType &Out, const InImgType &Img,
                     const InPixType &MinP, const InPixType &MaxP)
 {
     ASSERT_R(typeid(typename InImgType::PixType) == typeid(InPixType));
-    
+
     float minc = MinP.min_chan();
     float maxc = MaxP.max_chan();
-    
+
     float Scale = 1.0f / (maxc - minc);
     float Bias = -(minc * Scale);
-    
+
     ToneMapLinear(Out, Img, Scale, Bias);
 }
 
@@ -224,7 +224,7 @@ void ToneMapFindExtrema(OutImgType &Out, const InImgType &Img)
 {
     typename InImgType::PixType MinP, MaxP;
     Img.GetMinMax(MinP, MaxP);
-    
+
     ToneMapExtrema(Out, Img, MinP, MaxP);
 }
 
@@ -233,19 +233,20 @@ template void ToneMapFindExtrema(uc3Image &Out, const f3Image &Img);
 template void ToneMapFindExtrema(uc1Image &Out, const f3Image &Img);
 
 // Clamp each pixel to the extrema of its neighbors.
+// WARNING: Since it treats channels independently, it can cause chroma shift.
 template <class _ImgType>
 void DeSpeckle(_ImgType &Img)
 {
     for(int y=1; y<Img.h()-1; y++) {
         for(int x=1; x<Img.w()-1; x++) {
-            typename _ImgType::PixType MinP = Img(x-1,y-1), MaxP = Img(x-1,y-1); 
-            MinP = Min(MinP,Img(x,y-1)); MaxP = Max(MaxP,Img(x,y-1)); 
-            MinP = Min(MinP,Img(x+1,y-1)); MaxP = Max(MaxP,Img(x+1,y-1)); 
-            MinP = Min(MinP,Img(x-1,y)); MaxP = Max(MaxP,Img(x-1,y)); 
-            MinP = Min(MinP,Img(x+1,y)); MaxP = Max(MaxP,Img(x+1,y)); 
-            MinP = Min(MinP,Img(x-1,y+1)); MaxP = Max(MaxP,Img(x-1,y+1)); 
-            MinP = Min(MinP,Img(x,y+1)); MaxP = Max(MaxP,Img(x,y+1)); 
-            MinP = Min(MinP,Img(x+1,y+1)); MaxP = Max(MaxP,Img(x+1,y+1)); 
+            typename _ImgType::PixType MinP = Img(x-1,y-1), MaxP = Img(x-1,y-1);
+            MinP = Min(MinP,Img(x,y-1)); MaxP = Max(MaxP,Img(x,y-1));
+            MinP = Min(MinP,Img(x+1,y-1)); MaxP = Max(MaxP,Img(x+1,y-1));
+            MinP = Min(MinP,Img(x-1,y)); MaxP = Max(MaxP,Img(x-1,y));
+            MinP = Min(MinP,Img(x+1,y)); MaxP = Max(MaxP,Img(x+1,y));
+            MinP = Min(MinP,Img(x-1,y+1)); MaxP = Max(MaxP,Img(x-1,y+1));
+            MinP = Min(MinP,Img(x,y+1)); MaxP = Max(MaxP,Img(x,y+1));
+            MinP = Min(MinP,Img(x+1,y+1)); MaxP = Max(MaxP,Img(x+1,y+1));
             Img(x,y) = Clamp(MinP, Img(x,y),MaxP);
         }
     }
@@ -253,36 +254,38 @@ void DeSpeckle(_ImgType &Img)
 
 // Instantiate it.
 template void DeSpeckle(f1Image &Img);
+template void DeSpeckle(f3Image &Img);
 template void DeSpeckle(uc1Image &Img);
+template void DeSpeckle(uc3Image &Img);
 
-// If N pixels are <= me, I keep my value, else I go to MaxP.
+// If N neighboring pixels are <= me, I keep my value, else I go to MaxP.
 template <class _ImgType>
 void DeSpeckleN(_ImgType &Img, int N)
 {
-    _ImgType NImg(Img.w(), Img.h()); // The 255 is a hack.
-    NImg.fill(uc1Pixel(255));
+    _ImgType NImg(Img.w(), Img.h());
+    NImg.fill(uc1Pixel(255)); // The 255 is a hack.
 
     for(int y=1; y<Img.h()-1; y++) {
         for(int x=1; x<Img.w()-1; x++) {
-            typename _ImgType::PixType MinP = Img(x-1,y-1), MaxP = Img(x-1,y-1); 
-            MinP = Min(MinP,Img(x,y-1)); MaxP = Max(MaxP,Img(x,y-1)); 
-            MinP = Min(MinP,Img(x+1,y-1)); MaxP = Max(MaxP,Img(x+1,y-1)); 
-            MinP = Min(MinP,Img(x-1,y)); MaxP = Max(MaxP,Img(x-1,y)); 
-            MinP = Min(MinP,Img(x+1,y)); MaxP = Max(MaxP,Img(x+1,y)); 
-            MinP = Min(MinP,Img(x-1,y+1)); MaxP = Max(MaxP,Img(x-1,y+1)); 
-            MinP = Min(MinP,Img(x,y+1)); MaxP = Max(MaxP,Img(x,y+1)); 
-            MinP = Min(MinP,Img(x+1,y+1)); MaxP = Max(MaxP,Img(x+1,y+1)); 
+            typename _ImgType::PixType MinP = Img(x-1,y-1), MaxP = Img(x-1,y-1);
+            MinP = Min(MinP,Img(x,y-1));   MaxP = Max(MaxP,Img(x,y-1));
+            MinP = Min(MinP,Img(x+1,y-1)); MaxP = Max(MaxP,Img(x+1,y-1));
+            MinP = Min(MinP,Img(x-1,y));   MaxP = Max(MaxP,Img(x-1,y));
+            MinP = Min(MinP,Img(x+1,y));   MaxP = Max(MaxP,Img(x+1,y));
+            MinP = Min(MinP,Img(x-1,y+1)); MaxP = Max(MaxP,Img(x-1,y+1));
+            MinP = Min(MinP,Img(x,y+1));   MaxP = Max(MaxP,Img(x,y+1));
+            MinP = Min(MinP,Img(x+1,y+1)); MaxP = Max(MaxP,Img(x+1,y+1));
 
             typename _ImgType::PixType Me = Img(x,y);
             int c=0;
-            c += Img(x-1,y-1) <= Me; 
-            c += Img(x,y-1) <= Me; 
-            c += Img(x+1,y-1) <= Me; 
-            c += Img(x-1,y) <= Me; 
-            c += Img(x+1,y) <= Me; 
-            c += Img(x-1,y+1) <= Me; 
-            c += Img(x,y+1) <= Me; 
-            c += Img(x+1,y+1) <= Me; 
+            c += Img(x-1,y-1) <= Me;
+            c += Img(x,y-1) <= Me;
+            c += Img(x+1,y-1) <= Me;
+            c += Img(x-1,y) <= Me;
+            c += Img(x+1,y) <= Me;
+            c += Img(x-1,y+1) <= Me;
+            c += Img(x,y+1) <= Me;
+            c += Img(x+1,y+1) <= Me;
             NImg(x,y) = c>=N?Me:MaxP;
         }
     }
@@ -298,17 +301,17 @@ template <class _RetType, class _ImgType>
 _RetType getApproxMedian(const _ImgType &Img, const int NumSamples)
 {
     typename _ImgType::PixType::ElType *vals = new typename _ImgType::PixType::ElType[NumSamples];
-    
+
     for(int k=0; k<NumSamples; k++) {
         int i = LRand()%Img.size();
         vals[k] = Img[i].Luminance();
     }
-    
+
     sort(&vals[0], &vals[NumSamples]);
-    
+
     typename _ImgType::PixType::ElType ret = vals[NumSamples/2];
     delete [] vals;
-    
+
     return ret;
 }
 
@@ -324,7 +327,7 @@ vector<_PixType> getHistogram(const _ImgType &Img, const int NumBuckets,
                               const _ElType minc, const _ElType maxc)
 {
     vector<_PixType> Hist(NumBuckets, _PixType(0));
- 
+
     float scale = float(NumBuckets) / float(maxc - minc);
     for(int k=0; k<Img.size(); k++) {
         for(int c=0; c<Img.chan(); c++) {
@@ -364,7 +367,7 @@ void Downsample2(_ImgType &Out, const _ImgType &Img)
 
     int ws = Img.w() / 2; // Number of times through simple loop.
     int hs = Img.h() / 2;
-    
+
     for(int y=0; y<hs; y++) {
         for(int x=0; x<ws; x++) {
             Out(x,y) = 0.25f * (Img((x<<1),(y<<1)) + Img((x<<1)+1,(y<<1)) + Img((x<<1),(y<<1)+1) + Img((x<<1)+1,(y<<1)+1));
@@ -414,64 +417,64 @@ void Blur(_ImgType &Img, const _ImgType::PixType::MathType stdev)
 {
     double *Kernel = MakeBlurKernel(5, stdev);
     float *F = FPix();
-    
+
     float *N = new float[size];
     ASSERT_RM(N, "memory alloc failed");
-    
+
     // Just don't blur the edges.
     memcpy(N, F, wid * sizeof(float));
     memcpy(&N[wid], &F[wid], wid * sizeof(float));
     memcpy(&N[(hgt-2)*wid], &F[(hgt-2)*wid], wid * sizeof(float));
     memcpy(&N[(hgt-1)*wid], &F[(hgt-1)*wid], wid * sizeof(float));
-    
+
     for(int y=2; y<hgt-2; y++)
     {
         N[y*wid] = F[y*wid];
         N[y*wid+1] = F[y*wid+1];
         N[(y+1)*wid-1] = F[(y+1)*wid-1];
         N[(y+1)*wid-2] = F[(y+1)*wid-2];
-        
+
         for(int x=2; x<wid-2; x++)
         {
             double G = 0;
-            
+
             G += Kernel[0] * F[(y-2)*wid+x-2];
             G += Kernel[1] * F[(y-2)*wid+x-1];
             G += Kernel[2] * F[(y-2)*wid+x];
             G += Kernel[3] * F[(y-2)*wid+x+1];
             G += Kernel[4] * F[(y-2)*wid+x+2];
-            
+
             G += Kernel[5] * F[(y-1)*wid+x-2];
             G += Kernel[6] * F[(y-1)*wid+x-1];
             G += Kernel[7] * F[(y-1)*wid+x];
             G += Kernel[8] * F[(y-1)*wid+x+1];
             G += Kernel[9] * F[(y-1)*wid+x+2];
-            
+
             G += Kernel[10] * F[(y)*wid+x-2];
             G += Kernel[11] * F[(y)*wid+x-1];
             G += Kernel[12] * F[(y)*wid+x];
             G += Kernel[13] * F[(y)*wid+x+1];
             G += Kernel[14] * F[(y)*wid+x+2];
-            
+
             G += Kernel[15] * F[(y+1)*wid+x-2];
             G += Kernel[16] * F[(y+1)*wid+x-1];
             G += Kernel[17] * F[(y+1)*wid+x];
             G += Kernel[18] * F[(y+1)*wid+x+1];
             G += Kernel[19] * F[(y+1)*wid+x+2];
-            
+
             G += Kernel[20] * F[(y+2)*wid+x-2];
             G += Kernel[21] * F[(y+2)*wid+x-1];
             G += Kernel[22] * F[(y+2)*wid+x];
             G += Kernel[23] * F[(y+2)*wid+x+1];
             G += Kernel[24] * F[(y+2)*wid+x+2];
-            
+
             N[y*wid+x] = G;
         }
     }
-    
+
     delete [] Pix;
     Pix = (unsigned char *) N;
-    
+
     delete [] Kernel;
 }
 #endif

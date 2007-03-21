@@ -32,30 +32,30 @@ extern int yywrap();
 // This object contains all the code necessary to parse an object from a VRML file.
 struct YYObject : public TriObject
 {
-	Vector Translation; // Used only in a Transform or Texture2Transform node.
-	double ScaleOrientationAngle; // Used only in a Transform or Texture2Transform node.
-	Vector ScaleOrientationAxis; // Used only in a Transform or Texture2Transform node.
-	double RotationAngle; // Used only in a Transform or Texture2Transform node.
-	Vector RotationAxis; // Used only in a Transform or Texture2Transform node.
-	Vector Scale; // Used only in a Transform or Texture2Transform node.
-	Vector Center; // Used only in a Transform or Texture2Transform node.
-	double ObjWidth, ObjHeight, ObjDepth, ObjRadius; // Used for making cubes, cylinders, etc..
+    Vector Translation; // Used only in a Transform or Texture2Transform node.
+    double ScaleOrientationAngle; // Used only in a Transform or Texture2Transform node.
+    Vector ScaleOrientationAxis; // Used only in a Transform or Texture2Transform node.
+    double RotationAngle; // Used only in a Transform or Texture2Transform node.
+    Vector RotationAxis; // Used only in a Transform or Texture2Transform node.
+    Vector Scale; // Used only in a Transform or Texture2Transform node.
+    Vector Center; // Used only in a Transform or Texture2Transform node.
+    double ObjWidth, ObjHeight, ObjDepth, ObjRadius; // Used for making cubes, cylinders, etc..
 
-	int MaterialBinding, NormalBinding;
-	bool InTexture2Transform, InTransform;
-	
-	std::vector<int> MaterialIndices;
-	std::vector<int> NormalIndices;
-	std::vector<int> TexCoordIndices;
-	std::vector<int> VertexIndices;
-	
-	YYObject()
-	{
-		creaseAngle = 0.5; // Radians
-		MaterialBinding = OVERALL;
-		NormalBinding = OVERALL;
-		InTransform = InTexture2Transform = false;
-	}
+    int MaterialBinding, NormalBinding;
+    bool InTexture2Transform, InTransform;
+
+    std::vector<int> MaterialIndices;
+    std::vector<int> NormalIndices;
+    std::vector<int> TexCoordIndices;
+    std::vector<int> VertexIndices;
+
+    YYObject()
+    {
+        creaseAngle = 0.5; // Radians
+        MaterialBinding = OVERALL;
+        NormalBinding = OVERALL;
+        InTransform = InTexture2Transform = false;
+    }
 };
 
 // These are all given to BisonMe.y.

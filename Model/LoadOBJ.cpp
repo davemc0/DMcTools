@@ -19,7 +19,7 @@ struct MatInfo
     double Shininess;
     Vector D, S, A, E;
     bool DColorValid, SColorValid, AColorValid, EColorValid, ShininessValid;
-    
+
     inline MatInfo()
     {
         Name = NULL; TexPtr = NULL; // There is no texture with this material.
@@ -31,7 +31,7 @@ class MaterialDB
 {
 public:
     vector<MatInfo> MatList;
-    
+
     // Inserts if not found.
     inline int FindByName(const char *name)
     {
@@ -40,10 +40,10 @@ public:
             if(!strcmp(MatList[mind].Name, name))
                 return mind;
         }
-        
+
         return -1;
     }
-    
+
     inline void Dump()
     {
         for(int i=0; i<(int)MatList.size(); i++)
@@ -60,19 +60,19 @@ inline Vector Get2D(char* buf)
     {
         fprintf(stderr, "Error, couldn't parse 2D!\n");
     }
-    
+
     return Vector(x, y, 0);
 }
 
 inline Vector Get3D(char* buf)
 {
     double x, y, z;
-    
+
     if (3 != sscanf(buf,"%lf %lf %lf",&x,&y,&z))
     {
         fprintf(stderr,"Error, couldn't parse 3d!\n");
     }
-    
+
     return Vector(x, y, z);
 }
 
@@ -84,13 +84,13 @@ void LoadMTL(const char *fname)
     ASSERT_RM(f, "Error opening material file");
     MatInfo M;
     char TmpBuf[4096];
-    
+
     while(fgets(TmpBuf,4096,f)) {
         // size_t l = strlen(TmpBuf);
         if(!strncmp(TmpBuf, "newmtl", 6)) {
             if(M.Name)
                 Mats.MatList.push_back(M);
-            
+
             M = MatInfo();
             M.Name = strdup(&TmpBuf[7]);
             *strchr(M.Name, '\n') = '\0';
@@ -121,14 +121,14 @@ void LoadMTL(const char *fname)
             *strchr(&TmpBuf[7], '\n') = '\0';
             char *texFName = strdup(&TmpBuf[7]);
             cerr << "Texture FName = " << texFName << endl;
-            
+
             M.TexPtr = Model::TexDB.FindByNameOrAdd(texFName);
         }
     }
-    
+
     if(M.Name)
         Mats.MatList.push_back(M);
-    
+
     fclose(f);
 }
 
@@ -137,82 +137,82 @@ inline bool GetFace(char *OBuf, vector<Vector> &tverts, vector<Vector> &tnormals
                     vector<Vector> &texcoords)
 {
 #define MAX_VERTS 128
-    
+
     char *buf = OBuf;
-    
+
     int uv[MAX_VERTS], v[MAX_VERTS], n[MAX_VERTS], i=0, j=0;
     bool HasNormals = true, HasTexcoords = true;
-    
+
     while(3 == sscanf(buf, " %d/%d/%d%n", &v[i], &uv[i], &n[i], &j))
     {
         // cerr << "xx " << v[i] << " " << uv[i] << " " << n[i] << " XXX:" << buf << endl;
-        
+
         v[i]--; uv[i]--; n[i]--;
-        
+
         ASSERT_RM(v[i]>=0, "Vertex index underflow.");
         ASSERT_RM(uv[i]>=0, "Texcoord index underflow.");
         ASSERT_RM(n[i]>=0, "Normal index underflow.");
-        
+
         ASSERT_RM(v[i]<(int)tverts.size(), "Vertex index overflow.");
         ASSERT_RM(uv[i]<(int)ttexcoords.size(), "Texcoord index overflow.");
         ASSERT_RM(n[i]<(int)tnormals.size(), "Normal index overflow.");
-        
+
         buf += j;
         i++;
     }
-    
+
     // cerr << i << endl;
-    
+
     if(!i)
     {
         while(2 == sscanf(buf, " %d//%d%n", &v[i], &n[i], &j))
         {
             // cerr << "xx " << v[i] << " " << n[i] << " XXX:" << buf << endl;
-            
+
             v[i]--; n[i]--;
-            
+
             ASSERT_RM(v[i]>=0, "Vertex index underflow.");
             ASSERT_RM(n[i]>=0, "Normal index underflow.");
-            
+
             ASSERT_RM(v[i]<(int)tverts.size(), "Vertex index overflow.");
             ASSERT_RM(n[i]<(int)tnormals.size(), "Normal index overflow.");
-            
+
             buf += j;
             HasTexcoords = false;
             i++;
         }
     }
-    
+
     if(!i)
     {
         while(2 == sscanf(buf, " %d/%d%n", &v[i], &uv[i], &j))
         {
             // cerr << "xx " << v[i] << " " << uv[i] << " XXX:" << buf << endl;
-            
+
             v[i]--; uv[i]--;
-            
+
             ASSERT_RM(v[i]>=0, "Vertex index underflow.");
             ASSERT_RM(uv[i]>=0, "Texcoord index underflow.");
-            
+
             ASSERT_RM(v[i]<(int)tverts.size(), "Vertex index overflow.");
             ASSERT_RM(uv[i]<(int)ttexcoords.size(), "Texcoord index overflow.");
-            
+
             buf += j;
             HasNormals = false;
             i++;
         }
     }
-    
+
     if(!i)
     {
         while(1 == sscanf(buf, " %d%n", &v[i], &j))
         {
             // cerr << "xx " << v[i] << " XXX:" << buf << endl;
             v[i]--;
-            
+
             ASSERT_RM(v[i]>=0, "Vertex index underflow.");
             ASSERT_RM(v[i]<(int)tverts.size(), "Vertex index overflow.");
-            
+
             if((int)ttexcoords.size() > v[i])
             {
                 // It implies a texcoord also.
@@ -222,7 +222,7 @@ inline bool GetFace(char *OBuf, vector<Vector> &tverts, vector<Vector> &tnormals
             }
             else
                 HasTexcoords = false;
-            
+
             if((int)tnormals.size() > v[i])
             {
                 // It implies a normal also.
@@ -232,18 +232,18 @@ inline bool GetFace(char *OBuf, vector<Vector> &tverts, vector<Vector> &tnormals
             }
             else
                 HasNormals = false;
-            
+
             buf += j;
             i++;
         }
     }
-    
+
     if(!i)
     {
         cerr << "What kind of face is this, anyway? " << OBuf << endl;
         return false;
     }
-    
+
     // Save the polygon as triangles.
     for(int k=2; k<i; k++)
     {
@@ -251,14 +251,14 @@ inline bool GetFace(char *OBuf, vector<Vector> &tverts, vector<Vector> &tnormals
         verts.push_back(tverts[v[0]]);
         verts.push_back(tverts[v[k-1]]);
         verts.push_back(tverts[v[k]]);
-        
+
         if(HasTexcoords)
         {
             texcoords.push_back(ttexcoords[uv[0]]);
             texcoords.push_back(ttexcoords[uv[k-1]]);
             texcoords.push_back(ttexcoords[uv[k]]);
         }
-        
+
         if(HasNormals)
         {
             normals.push_back(tnormals[n[0]]);
@@ -266,7 +266,7 @@ inline bool GetFace(char *OBuf, vector<Vector> &tverts, vector<Vector> &tnormals
             normals.push_back(tnormals[n[k]]);
         }
     }
-    
+
     return true;
 }
 
@@ -274,17 +274,17 @@ inline bool GetFace(char *OBuf, vector<Vector> &tverts, vector<Vector> &tnormals
 bool Model::LoadOBJ(const char *fname, const unsigned int RequiredAttribs,
         const unsigned int AcceptedAttribs)
 {
-	FILE *f = fopen(fname, "r");
+    FILE *f = fopen(fname, "r");
     ASSERT_RM(f, "Error opening input file");
-    
+
     Objs.clear();
     TriObject *Obj = new TriObject;
     Objs.push_back(Obj);
     strcpy(Obj->Name, "default");
-    
+
     // These are used over all the groups in the object.
     vector<Vector> ttexcoords, tnormals, tverts;
-    
+
     char TmpBuf[4096];
     while(fgets(TmpBuf,4096,f)) {
         if(TmpBuf[0] == 'v') {
@@ -316,21 +316,21 @@ bool Model::LoadOBJ(const char *fname, const unsigned int RequiredAttribs,
             if(GName[0] == '\0')
                 strcpy(GName, "default");
             // cerr << "Group: " << GName << endl;
-            
+
             // See if the group name exists.
             int ii;
             for(ii=0; ii<(int)Objs.size(); ii++) {
                 if(!strcmp(Objs[ii]->Name, GName))
                     break;
             }
-            
+
             if(ii == (int)Objs.size()) {
                 // Group is new. Set it up.
                 // cerr << "Another group.\n";
                 TriObject *Obj2 = new TriObject;
                 Objs.push_back(Obj2);
                 strncpy(Obj2->Name, GName, 64);
-                
+
                 // Copy the current material.
                 if(Obj->SColorValid) { Obj2->SColorValid = true; Obj2->scolor = Obj->scolor; }
                 if(Obj->AColorValid) { Obj2->AColorValid = true; Obj2->acolor = Obj->acolor; }
@@ -349,7 +349,7 @@ bool Model::LoadOBJ(const char *fname, const unsigned int RequiredAttribs,
             char *MatName = &TmpBuf[7];
             *strchr(MatName, '\n') = '\0';
             int mind = Mats.FindByName(MatName);
-            
+
             if(mind < 0) {
                 cerr << "Unknown material '" << MatName << "'" << endl;
                 Mats.Dump();
@@ -374,17 +374,17 @@ bool Model::LoadOBJ(const char *fname, const unsigned int RequiredAttribs,
             // cerr << "Unknown:" << TmpBuf;
         }
     }
-    
+
     fclose(f);
-    
+
 #if 1
-	ASSERT_R(0);
-	// There is a problem with the .erase call in VC2005.
+    ASSERT_R(0);
+    // There is a problem with the .erase call in VC2005.
 #else
     // We've read it all. Now we need to post-process it.
     for(int j=0; j<(int)Objs.size(); j++) {
         Obj = (TriObject *) Objs[j];
-        
+
         if((int)Obj->verts.size() < 1) {
             delete Obj;
             std::vector<BaseObject *>::iterator bob(&Objs[j]);
@@ -392,13 +392,13 @@ bool Model::LoadOBJ(const char *fname, const unsigned int RequiredAttribs,
             j--;
             continue;
         }
-        
+
         // Build the BBox.
         for(int i=0; i<(int)Obj->verts.size(); i++)
             Obj->Box += Obj->verts[i];
-        
+
         Box += Obj->Box;
-        
+
         Obj->PrimType = L_TRIANGLES;
     }
 #endif

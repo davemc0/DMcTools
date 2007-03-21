@@ -19,7 +19,7 @@
 // NMax is the max number of function calls.
 // Returns the error of the answer p[0].
 extern double DownSimplex(HVector *p, int ndim, double ftol,
-						  double (*funk)(const HVector &, void *),
-						  void *UserData, int &nfunk, const int NMax = NMAX);
+                          double (*funk)(const HVector &, void *),
+                          void *UserData, int &nfunk, const int NMax = NMAX);
 
 #endif

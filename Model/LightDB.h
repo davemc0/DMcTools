@@ -14,16 +14,16 @@
 
 struct LightInfo
 {
-	char *LightName;
+    char *LightName;
     bool Enabled;
-	int LightID; // This is the OpenGL Light object ID.
+    int LightID; // This is the OpenGL Light object ID.
     int LightType; // 0 = Directional, 1 = Point, 2 = Spot.
     float Intensity;
     Vector Color;
     Vector Position; // Direction or location.
     float DropOffRate;
     float CutOffAngle;
-    
+
     inline LightInfo()
     {
         LightName = NULL;
@@ -36,7 +36,7 @@ struct LightInfo
         DropOffRate = 0;
         CutOffAngle = 0.785398;
     }
-    
+
     inline void Dump()
     {
         std::cerr << LightName<<" "<<(Enabled?"on ":"off ")<<LightID<<" "<<LightType<<" "
@@ -48,34 +48,34 @@ struct LightInfo
 class LightDB
 {
 public:
-	std::vector<LightInfo *> LightList;
-	
-	// Returns -1 if not found.
-	inline LightInfo *FindByName(const char *name)
-	{
-        ASSERT_R(name); 
-		for(int tind=0; tind<(int)LightList.size(); tind++) {
-			if(!strcmp(LightList[tind]->LightName, name))
-				return LightList[tind];
-		}
-        
+    std::vector<LightInfo *> LightList;
+
+    // Returns -1 if not found.
+    inline LightInfo *FindByName(const char *name)
+    {
+        ASSERT_R(name);
+        for(int tind=0; tind<(int)LightList.size(); tind++) {
+            if(!strcmp(LightList[tind]->LightName, name))
+                return LightList[tind];
+        }
+
         return NULL;
     }
-    
+
     inline LightInfo *Add(char *name=NULL)
     {
         LightInfo *x = new LightInfo();
         x->LightName = name;
-        
+
         LightList.push_back(x);
 
-		return x;
+        return x;
     }
-    
+
     // Adds it if not found.
     inline LightInfo *FindByNameOrAdd(const char *name)
     {
-        ASSERT_R(name); 
+        ASSERT_R(name);
         LightInfo *x = FindByName(name);
         if(x == NULL) {
             x = Add();
@@ -83,7 +83,7 @@ public:
 
         return x;
     }
-    
+
     inline void Dump()
     {
         for(int i=0; i<(int)LightList.size(); i++) {

@@ -23,21 +23,21 @@
 #ifdef DMC_MACHINE_win
 void SRand()
 {
-	srand(time(0));
+    srand(time(0));
 }
 #endif
 
 #ifdef DMC_MACHINE_sgi
 void SRand()
 {
-	srand48(time(0) * getpid());
+    srand48(time(0) * getpid());
 }
 #endif
 
 #ifdef DMC_MACHINE_hp
 void SRand()
 {
-	srand48(time(0) * getpid());
+    srand48(time(0) * getpid());
 }
 #endif
 
@@ -67,7 +67,7 @@ char *GetFileName(const char *inpath)
         outfname++;
     } else
         outfname = outpath;
-    
+
     char *outfname2 = strrchr(outfname, '\\');
     if(outfname2) {
         *outfname2 = '\0';
@@ -75,12 +75,12 @@ char *GetFileName(const char *inpath)
     } else {
         outfname2 = outfname;
     }
-    
+
     char *outfname3 = strchr(outfname2, '\n');
     if(outfname3) {
         *outfname3 = '\0';
     }
-    
+
     outfname3 = strchr(outfname2, '\r');
     if(outfname3) {
         *outfname3 = '\0';
@@ -102,7 +102,7 @@ char *GetFileBaseName(const char *inpath)
         outfname++;
     } else
         outfname = outpath;
-    
+
     char *outfname2 = strrchr(outfname, '\\');
     if(outfname2) {
         *outfname2 = '\0';
@@ -110,17 +110,17 @@ char *GetFileBaseName(const char *inpath)
     } else {
         outfname2 = outfname;
     }
-    
+
     char *outfname3 = strchr(outfname2, '\n');
     if(outfname3) {
         *outfname3 = '\0';
     }
-    
+
     outfname3 = strchr(outfname2, '\r');
     if(outfname3) {
         *outfname3 = '\0';
     }
-    
+
     outfname3 = strchr(outfname2, '.');
     if(outfname3) {
         *outfname3 = '\0';
@@ -142,12 +142,12 @@ char *GetFileExtension(const char *inpath)
         outfname++;
     } else
         outfname = outpath;
-    
+
     char *outfname3 = strchr(outfname, '\n');
     if(outfname3) {
         *outfname3 = '\0';
     }
-    
+
     outfname3 = strchr(outfname, '\r');
     if(outfname3) {
         *outfname3 = '\0';
@@ -162,19 +162,19 @@ char *GetFileExtension(const char *inpath)
 // Makes a fairly random 32-bit number from a string.
 int HashString(const char *s)
 {
-	int H = 0, i = 0, j = 0;
-	while(*s)
-	{
-		H ^= int(*s) << i;
-		i += 6;
-		
-		if(i > 24)
-		{
-			j = (j+1) % 8;
-			i = j;
-		}
-		s++;
-	}
-	
-	return H;
+    int H = 0, i = 0, j = 0;
+    while(*s)
+    {
+        H ^= int(*s) << i;
+        i += 6;
+
+        if(i > 24)
+        {
+            j = (j+1) % 8;
+            i = j;
+        }
+        s++;
+    }
+
+    return H;
 }

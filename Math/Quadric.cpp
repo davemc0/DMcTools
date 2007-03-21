@@ -8,28 +8,28 @@
 
 bool Quadric3::FindMin(Vector& p, double SingularityThresh) const
 {
-	Matrix44 M(matrix44());
+    Matrix44 M(matrix44());
 
-	// This makes sure we get nearly singular matrices.
-	M.SetSingularityThreshold(SingularityThresh);
-	M(3,0) = 0;
-	M(3,1) = 0;
-	M(3,2) = 0;
-	M(3,3) = 1;
+    // This makes sure we get nearly singular matrices.
+    M.SetSingularityThreshold(SingularityThresh);
+    M(3,0) = 0;
+    M(3,1) = 0;
+    M(3,2) = 0;
+    M(3,3) = 1;
 
-	// cerr << "M: " << M.Determinant() << endl << M << endl;
+    // cerr << "M: " << M.Determinant() << endl << M << endl;
 
-	bool invertible = M.Invert();
-	// cerr << "Minv:\n" << M << endl;
-	
-	if(!invertible)
-		return false;
-	
-	p.x = M(0,3);
-	p.y = M(1,3);
-	p.z = M(2,3);
-	
-	return (Finite(p.x) && Finite(p.y) && Finite(p.z));
+    bool invertible = M.Invert();
+    // cerr << "Minv:\n" << M << endl;
+
+    if(!invertible)
+        return false;
+
+    p.x = M(0,3);
+    p.y = M(1,3);
+    p.z = M(2,3);
+
+    return (Finite(p.x) && Finite(p.y) && Finite(p.z));
 }
 
 // Use quadric approximation - infinite lines
@@ -79,61 +79,61 @@ bool Quadric3::FindMin(Vector& p, double SingularityThresh) const
 
 void Quadric3::CreateLine(const Vector &o, const Vector &p1)
 {
-	Vector v = p1-o;
-	v.normalize();
-	
-	// Compute the quadric for this guy.
-	
-	double Dov = Dot(o,v);
-	
-	double A,B,C,D,E,F,G,H,I,J;
-	
-	double vx2m1 = 1 - v.x*v.x;
-	double vy2m1 = 1 - v.y*v.y;
-	double vz2m1 = 1 - v.z*v.z;
-	
-	double vxvy = v.x*v.y;
-	double vxvz = v.x*v.z;
-	double vyvz = v.y*v.z;
-	
-	double Dx = Dov*v.x - o.x;
-	double Dy = Dov*v.y - o.y;
-	double Dz = Dov*v.z - o.z;
-	
-	double mixedMid = v.x*v.x + v.y*v.y + v.z*v.z - 2;
-	
-	A = vx2m1*vx2m1 + vxvy*vxvy + vxvz*vxvz; // X^2
-	B = vy2m1*vy2m1 + vxvy*vxvy + vyvz*vyvz; // Y^2
-	C = vz2m1*vz2m1 + vxvz*vxvz + vyvz*vyvz; // Z^2
-	
+    Vector v = p1-o;
+    v.normalize();
+
+    // Compute the quadric for this guy.
+
+    double Dov = Dot(o,v);
+
+    double A,B,C,D,E,F,G,H,I,J;
+
+    double vx2m1 = 1 - v.x*v.x;
+    double vy2m1 = 1 - v.y*v.y;
+    double vz2m1 = 1 - v.z*v.z;
+
+    double vxvy = v.x*v.y;
+    double vxvz = v.x*v.z;
+    double vyvz = v.y*v.z;
+
+    double Dx = Dov*v.x - o.x;
+    double Dy = Dov*v.y - o.y;
+    double Dz = Dov*v.z - o.z;
+
+    double mixedMid = v.x*v.x + v.y*v.y + v.z*v.z - 2;
+
+    A = vx2m1*vx2m1 + vxvy*vxvy + vxvz*vxvz; // X^2
+    B = vy2m1*vy2m1 + vxvy*vxvy + vyvz*vyvz; // Y^2
+    C = vz2m1*vz2m1 + vxvz*vxvz + vyvz*vyvz; // Z^2
+
 #if 0
-	D = 2*vxvy*(v.z*v.z - vx2m1 - vy2m1); // XY
-	E = 2*vxvz*(v.y*v.y - vx2m1 - vz2m1); // XZ
-	F = 2*vyvz*(v.x*v.x - vy2m1 - vz2m1); // YZ
+    D = 2*vxvy*(v.z*v.z - vx2m1 - vy2m1); // XY
+    E = 2*vxvz*(v.y*v.y - vx2m1 - vz2m1); // XZ
+    F = 2*vyvz*(v.x*v.x - vy2m1 - vz2m1); // YZ
 #else
-	D = 2*vxvy*mixedMid; // XY
-	E = 2*vxvz*mixedMid; // XZ
-	F = 2*vyvz*mixedMid; // YZ
+    D = 2*vxvy*mixedMid; // XY
+    E = 2*vxvz*mixedMid; // XZ
+    F = 2*vyvz*mixedMid; // YZ
 #endif
-	G = 2*(vx2m1*Dx - vxvy*Dy - vxvz*Dz); // X
-	H = 2*(vy2m1*Dy - vxvy*Dx - vyvz*Dz); // Y
-	I = 2*(vz2m1*Dz - vxvz*Dx - vyvz*Dy); // Z
-	
-	J = Dx*Dx + Dy*Dy + Dz*Dz; // C
-	
-	// Shove these into the matrix.
-	// ^2 coefs are normal, rest are divided by 2.
-	
-	vals[0] = A;
-	vals[1] = B;
-	vals[2] = C;
-	vals[3] = J; // constant coef...
-	
-	vals[4] = D*0.5;
-	vals[5] = E*0.5;
-	vals[6] = G*0.5;
-	
-	vals[7] = F*0.5;
-	vals[8] = H*0.5;
-	vals[9] = I*0.5;
+    G = 2*(vx2m1*Dx - vxvy*Dy - vxvz*Dz); // X
+    H = 2*(vy2m1*Dy - vxvy*Dx - vyvz*Dz); // Y
+    I = 2*(vz2m1*Dz - vxvz*Dx - vyvz*Dy); // Z
+
+    J = Dx*Dx + Dy*Dy + Dz*Dz; // C
+
+    // Shove these into the matrix.
+    // ^2 coefs are normal, rest are divided by 2.
+
+    vals[0] = A;
+    vals[1] = B;
+    vals[2] = C;
+    vals[3] = J; // constant coef...
+
+    vals[4] = D*0.5;
+    vals[5] = E*0.5;
+    vals[6] = G*0.5;
+
+    vals[7] = F*0.5;
+    vals[8] = H*0.5;
+    vals[9] = I*0.5;
 }

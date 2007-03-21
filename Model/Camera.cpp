@@ -16,14 +16,14 @@ Matrix44 CameraInfo::GetProjectionMatrix()
         M.Frustum(wL, wR, wB, wT, Near, Far);
     else
         M.Ortho(wL, wR, wB, wT, Near, Far);
-    
+
     return M;
 }
 
 void CameraInfo::GetFrame(Vector &XCol, Vector &YCol, Vector &ZCol, Vector &OCol)
 {
     Matrix44 EyeToWorld = WorldToEye.Inverse();
-    
+
     EyeToWorld.GetFrame(XCol, YCol, ZCol, OCol);
 }
 
@@ -75,12 +75,12 @@ void CameraInfo::ComputePerspective(double fovyRad, double aspect, double znear,
     ASSERT_D(znear>0 && zfar>0);
     Near = znear;
     Far = zfar;
-    
+
     wT = Near * tan(fovyRad * 0.5);
     wB = -wT;
     wL = wB * aspect;
     wR = wT * aspect;
-    
+
     ProjectionValid = true;
     CameraType = DMC_CAM_PERSP;
 }
@@ -91,12 +91,12 @@ void CameraInfo::SetOrtho(double Wid, double Hgt, double znear, double zfar)
     // ASSERT(znear>0 && zfar>0);
     Near = znear;
     Far = zfar;
-    
+
     wT = Hgt * 0.5;
     wB = -wT;
     wR = Wid * 0.5;
     wL = -wR;
-    
+
     ProjectionValid = true;
     CameraType = DMC_CAM_ORTHO;
 }
@@ -111,7 +111,7 @@ void CameraInfo::ComputeCamPoints(f3Vector V[8])
     V[1] = f3Vector(wL,wT,NearZ);
     V[2] = f3Vector(wL,wB,NearZ);
     V[3] = f3Vector(wR,wB,NearZ);
-    
+
     // CALC FAR PTS (IN CAM COORDS)
     float FarZ=-Far, FN=Far/Near;
     float fwL=wL*FN, fwR=wR*FN, fwB=wB*FN, fwT=wT*FN;
@@ -119,7 +119,7 @@ void CameraInfo::ComputeCamPoints(f3Vector V[8])
     V[5] = f3Vector(fwL,fwT,FarZ);
     V[6] = f3Vector(fwL,fwB,FarZ);
     V[7] = f3Vector(fwR,fwB,FarZ);
-    
+
     // XFORM FRUSTUM IN CAM COORDS TO WORLD SPACE
     for(int i=0; i<8; i++)
         V[i] = EyeToWorld * V[i];
@@ -155,7 +155,7 @@ void CameraInfo::VRMLtoMatrix()
     MakeLookVec.Rotate(OrientationTh, Orientation);
     Vector LookDir= MakeLookVec * Vector(0,0,-1);
     Vector LookPt = Position + LookDir * FocalDistance;
-    
+
     WorldToEye.LoadIdentity();
     ViewValid = true;
     WorldToEye.LookAt(Position, LookPt, Vector(0,1,0));
@@ -166,11 +166,11 @@ void CameraInfo::WriteToFile(FILE *fp, int FrameNum)
     if (fp==NULL) { fprintf(stderr, "ERROR WRITING CAM TO FILE!\n"); return; }
     // fprintf(fp,"%f %f %f %f %f %f %f %f %f %f %f %f\n",
     //  X.x,X.y,X.z, Y.x,Y.y,Y.z, Z.x,Z.y,Z.z, Orig.x,Orig.y,Orig.z);
-    
+
     Vector Orig, X, Y, Z;
     GetFrame(X, Y, Z, Orig);
     double fovyDeg = RtoD(GetFOVY());
-    
+
     fprintf(fp,"%f[%f,%f,%f][%f,%f,%f][%f,%f,%f] %d\n", fovyDeg,
         Orig.x,Orig.y,Orig.z, Z.x,Z.y,Z.z, Y.x,Y.y,Y.z, FrameNum);
 }
@@ -178,7 +178,7 @@ void CameraInfo::WriteToFile(FILE *fp, int FrameNum)
 int CameraInfo::ReadFromFile(FILE *fp, int &FrameNum)  // RETURNS "1" IF SUCCESSFUL, "0" IF EOF
 {
     if (fp==NULL) { fprintf(stderr, "ERROR READING CAM FROM FILE!\n"); return 0; }
-    
+
     float FOV;
     f3Vector Orig, Y, Z;
     int Cond = fscanf(fp,"%f[%f,%f,%f][%f,%f,%f][%f,%f,%f] %d",
@@ -194,17 +194,17 @@ int CameraInfo::ReadFromFile(FILE *fp, int &FrameNum)  // RETURNS "1" IF SUCCESS
             &Z.x,&Z.y,&Z.z,
             &Y.x,&Y.y,&Y.z, &FrameNum);
     }
-    
+
     if(Cond == EOF) {
         cerr << "Bad syntax in path file.\n";
     }
-    
+
     WorldToEye.LoadIdentity();
     ViewValid = true;
-    
+
     WorldToEye.LookAt(Orig, Orig - Z, Y);
     // cerr << DtoR(FOV) << endl;
     ComputePerspective(DtoR(FOV), wR/wT, Near, Far);
-    
+
     return (Cond!=EOF);
 }

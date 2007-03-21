@@ -18,7 +18,7 @@ bool TexInfo::LoadToAppMemory(char *dir, bool prepend)
     if(Im)
         // Need to call ClearFromAppMemory() first.
         return true;
-    
+
     char fname[2048];
     if(dir) {
         if(prepend)
@@ -30,7 +30,7 @@ bool TexInfo::LoadToAppMemory(char *dir, bool prepend)
         }
     } else
         sprintf(fname, "%s", TexFName);
-    
+
     bool ishdr = true;
     char *exten = GetFileExtension(fname);
     if(strlen(exten) == 3) {
@@ -39,9 +39,9 @@ bool TexInfo::LoadToAppMemory(char *dir, bool prepend)
             (exten[2]=='r' || exten[2]=='R');
     } else
         ishdr = false;
-    
+
     cerr << "Loading " << fname << endl;
-    
+
     if(ishdr) {
         Im = new ucImage;
         f3Image HDR(fname);
@@ -55,9 +55,9 @@ bool TexInfo::LoadToAppMemory(char *dir, bool prepend)
         }
     } else {
         Im = new ucImage(fname);
-        ASSERT_RM(Im, "memory alloc failed");	
+        ASSERT_RM(Im, "memory alloc failed");
     }
-    
+
     if(Im->size > 0) {
         // cerr << "Succeeded.\n";
         return false;
@@ -71,7 +71,7 @@ bool TexInfo::LoadToAppMemory(char *dir, bool prepend)
 
 void TexInfo::Dump()
 {
-    cerr << TexID << " " << TexFName << " " << TextureTarget << " " 
+    cerr << TexID << " " << TexFName << " " << TextureTarget << " "
         << (IsMIPMap?"Is MIP":"NotMIP") << " Mult="<<MultiTexIDs[0]<<","<<MultiTexIDs[1]<<","<<MultiTexIDs[2]<<endl;
 }
 
@@ -90,23 +90,23 @@ TexInfo *TextureDB::FindByName(const char *name)
         }
         delete [] nl;
     }
-    
+
     delete [] namelower;
-    
+
     return NULL;
 }
 
 // Adds it if not found.
 TexInfo *TextureDB::FindByNameOrAdd(const char *name)
 {
-    ASSERT_R(name); 
+    ASSERT_R(name);
     TexInfo *x = FindByName(name);
     if(x == NULL) {
         x = new TexInfo(name, NULL, -1);
-        
+
         TexList.push_back(x);
-    } 
-    
+    }
+
     return x;
 }
 

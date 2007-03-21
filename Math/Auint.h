@@ -81,7 +81,7 @@ public:
         else
         {
             for(int cnt=0,i=b.val.size()-1; i>=0; i--,cnt++)
-            { 
+            {
                 std::cerr << "hi\n";
                 auint t = *this * b.val[i];
                 // Left shift this intermediate result.

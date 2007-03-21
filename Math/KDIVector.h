@@ -16,11 +16,11 @@
 
 struct KDIVector : public Vector
 {
-	// Might add things here like normal and coords in spherical map.
-	
-	inline KDIVector() {}
-	
-	inline KDIVector(Vector _Vert) : Vector(_Vert) {}
+    // Might add things here like normal and coords in spherical map.
+
+    inline KDIVector() {}
+
+    inline KDIVector(Vector _Vert) : Vector(_Vert) {}
 };
 
 #endif

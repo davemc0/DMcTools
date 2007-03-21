@@ -33,32 +33,32 @@
 
 struct TriObject : public BaseObject
 {
-	int PrimType; // GL_TRIANGLE_STRIP, etc.
+    int PrimType; // GL_TRIANGLE_STRIP, etc.
 
     std::vector<Vector> verts;
-	std::vector<Vector> normals; // Must have a length of 0, 1, or verts.size().
-	std::vector<Vector> tangents; // Must have a length of 0, 1, or verts.size().
-	std::vector<Vector> texcoords; // Must have a length of 0, 1, or verts.size().
-	std::vector<Vector> dcolors; // Must have a length of 0, 1, or verts.size().
-	std::vector<double> alphas; // Must have a length of 0 or dcolors.size().
-	
-	inline TriObject()
-	{
-		// cerr << "Making TriObject.\n";
-		PrimType = 4;
-		ObjectType = DMC_TRI_OBJECT;
-	}
-	
-	void QuadsToTris(bool KeepBad = true);
+    std::vector<Vector> normals; // Must have a length of 0, 1, or verts.size().
+    std::vector<Vector> tangents; // Must have a length of 0, 1, or verts.size().
+    std::vector<Vector> texcoords; // Must have a length of 0, 1, or verts.size().
+    std::vector<Vector> dcolors; // Must have a length of 0, 1, or verts.size().
+    std::vector<double> alphas; // Must have a length of 0 or dcolors.size().
 
-	virtual void Dump() const;
+    inline TriObject()
+    {
+        // cerr << "Making TriObject.\n";
+        PrimType = 4;
+        ObjectType = DMC_TRI_OBJECT;
+    }
+
+    void QuadsToTris(bool KeepBad = true);
+
+    virtual void Dump() const;
 
     // Sets the OBJ_WHATEVER flag.
     virtual void GenColors() {ASSERT_R(0);}
     virtual void GenNormals();
     virtual void GenTexCoords() {ASSERT_R(0);}
     virtual void GenTangents();
-	
+
     // Clears the OBJ_WHATEVER flag.
     virtual void RemoveColors()
     {
@@ -71,25 +71,25 @@ struct TriObject : public BaseObject
         normals.clear();
         VertexType = VertexType & (~OBJ_NORMALS);
     }
-	virtual void RemoveTexCoords()
+    virtual void RemoveTexCoords()
     {
         texcoords.clear();
         VertexType = VertexType & (~OBJ_TEXCOORDS);
     }
-	virtual void RemoveTangents()
+    virtual void RemoveTangents()
     {
         tangents.clear();
         VertexType = VertexType & (~OBJ_TANGENTS);
     }
 
-	virtual void RebuildBBox();
-	
+    virtual void RebuildBBox();
+
     // Transform all verticess by this matrix.
     // Also rebuilds the BBox.
-	virtual void ApplyTransform(Matrix44 &Mat);
-	
+    virtual void ApplyTransform(Matrix44 &Mat);
+
     // Transform all texcoords by this matrix.
-	virtual void ApplyTextureTransform(Matrix44 &Mat);
+    virtual void ApplyTextureTransform(Matrix44 &Mat);
 };
 
 #endif

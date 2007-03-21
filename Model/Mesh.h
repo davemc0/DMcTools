@@ -3,7 +3,7 @@
 //
 // Copyright David K. McAllister, Aug. 1999.
 //
-// This represents arbitrary non-manifold meshes of triangles, edges, and faces. 
+// This represents arbitrary non-manifold meshes of triangles, edges, and faces.
 // It is a kind of BaseObject. It represents a single primitive group of a model.
 // Many meshes constitute a Model. It can import and export a TriObject.
 // It can export a RenderObject.
@@ -28,13 +28,13 @@ struct Mesh : public BaseObject
     Vertex *Verts;
     Edge *Edges;
     Face *Faces;
-    
+
     // This tree of pointers is used for quickly matching a vertex,
     // especially when adding a new vertex to the mesh.
     // It is a pointer so that it won't automatically get copied
     // when I copy a mesh.
     KDBoxTree<KDVertex> *VertTree;
-    
+
     // When making a mesh, this tells how close two vertices must
     // be to be considered the same.
     double MeshMaxDist;
@@ -51,7 +51,7 @@ struct Mesh : public BaseObject
         ObjectType = DMC_MESH_OBJECT;
         FacesAreFixed = false;
     }
-    
+
     // Make a Mesh from the given TriObject.
     inline Mesh(const TriObject &M, Vertex *(*VF)()=NULL,
         Edge *(*EF)()=NULL, Face *(*FF)()=NULL)
@@ -65,7 +65,7 @@ struct Mesh : public BaseObject
         EdgeCount = VertexCount = FaceCount = 0;
         EdgeType = VertexType = FaceType = 0;
         ImportTriObject(M, -1.0, VF, EF, FF);
-        
+
         Name[0] = '\0';
         TexPtr = NULL;
         ObjID = -1;
@@ -80,18 +80,18 @@ struct Mesh : public BaseObject
         acolor = Vector(0.2,0.2,0.2);
         FacesAreFixed = false;
     }
-    
+
     ~Mesh();
-    
+
     /////////////////////////////////////////////////////////////////
     // All subclasses of BaseObject must implement these:
-    
+
     virtual void Dump() const
     {
         std::cerr << "Mesh vert count: " << VertexCount << " edge count: "
                   << EdgeCount << " face count: " << FaceCount << std::endl;
     }
-    
+
     // For meshes with attributes, generates the given attribute.
     // based on the geometry of the mesh.
     // You need to make sure the facing is consistent before calling this.
@@ -100,22 +100,22 @@ struct Mesh : public BaseObject
     virtual void GenNormals();
     virtual void GenTexCoords();
     virtual void GenTangents();
-	
+
     // Clears the OBJ_WHATEVER flag.
     virtual void RemoveColors() {VertexType = VertexType & (~OBJ_COLORS);}
     virtual void RemoveNormals() {VertexType = VertexType & (~OBJ_NORMALS);}
-	virtual void RemoveTexCoords() {VertexType = VertexType & (~OBJ_TEXCOORDS);}
-	virtual void RemoveTangents() {VertexType = VertexType & (~OBJ_TANGENTS);}
-    
+    virtual void RemoveTexCoords() {VertexType = VertexType & (~OBJ_TEXCOORDS);}
+    virtual void RemoveTangents() {VertexType = VertexType & (~OBJ_TANGENTS);}
+
     virtual void RebuildBBox();
-    
+
     // Transform all verticess by this matrix.
     // Also rebuilds the BBox.
     virtual void ApplyTransform(Matrix44 &Mat);
-	
+
     // Transform all texcoords by this matrix.
-	virtual void ApplyTextureTransform(Matrix44 &Mat);
-    
+    virtual void ApplyTextureTransform(Matrix44 &Mat);
+
     void GenColorsFromFaceColors();
     void GenNormalsFromFaceNormals();
     void GenFaceNormals();
@@ -123,7 +123,7 @@ struct Mesh : public BaseObject
     void GenFaceTangents();
 
     /////////////////////////////////////////////////////////////////
-    
+
     // Add the given TriObject to the mesh.
     // If you want the MeshMaxDist to be set as a multiple of the
     // bounding box size then pass in that multiple here.
@@ -135,14 +135,14 @@ struct Mesh : public BaseObject
     // AVertex objects.
     //
     // To make something else, pass in a factory function for it.
-    void ImportTriObject(const TriObject &M, double MeshDistFactor = -1.0, 
+    void ImportTriObject(const TriObject &M, double MeshDistFactor = -1.0,
         Vertex *(*VF)()=NULL, Edge *(*EF)()=NULL, Face *(*FF)()=NULL);
-    
+
     // Return a TriObject made from this Mesh.
     // AcceptedAttribs tells what attributes to export if they exist.
     // The mask is defined in AElements.h.
     void ExportTriObject(TriObject &Ob, unsigned int AcceptedAttribs = OBJ_ALL);
-    
+
     // Convert the Mesh to a RenderObject and return it.
     // AcceptedAttribs has bits to tell what vertex properties to export,
     // assuming they exist. It is a mask of OBJ_ bits from AElements.h.
@@ -152,20 +152,20 @@ struct Mesh : public BaseObject
     // Make every face in the mesh get the same winding as the
     // face listed first in the linked list.
     void FixFacing();
-    
+
     // Remove vertices that have no edges or faces.
     void RemoveUnusedVertices();
-    
+
     /////////////////////////////////////////////////////////////////
     // The debug interface.
-    
+
     // Makes sure the mesh is sane and counts everything, too.
     void CheckIntegrity(const bool Detailed = false);
     bool CheckSize(const BBox &Box);
 
     /////////////////////////////////////////////////////////////////
     // The single-element interface.
-    
+
     // Add the vertex without seeing if it already exists.
     // Doesn't make anything point to this vertex.
     // If the Vertex is really a subclass, make it yourself and pass it in.
@@ -174,17 +174,17 @@ struct Mesh : public BaseObject
         if(Ver == NULL)
             Ver = new Vertex;
         Ver->V = Pos;
-        
+
         Ver->next = Verts;
         Ver->prev = NULL;
         if(Verts)
             Verts->prev = Ver;
         Verts = Ver;
         VertexCount++;
-        
+
         return Ver;
     }
-    
+
     // Makes the vertices point to this edge.
     // If the Edge is really a subclass, make it yourself and pass it in.
     inline Edge *AddEdge(Vertex *v0, Vertex *v1, Edge *E = NULL)
@@ -200,13 +200,13 @@ struct Mesh : public BaseObject
             Edges->prev = E;
         Edges = E;
         EdgeCount++;
-        
+
         v0->Edges.push_back(E);
         v1->Edges.push_back(E);
-        
+
         return E;
     }
-    
+
     // Makes the edges and vertices point to this face.
     // If the Face is really a subclass, make it yourself and pass it in.
     inline Face *AddFace(Vertex *v0, Vertex *v1, Vertex *v2, Edge *e0, Edge *e1, Edge *e2, Face *F = NULL)
@@ -225,7 +225,7 @@ struct Mesh : public BaseObject
         F->e0 = e0;
         F->e1 = e1;
         F->e2 = e2;
-        
+
         // Add the face index to the vertices and edges.
         v0->Faces.push_back(F);
         v1->Faces.push_back(F);
@@ -233,12 +233,12 @@ struct Mesh : public BaseObject
         e0->Faces.push_back(F);
         e1->Faces.push_back(F);
         e2->Faces.push_back(F);
-        
+
         FaceCount++;
-        
+
         return F;
     }
-    
+
     inline Vertex *FindVertex(const Vector &V)
     {
         Vertex Ver;
@@ -253,14 +253,14 @@ struct Mesh : public BaseObject
         else
             return NULL;
     }
-    
+
     Vertex *FindVertexInEdgeList(const std::vector<Edge *> &EdgeList, const Vector &V,
         Edge * &FoundEdge) const;
-    
+
     // Searches these vertices to find an edge between them.
     // Returns NULL if the edge doesn't exist.
     Edge *FindEdge(Vertex *v0, Vertex *v1, Edge *(*EF)()=NULL);
-    
+
     inline void DeleteVertex(Vertex *V)
     {
         if(V->next) {
@@ -281,7 +281,7 @@ struct Mesh : public BaseObject
 
 private:
     // Returns a count of flipped faces.
-    int FlipMe(Face *F, std::set<Face *> &Visited, 
+    int FlipMe(Face *F, std::set<Face *> &Visited,
         Vertex *v0, Vertex *v1, Vertex *v2);
 
     // Called by SplitVertexAtFace.

@@ -31,12 +31,12 @@ struct AVertex : public Vertex
 inline bool VertexDataSame(const AVertex *V0, const AVertex *V1, const unsigned int VertData)
 {
     bool IsSame = V0->V == V1->V;
-    
+
     if(VertData & OBJ_COLORS)    IsSame = IsSame && (V0->Col == V1->Col);
     if(VertData & OBJ_NORMALS)   IsSame = IsSame && (V0->Nor == V1->Nor);
     if(VertData & OBJ_TEXCOORDS) IsSame = IsSame && (V0->Tex == V1->Tex);
     if(VertData & OBJ_TANGENTS)  IsSame = IsSame && (V0->Tan == V1->Tan);
-    
+
 #if 0
     if(!IsSame) {
         cerr << "Diff:\n";
@@ -66,7 +66,7 @@ struct AFace : public Face
     Vector Nor;
     Vector Tex;
     Vector Tan;
-    
+
     inline ~AFace()
     {
 #ifdef DMC_MESH_DEBUG

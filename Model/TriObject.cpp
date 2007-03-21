@@ -15,20 +15,20 @@ void TriObject::GenNormals()
 {
     ASSERT_RM(PrimType == L_TRIANGLES, "Bad PrimType.");
     ASSERT_RM(creaseAngle >= 0 && creaseAngle <= M_PI, "Bad creaseAngle.");
-    
+
     if(normals.size() == verts.size())
         // Already have normals.
         return;
 
     cerr << "dcolors.size = " << int(dcolors.size()) << endl;
-    
+
     // Build a mesh. XXX !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     Mesh Me(*this);
     Me.FixFacing();
-    
+
     normals.clear();
     verts.clear();
-    
+
     // This ensures that duplicate faces don't screw us up.
     TriObject TmpOb;
     Me.ExportTriObject(TmpOb);
@@ -37,9 +37,9 @@ void TriObject::GenNormals()
         texcoords = TmpOb.texcoords;
     if(dcolors.size() != 1)
         dcolors = TmpOb.dcolors;
-    
+
     // cerr << creaseAngle << " dcolors.size = " << dcolors.size() << endl;
-    
+
     // First compute the facet normals.
     Face *F = Me.Faces;
     int i;
@@ -47,21 +47,21 @@ void TriObject::GenNormals()
         // i is currently the first vertex of the face.
         Vector P0 = verts[i] - verts[i+1];
         Vector P1 = verts[i+2] - verts[i+1];
-        
+
         Vector *N = new Vector(Cross(P1, P0));
         N->normalize();
-        
+
         // Store a pointer to this facet normal in F->e0.
         F->e0 = (Edge *)N;
     }
-    
+
     // For all vertices that match this one, accumulate those with
     // an angle less than creaseAngle into a smooth normal.
     double CosCrease = cos(creaseAngle);
-    
+
     for(i=0, F = Me.Faces; i<(int)verts.size(); i+=3, F = F->next) {
         ASSERT_D(F);
-        
+
         Vector &FN = *((Vector *)F->e0);
         for(int j=0; j<3; j++) {
             Vertex *V;
@@ -73,10 +73,10 @@ void TriObject::GenNormals()
                 ASSERT_D(F->v2->V == verts[i+j]);
                 V = F->v2;
             }
-            
+
             int cnt = 1;
             Vector Accum(FN);
-            
+
             // Loop on all the faces of this vertex.
             for(int k=0; k<(int)V->Faces.size(); k++) {
                 if(V->Faces[k] != F) {
@@ -84,7 +84,7 @@ void TriObject::GenNormals()
                     // Dot goes from 1 to -1 as ang goes from 0 to PI.
                     Vector &FNT = *((Vector *)(V->Faces[k]->e0));
                     double AngDot = Dot(FN, FNT);
-                    
+
                     // If the angle < creaseAngle then Ang > CosCrease and we smooth.
                     if(AngDot > CosCrease) {
                         //cerr << creaseAngle << " " << CosCrease << " " << AngDot << endl;
@@ -95,15 +95,15 @@ void TriObject::GenNormals()
                     }
                 }
             }
-            
+
             // Now store the normal.
             Accum /= cnt;
-            
+
             Accum.normalize();
             normals.push_back(Accum);
         }
     }
-    
+
     // Remove the facet normals I made.
     for(F = Me.Faces; F; F = F->next)
         delete (Vector *)F->e0;
@@ -122,25 +122,25 @@ void TriObject::QuadsToTris(bool KeepBad)
 {
     if(PrimType != L_QUADS)
         return;
-    
+
     PrimType = L_TRIANGLES;
-    
+
     ASSERT_RM(verts.size() % 4 == 0, "Must have a multiple of 4 vertices.");
-    
+
     cerr << "Converting from " << (int(verts.size())/4) << " quads.\n";
-    
+
     vector<Vector> _verts, _normals, _texcoords, _dcolors;
-    
+
     bool DoNormals=false, DoTexcoords=false, DoDColors=false;
-    
+
     if(normals.size() == verts.size()) DoNormals = true;
     if(texcoords.size() == verts.size()) DoTexcoords = true;
     if(dcolors.size() == verts.size()) DoDColors = true;
-    
+
     for(int i=0; i < (int)verts.size(); i+= 4) {
         bool DoFirst = KeepBad || !(verts[i] == verts[i+1] || verts[i] == verts[i+2] || verts[i+2] == verts[i+1]);
         bool DoSecond = KeepBad || !(verts[i] == verts[i+3] || verts[i] == verts[i+2] || verts[i+2] == verts[i+3]);
-        
+
         if(DoFirst) {
             _verts.push_back(verts[i]);
             _verts.push_back(verts[i+1]);
@@ -151,7 +151,7 @@ void TriObject::QuadsToTris(bool KeepBad)
             _verts.push_back(verts[i+2]);
             _verts.push_back(verts[i+3]);
         }
-        
+
         if(DoNormals) {
             if(DoFirst) {
                 _normals.push_back(normals[i]);
@@ -164,7 +164,7 @@ void TriObject::QuadsToTris(bool KeepBad)
                 _normals.push_back(normals[i+3]);
             }
         }
-        
+
         if(DoTexcoords) {
             if(DoFirst) {
                 _texcoords.push_back(texcoords[i]);
@@ -177,7 +177,7 @@ void TriObject::QuadsToTris(bool KeepBad)
                 _texcoords.push_back(texcoords[i+3]);
             }
         }
-        
+
         if(DoDColors) {
             if(DoFirst) {
                 _dcolors.push_back(dcolors[i]);
@@ -191,16 +191,16 @@ void TriObject::QuadsToTris(bool KeepBad)
             }
         }
     }
-    
+
     verts = _verts;
     if(DoNormals) normals = _normals;
     if(DoTexcoords) texcoords = _texcoords;
     if(DoDColors) dcolors = _dcolors;
-    
+
     if(DoNormals) ASSERT_RM(normals.size() == verts.size(), "Bad normal count.");
     if(DoTexcoords) ASSERT_RM(texcoords.size() == verts.size(), "Bad texcoords count.");
     if(DoDColors) ASSERT_RM(dcolors.size() == verts.size(), "Bad dcolors count.");
-    
+
     cerr << DoNormals << DoTexcoords << DoDColors << "Converted to " << (int(verts.size())/3) << " triangles.\n";
 }
 
@@ -208,13 +208,13 @@ void TriObject::Dump() const
 {
     cerr << "Name: " << Name << " ObjID: " << ObjID << endl;
     cerr << "Vertex count: " << int(verts.size()) << endl;
-    
+
     cerr << "Specular color: " << scolor << endl
         << "Emissive color: " << ecolor << endl
         << "Ambient color: " << acolor << endl
         << "Shininess: " << shininess << " PrimType: " << PrimType << endl
         << "TriObject BBox: " << Box << "\n\nVertex \t\tNormal\t\tTexcoord\t\tDColor\n";
-    
+
     for(int i=0; i<(int)verts.size(); i++) {
         cerr << verts[i] << "\t";
         if(i< (int)normals.size()) cerr << normals[i] << "\t"; else cerr << "xxxxxxxxxxxxxxxxxxx\t";
@@ -229,7 +229,7 @@ void TriObject::Dump() const
 void TriObject::RebuildBBox()
 {
     Box.Reset();
-    
+
     for(int i=0; i<(int)verts.size(); i++)
         Box += verts[i];
 }
@@ -240,17 +240,17 @@ void TriObject::RebuildBBox()
 void TriObject::ApplyTransform(Matrix44 &Mat)
 {
     Box.Reset();
-    
+
     int i;
     for(i=0; i<(int)verts.size(); i++) {
         verts[i] = Mat * verts[i];
         Box += verts[i];
     }
-    
+
     for(i=0; i<(int)normals.size(); i++) {
         normals[i] = Mat.ProjectDirection(normals[i]);
     }
-    
+
     // XXX Would it be better to recompute these?
     for(i=0; i<(int)tangents.size(); i++) {
         tangents[i] = Mat.ProjectDirection(tangents[i]);

@@ -23,7 +23,7 @@ static inline int DiffP(const pixel &a, const pixel &b)
 bool Quantizer::TrivialSolution(int MaxCols, byte *pic8)
 {
     NumColors = 0;
-    
+
     int y;
     for(y=0; y<size && NumColors <= MaxCols; y++)
     {
@@ -42,13 +42,13 @@ bool Quantizer::TrivialSolution(int MaxCols, byte *pic8)
         {
             if(NumColors >= MaxCols)
                 break;
-            
+
             // Add a new color map entry
             cmap[NumColors] = p;
             pic8[y] = NumColors++;
         }
     }
-    
+
     return (y >= size);
 }
 
@@ -59,18 +59,18 @@ void Quantizer::ReduceColorMap(byte *pic8)
     byte *cnt = new byte[MaxColors];
     pixel *cmap2 = new pixel[MaxColors];
     byte *pc2nc = new byte[MaxColors];
-    
+
     memset(cnt, 0, MaxColors);
     memset(pc2nc, 0, MaxColors);
     memset(cmap2, 0, sizeof(pixel) * MaxColors);
-    
+
     // Flag which colors were actually used.
     int i;
     for(i=0; i<size; i++)
     {
         cnt[pic8[i]] = 1;
     }
-    
+
     // Reduce color map by removing unused and duplicate colors.
     int nc = 0;
     for(i=0; i<NumColors; i++)
@@ -82,7 +82,7 @@ void Quantizer::ReduceColorMap(byte *pic8)
             if(cmap[i] == cmap[j])
                 break;
         }
-        
+
         // If the color is unique and used, add it.
         if(j==i && cnt[i])
         {
@@ -94,17 +94,17 @@ void Quantizer::ReduceColorMap(byte *pic8)
         else
             pc2nc[i] = pc2nc[j];
     }
-    
+
     // Replace the image with a new one.
     for(i=0; i<size; i++)
     {
         pic8[i] = pc2nc[pic8[i]];
     }
-    
+
     NumColors = nc;
-    
+
     memcpy(cmap, cmap2, sizeof(pixel) * MaxColors);
-    
+
     delete [] cmap2;
     delete [] cnt;
     delete [] pc2nc;
@@ -116,7 +116,7 @@ void Quantizer::CentroidsToColorMap(int *Counts, int *R, int *G, int *B)
 {
     if(NumColors < MaxColors)
         memset(&Counts[NumColors], 0, sizeof(int) * (MaxColors - NumColors));
-    
+
     NumColors = MaxColors;
     for(int i=0; i<NumColors; i++)
     {
@@ -144,12 +144,12 @@ void Quantizer::CentroidsToColorMap(int *Counts, int *R, int *G, int *B)
 DMCINT64 Quantizer::Image24to8(byte *pic8, int *Counts, int *R, int *G, int *B)
 {
     DMCINT64 Error = 0;
-    
+
     memset(Counts, 0, sizeof(int) * NumColors);
     memset(R, 0, sizeof(int) * NumColors);
     memset(G, 0, sizeof(int) * NumColors);
     memset(B, 0, sizeof(int) * NumColors);
-    
+
     WorstErrPix = Pix[rand() % size]; // This is the index of the pixel that has the most error.
     WorstErr = 0;
 
@@ -166,12 +166,12 @@ DMCINT64 Quantizer::Image24to8(byte *pic8, int *Counts, int *R, int *G, int *B)
                 BestC = i;
             }
         }
-        
+
         pic8[y] = (byte) BestC;
         Error += BestDist;
-        
+
         Counts[BestC]++;
-        
+
         R[BestC] += Pix[y].r;
         G[BestC] += Pix[y].g;
         B[BestC] += Pix[y].b;
@@ -181,7 +181,7 @@ DMCINT64 Quantizer::Image24to8(byte *pic8, int *Counts, int *R, int *G, int *B)
             WorstErrPix = Pix[y];
         }
     }
-    
+
     return Error;
 }
 
@@ -194,15 +194,15 @@ DMCINT64 Quantizer::Image24to8Fast(color_count *CHist, int hsize, int *Counts,
                                    int *R, int *G, int *B)
 {
     DMCINT64 Error = 0;
-    
+
     memset(Counts, 0, sizeof(int) * NumColors);
     memset(R, 0, sizeof(int) * NumColors);
     memset(G, 0, sizeof(int) * NumColors);
     memset(B, 0, sizeof(int) * NumColors);
-    
+
     WorstErrPix = Pix[rand() % size]; // This is the index of the pixel that has the most error.
     WorstErr = 0;
-    
+
     // Set each color histogram entry to closest color in color map.
     for(int y=0; y<hsize; y++)
     {
@@ -216,11 +216,11 @@ DMCINT64 Quantizer::Image24to8Fast(color_count *CHist, int hsize, int *Counts,
                 BestC = i;
             }
         }
-        
+
         Error += BestDist * CHist[y].value;
-        
+
         Counts[BestC] += CHist[y].value;
-        
+
         R[BestC] += CHist[y].color.r * CHist[y].value;
         G[BestC] += CHist[y].color.g * CHist[y].value;
         B[BestC] += CHist[y].color.b * CHist[y].value;
@@ -230,7 +230,7 @@ DMCINT64 Quantizer::Image24to8Fast(color_count *CHist, int hsize, int *Counts,
             WorstErrPix = CHist[y].color;
         }
     }
-    
+
     return Error;
 }
 
@@ -243,34 +243,34 @@ DMCINT64 Quantizer::RefineColorMap(byte *pic8)
     int *greenBig = new int[MaxColors];
     int *blueBig = new int[MaxColors];
     ASSERT_RM(redBig && greenBig && blueBig, "memory alloc failed");
-    
+
     // The number of pixels in each cluster.
     int *countBig = new int[MaxColors];
     ASSERT_RM(countBig, "memory alloc failed");
-    
+
     // Compute best fit to that map.
     DMCINT64 OldError = 0x7fffffff;
     DMCINT64 Error = OldError - STOP_EARLY - 1;
-    
+
     // XXX Not looping here speeds things up.
     //while(Error + STOP_EARLY < OldError)
     for(int iter = 0; iter < 3; iter++)
     {
         OldError = Error;
         Error = Image24to8(pic8, countBig, redBig, greenBig, blueBig);
-        
+
         CentroidsToColorMap(countBig, redBig, greenBig, blueBig);
-        
+
 #ifdef DMC_DEBUG
         fprintf(stderr, "%03d Mapping Error = %f\n", iter, float(Error)/float(size));
 #endif
     }
-    
+
     delete [] redBig;
     delete [] greenBig;
     delete [] blueBig;
     delete [] countBig;
-    
+
     return Error;
 }
 
@@ -282,34 +282,34 @@ DMCINT64 Quantizer::RefineColorMapFast(color_count *CHist, int hsize)
     int *greenBig = new int[MaxColors];
     int *blueBig = new int[MaxColors];
     ASSERT_RM(redBig && greenBig && blueBig, "memory alloc failed");
-    
+
     // The number of pixels in each cluster.
     int *countBig = new int[MaxColors];
     ASSERT_RM(countBig, "memory alloc failed");
-    
+
     // Compute best fit to that map.
     DMCINT64 OldError = 0x7fffffff;
     DMCINT64 Error = OldError - STOP_EARLY - 1;
-    
+
     int iter = 0;
     while(Error + STOP_EARLY < OldError)
     {
         OldError = Error;
         Error = Image24to8Fast(CHist, hsize, countBig, redBig, greenBig, blueBig);
-        
+
         CentroidsToColorMap(countBig, redBig, greenBig, blueBig);
-        
+
         iter++;
 #ifdef DMC_DEBUG
         fprintf(stderr, "%03d Fast Mapping Error = %f\n", iter, float(Error)/float(size));
 #endif
     }
-    
+
     delete [] redBig;
     delete [] greenBig;
     delete [] blueBig;
     delete [] countBig;
-    
+
     return Error;
 }
 
@@ -328,24 +328,24 @@ color_count *Quantizer::MakeHist(int &num_colors_in_hist)
     num_colors_in_hist = 0;
     color_count *CHist = new color_count[HASH_SIZE];
     ASSERT_RM(CHist, "memory alloc failed");
-    
+
     memset(CHist, 0, sizeof(color_count) * HASH_SIZE);
-    
+
     // Go through the entire image, building a hash table of colors.
     int i;
     for(i=0; i<size; i++)
     {
         pixel pp = Pix[i];
-        
+
         int ind = ((pp.r>>KILL_BITS) << (2*KEEP_BITS)) | ((pp.g>>KILL_BITS) << (1*KEEP_BITS)) | (pp.b>>KILL_BITS);
-        
+
         if(CHist[ind].value == 0) {
             CHist[ind].color = pp;
             num_colors_in_hist++;
         }
         CHist[ind].value++;
     }
-    
+
     // Sort the table to put empty elements at the end.
     // Linear time: Move a pointer up from the bottom and when it finds a gap,
     // move a pointer down from the top until it can fill the gap.
@@ -365,7 +365,7 @@ color_count *Quantizer::MakeHist(int &num_colors_in_hist)
             }
         }
     }
-    
+
     return CHist;
 }
 
@@ -407,66 +407,66 @@ void Quantizer::MedianCut(color_count* CHist, int num_colors_in_hist,
                           int sum, int maxval, int MaxColors)
 {
     int bi, i;
-    
+
     box *bv = new box[MaxColors]; // The bounding boxes for the colors that map to a given entry
     ASSERT_RM(bv, "memory alloc failed");
-    
+
     memset(cmap, 0, MaxColors * sizeof(pixel));
-    
+
     // Set up the initial box.
     bv[0].index = 0;
     bv[0].colors = num_colors_in_hist;
     bv[0].sum = sum;
     int boxes = 1;
-    
+
     // Main loop: split boxes until we have enough.
     while (boxes < MaxColors)
     {
         int v;
-        
+
         // Find the first splittable box.
         for(bi=0; bv[bi].colors<2 && bi<boxes; bi++)
             ;
         if(bi == boxes)
             break; // No splittable boxes.
-        
+
         int indx = bv[bi].index;
         int clrs = bv[bi].colors;
         int sm = bv[bi].sum;
-        
+
         // Go through the box finding the minimum and maximum of each
         // component - the boundaries of the box.
         int maxr, maxg, maxb;
         int minr = maxr = CHist[indx].color.r;
         int ming = maxg = CHist[indx].color.g;
         int minb = maxb = CHist[indx].color.b;
-        
+
         for(i=1; i<clrs; i++) {
             v = CHist[indx + i].color.r;
             if(v < minr) minr = v;
             if(v > maxr) maxr = v;
-            
+
             v = CHist[indx + i].color.g;
             if(v < ming) ming = v;
             if(v > maxg) maxg = v;
-            
+
             v = CHist[indx + i].color.b;
             if(v < minb) minb = v;
             if(v > maxb) maxb = v;
         }
-        
+
         // Find the largest dimension, and sort by that component.
         int rl = maxr - minr;
         int gl = maxg - ming;
         int bl = maxb - minb;
-        
+
         if(rl >= gl && rl >= bl)
             qsort((char*) &(CHist[indx]), (size_t) clrs, sizeof(color_count), redcompare);
         else if(gl >= bl)
             qsort((char*) &(CHist[indx]), (size_t) clrs, sizeof(color_count), greencompare);
         else
             qsort((char*) &(CHist[indx]), (size_t) clrs, sizeof(color_count), bluecompare);
-        
+
         // Now find the median based on the counts, so that about half the
         // pixels (not colors but pixels) are in each subdivision.
         int lowersum = CHist[indx].value;
@@ -475,7 +475,7 @@ void Quantizer::MedianCut(color_count* CHist, int num_colors_in_hist,
             if(lowersum >= halfsum) break;
             lowersum += CHist[indx + i].value;
         }
-        
+
         // Split the box, and sort all boxes to bring the biggest boxes to the top.
         bv[bi].colors = i;
         bv[bi].sum = lowersum;
@@ -485,7 +485,7 @@ void Quantizer::MedianCut(color_count* CHist, int num_colors_in_hist,
         ++boxes;
         qsort((char*) bv, (size_t) boxes, sizeof(struct box), sumcompare);
     }
-    
+
     /*
     ** Ok, we've got enough boxes. Now choose a representative color for
     ** each box. There are a number of possible ways to make this choice.
@@ -499,23 +499,23 @@ void Quantizer::MedianCut(color_count* CHist, int num_colors_in_hist,
         int indx = bv[bi].index;
         int clrs = bv[bi].colors;
         DMCINT64 r = 0, g = 0, b = 0, sum = 0;
-        
+
         for(i=0; i<clrs; i++) {
             r += CHist[indx + i].color.r * CHist[indx + i].value;
             g += CHist[indx + i].color.g * CHist[indx + i].value;
             b += CHist[indx + i].color.b * CHist[indx + i].value;
             sum += CHist[indx + i].value;
         }
-        
+
         r = r / sum; if(r>maxval) r = maxval; /* avoid math errors */
         g = g / sum; if(g>maxval) g = maxval;
         b = b / sum; if(b>maxval) b = maxval;
-        
+
         cmap[bi].r = byte(r);
         cmap[bi].g = byte(g);
         cmap[bi].b = byte(b);
     }
-    
+
     delete [] bv;
 }
 
@@ -529,10 +529,10 @@ byte *Quantizer::Quant(byte *pic24, int sz, int MaxCols, bool IsGray)
 {
     MaxColors = MaxCols;
     size = sz;
-    
+
     byte *pic8 = new byte[size];
     ASSERT_RM(pic8, "memory alloc failed");
-    
+
     if(IsGray)
     {
         // 1) Trivial finish if gray or few unique colors.
@@ -542,54 +542,54 @@ byte *Quantizer::Quant(byte *pic24, int sz, int MaxCols, bool IsGray)
         // For gray scale, just do it.
         memcpy(pic8, pic24, size);
         NumColors = MaxColors;
-        
+
         for(int i=0; i<NumColors; i++)
         {
             cmap[i].r = cmap[i].g = cmap[i].b = i;
         }
-        
+
         ReduceColorMap(pic8);
-        
+
         return pic8;
     }
-    
+
     Pix = (pixel *) pic24;
-    
+
     // 1) Trivial finish if gray or few unique colors.
     if(TrivialSolution(MaxColors, pic8))
         return pic8;
-    
+
     // 2) Median cut to get some good seed colors.
 #ifdef DMC_DEBUG
     cerr << "Making histogram.\n";
 #endif
-    
+
     int num_colors_in_hist;
     color_count *CHist = MakeHist(num_colors_in_hist);
-    
+
 #ifdef DMC_DEBUG
     cerr << num_colors_in_hist << " unique colors found; choosing " << MaxColors << " colors\n";
 #endif
-    
+
     // Apply median-cut to histogram, making the new colormap.
     byte maxval = 255;
     MedianCut(CHist, num_colors_in_hist, size, maxval, MaxColors);
-    
+
 #ifdef DMC_DEBUG
     cerr << "Finished median cut.\n";
 #endif
-    
+
     NumColors = MaxColors;
     // ReduceColorMap(pic8);
-    
+
     // 3) Refine quantization iteratively with weighted histogram from median cut.
     RefineColorMapFast(CHist, num_colors_in_hist);
-    
+
     // 4) Refine quantization iteratively using actual pixels.
     RefineColorMap(pic8);
-    
+
     delete [] CHist;
-    
+
     return pic8;
 }
 

@@ -11,13 +11,13 @@
 
 #include <Util/Utils.h>
 
-#include <math.h>
+#include <limits>
 
+#include <math.h>
 #include <float.h>
 
 #ifndef DMC_MAXFLOAT
 #define DMC_MAXFLOAT FLT_MAX
-// MAXFLOAT
 #endif
 
 #ifndef M_PI
@@ -39,89 +39,68 @@
 inline int IsNaN(const double d)
 {
 #ifdef DMC_MACHINE_win
-	return _isnan(d);
+    return _isnan(d);
 #else
-	return isnan(d);
+    return isnan(d);
 #endif
 }
 
 inline int Finite(const double d)
 {
 #ifdef DMC_MACHINE_win
-	return _finite(d);
+    return _finite(d);
 #else
-	return finite(d);
+    return finite(d);
 #endif
 }
 
 inline double DtoR(const double d)
 {
-	return d*M_PI/180.;
+    return d*M_PI/180.;
 }
 
 inline double RtoD(const double r)
 {
-	return r*180./M_PI;
+    return r*180./M_PI;
 }
 
-inline double Pow(const double d, const double p)
+template<class T>
+inline T Sqrt(const T &v)
 {
-	return pow(d,p);
+    return static_cast<T>(sqrt(v));
 }
 
-inline int Sqrt(const int i)
+template<class T>
+inline float Sqrt(const float &v)
 {
-	return (int)sqrt((double)i);
-}
-
-inline double Sqrt(const double d)
-{
-	return sqrt(d);
+    return static_cast<float>(sqrtf(v));
 }
 
 inline double Cbrt(const double d)
 {
 #ifdef DMC_MACHINE_win
 #define ONE_THIRD (1./3.)
-	return (d<0) ? -pow(-d, ONE_THIRD) : pow(d, ONE_THIRD);
+    return (d<0) ? -pow(-d, ONE_THIRD) : pow(d, ONE_THIRD);
 #else
-	return cbrt(d);
+    return cbrt(d);
 #endif
-}
-
-inline double Exp(const double d)
-{
-	return exp(d);
 }
 
 inline double Exp10(const double p)
 {
-	return pow(10.0, p);
+    return pow(10.0, p);
 }
 
-inline double Hypot(const double x, const double y)
+template<class T>
+inline T Sqr(const T x)
 {
-	return hypot(x, y);
+    return x*x;
 }
 
-inline double Sqr(const double x)
+template<class T>
+inline T Cube(const T x)
 {
-	return x*x;
-}
-
-inline int Sqr(const int x)
-{
-	return x*x;
-}
-
-inline double Cube(const double x)
-{
-	return x*x*x;
-}
-
-inline int Cube(const int x)
-{
-	return x*x*x;
+    return x*x*x;
 }
 
 // The sqrt of 2 pi.
@@ -133,16 +112,16 @@ inline int Cube(const int x)
 // Gaussian(x,mu,sigma) = exp(-0.5 * Sqr(x-mu) / Sqr(sigma)) / (sigma * sqrt(2*pi))
 inline double Gaussian(const double x, const double sigma, const double mu=0)
 {
-	double oneOverSigma = 1. / sigma;
-	return exp(-0.5 * Sqr(((x-mu) * oneOverSigma))) * ONEOVERSQRT2PI * oneOverSigma;
+    double oneOverSigma = 1. / sigma;
+    return exp(-0.5 * Sqr(((x-mu) * oneOverSigma))) * ONEOVERSQRT2PI * oneOverSigma;
 }
 
 // Symmetric gaussian centered at origin.
 // No covariance matrix. Give it X and Y.
 inline double Gaussian2(const double x, const double y, const double sigma)
 {
-	double oneOverSigma = 1. / sigma;
-	return exp(-0.5 * (Sqr(x) + Sqr(y)) * Sqr(oneOverSigma)) * ONEOVERSQRT2PI * oneOverSigma;
+    double oneOverSigma = 1. / sigma;
+    return exp(-0.5 * (Sqr(x) + Sqr(y)) * Sqr(oneOverSigma)) * ONEOVERSQRT2PI * oneOverSigma;
 }
 
 // Compute the gaussian at value x with given sigma and mu=0.
@@ -150,118 +129,82 @@ inline double Gaussian2(const double x, const double y, const double sigma)
 // Gaussian(x,mu,sigma) = exp(-0.5 * Sqr(x-mu) / Sqr(sigma)) / (sigma * sqrt(2*pi))
 inline double GaussianSq(const double xSq, const double sigma)
 {
-	double oneOverSigma = 1. / sigma;
-	return exp(-0.5 * xSq * Sqr(oneOverSigma)) * ONEOVERSQRT2PI * oneOverSigma;
+    double oneOverSigma = 1. / sigma;
+    return exp(-0.5 * xSq * Sqr(oneOverSigma)) * ONEOVERSQRT2PI * oneOverSigma;
 }
 
-// Return a random number with a normal distribution.
+/// Return a random number with a normal distribution.
 inline double NRand(const double sigma = 1.0)
 {
-    if(sigma <= 0)
-        return 0;
+    double x, y, r2;
+    do {
+        x = DRand()*2.0-1.0;
+        y = DRand()*2.0-1.0;
+        r2 = x*x+y*y;
+    }
+    while(r2 > 1.0 || r2 == 0.0);
 
-#define ONE_OVER_SIGMA_EXP (1.0f / 0.7975f)
-	
-	double y;
-	do
-	{
-		y = -log(DRand());
-	}
-	while(DRand() > exp(-Sqr(y-1)*0.5));
-	
-	if(LRand() & 0x1)
-		return y * sigma * ONE_OVER_SIGMA_EXP;
-	else
-		return -y * sigma * ONE_OVER_SIGMA_EXP;
+    double m = sqrt(-2.0 * log(r2)/r2);
+
+    double px = x*m*sigma;
+    // double py = y*m*sigma;
+
+    return px;
 }
 
 inline bool IsPow2(const int x)
 {
-	int ones = 0;
-	int xx=x;
-	while(xx) {
-		ones += xx & 1;
-		xx = xx >> 1;
-	}
-	return ones < 2;
+    return (x & (x-1)) == 0;
 }
 
 // Absolute value
 inline double Abs(const double d)
 {
 #ifdef DMC_MACHINE_win
-	return fabs(d);
+    return fabs(d);
 #else
-	return d<0?-d:d;
+    return d<0?-d:d;
 #endif
 }
 
 inline int Abs(const int i)
 {
 #ifdef DMC_MACHINE_win
-	return abs(i);
+    return abs(i);
 #else
-	return i<0?-i:i;
+    return i<0?-i:i;
 #endif
 }
-#include <limits>
+
 // Signs
 inline int Sign(const double d)
 {
-	return d<0?-1:1;
+    return d<0?-1:1;
 }
 
 inline int Sign(const int i)
 {
-	return i<0?-1:1;
+    return i<0?-1:1;
 }
 
 // Clamp a number to a specific range
-inline double Clamp(const double minv, const double d, const double maxv=DMC_MAXFLOAT)
+template<class T>
+inline T Clamp(const T minv, const T d, const T maxv=numeric_limits<T>::max())
 {
-	return d<=minv?minv:d>=maxv?maxv:d;
-}
-
-inline int Clamp(const int minv, const int i, const int maxv=0x7fffffff)
-{
-	return i<minv?minv:i>maxv?maxv:i;
+    return d<=minv?minv:(d>=maxv?maxv:d);
 }
 
 // Two Values
-inline char Min(const char d1, const char d2) {return d1<d2?d1:d2;}
-inline char Max(const char d1, const char d2) {return d1>d2?d1:d2;}
-inline short Min(const short d1, const short d2) {return d1<d2?d1:d2;}
-inline short Max(const short d1, const short d2) {return d1>d2?d1:d2;}
-inline int Min(const int d1, const int d2) {return d1<d2?d1:d2;}
-inline int Max(const int d1, const int d2) {return d1>d2?d1:d2;}
-inline unsigned char Min(const unsigned char d1, const unsigned char d2) {return d1<d2?d1:d2;}
-inline unsigned char Max(const unsigned char d1, const unsigned char d2) {return d1>d2?d1:d2;}
-inline unsigned short Min(const unsigned short d1, const unsigned short d2) {return d1<d2?d1:d2;}
-inline unsigned short Max(const unsigned short d1, const unsigned short d2) {return d1>d2?d1:d2;}
-inline unsigned int Min(const unsigned int d1, const unsigned int d2) {return d1<d2?d1:d2;}
-inline unsigned int Max(const unsigned int d1, const unsigned int d2) {return d1>d2?d1:d2;}
-inline float Min(const float d1, const float d2) {return d1<d2?d1:d2;}
-inline float Max(const float d1, const float d2) {return d1>d2?d1:d2;}
-inline double Min(const double d1, const double d2) {return d1<d2?d1:d2;}
-inline double Max(const double d1, const double d2) {return d1>d2?d1:d2;}
+template<class T>
+inline T Min(const T d1, const T d2) {return d1<d2?d1:d2;}
+template<class T>
+inline T Max(const T d1, const T d2) {return d1>d2?d1:d2;}
 
 // Three Values
-inline char Min(const char d1, const char d2, const char d3) {return d1<d2?(d1<d3?d1:d3):(d2<d3?d2:d3);}
-inline char Max(const char d1, const char d2, const char d3) {return d1>d2?(d1>d3?d1:d3):(d2>d3?d2:d3);}
-inline short Min(const short d1, const short d2, const short d3) {return d1<d2?(d1<d3?d1:d3):(d2<d3?d2:d3);}
-inline short Max(const short d1, const short d2, const short d3) {return d1>d2?(d1>d3?d1:d3):(d2>d3?d2:d3);}
-inline int Min(const int d1, const int d2, const int d3) {return d1<d2?(d1<d3?d1:d3):(d2<d3?d2:d3);}
-inline int Max(const int d1, const int d2, const int d3) {return d1>d2?(d1>d3?d1:d3):(d2>d3?d2:d3);}
-inline unsigned char Min(const unsigned char d1, const unsigned char d2, const unsigned char d3) {return d1<d2?(d1<d3?d1:d3):(d2<d3?d2:d3);}
-inline unsigned char Max(const unsigned char d1, const unsigned char d2, const unsigned char d3) {return d1>d2?(d1>d3?d1:d3):(d2>d3?d2:d3);}
-inline unsigned short Min(const unsigned short d1, const unsigned short d2, const unsigned short d3) {return d1<d2?(d1<d3?d1:d3):(d2<d3?d2:d3);}
-inline unsigned short Max(const unsigned short d1, const unsigned short d2, const unsigned short d3) {return d1>d2?(d1>d3?d1:d3):(d2>d3?d2:d3);}
-inline unsigned int Min(const unsigned int d1, const unsigned int d2, const unsigned int d3) {return d1<d2?(d1<d3?d1:d3):(d2<d3?d2:d3);}
-inline unsigned int Max(const unsigned int d1, const unsigned int d2, const unsigned int d3) {return d1>d2?(d1>d3?d1:d3):(d2>d3?d2:d3);}
-inline float Min(const float d1, const float d2, const float d3) {return d1<d2?(d1<d3?d1:d3):(d2<d3?d2:d3);}
-inline float Max(const float d1, const float d2, const float d3) {return d1>d2?(d1>d3?d1:d3):(d2>d3?d2:d3);}
-inline double Min(const double d1, const double d2, const double d3) {return d1<d2?(d1<d3?d1:d3):(d2<d3?d2:d3);}
-inline double Max(const double d1, const double d2, const double d3) {return d1>d2?(d1>d3?d1:d3):(d2>d3?d2:d3);}
+template<class T>
+inline T Min(const T d1, const T d2, const T d3) {return d1<d2?(d1<d3?d1:d3):(d2<d3?d2:d3);}
+template<class T>
+inline T Max(const T d1, const T d2, const T d3) {return d1>d2?(d1>d3?d1:d3):(d2>d3?d2:d3);}
 
 // Cubic Hermite Interpolation
 // Generate a step between minv and maxv.
@@ -270,16 +213,16 @@ inline double Max(const double d1, const double d2, const double d3) {return d1>
 // hermite curve if d>minv && d<maxv
 inline double CubicInterp(const double d, const double minv, const double maxv)
 {
-	double ret;
-	if(d <= minv){
-		ret=0.0;
-	} else if(d >= maxv){
-		ret=1.0;
-	} else {
-		double t=(d-minv)/(maxv-minv);
-		ret=t*t*(3.0-2.0*t);
-	}
-	return ret;
+    double ret;
+    if(d <= minv){
+        ret=0.0;
+    } else if(d >= maxv){
+        ret=1.0;
+    } else {
+        double t=(d-minv)/(maxv-minv);
+        ret=t*t*(3.0-2.0*t);
+    }
+    return ret;
 }
 
 inline double SmoothStep(const double d, const double minv, const double maxv)
@@ -290,7 +233,7 @@ inline double SmoothStep(const double d, const double minv, const double maxv)
 // Linear Interpolation
 inline double LinearInterp(const double d1, const double d2, const double weight)
 {
-	return d2*weight+d1*(1.0-weight);
+    return d2*weight+d1*(1.0-weight);
 }
 
 // Linear Interpolation
@@ -300,79 +243,72 @@ inline double Interpolate(const double d1, const double d2, const double weight)
 }
 
 // Integer/double conversions
+
+inline int FloatToInt(const float f)
+{
+    return (int)f;
+}
+
+inline int DoubleToInt(const double d)
+{
+    return (int)d;
+}
+
 inline double Fraction(const double d)
 {
-	return (d>0) ? (d-(int)d) : (d-(int)d+1);
+    return (d>0) ? (d-DoubleToInt(d)) : (d-DoubleToInt(d+1));
 }
 
 inline int RoundDown(const double d)
 {
-	if(d>=0){
-		return (int)d;
-	} else {
-		if(d==(int)d){
-			return -(int)(-d);
-		} else {
-			return -(int)(-d)-1;
-		}
-	}
+    if(d>=0){
+        return DoubleToInt(d);
+    } else {
+        if(d==DoubleToInt(d)){
+            return -DoubleToInt(-d);
+        } else {
+            return -DoubleToInt(-d)-1;
+        }
+    }
 }
 
 inline int RoundUp(const double d)
 {
-	if(d>=0){
-		if((d-(int)d) == 0)
-			return (int)d;
-		else
-			return (int)(d+1);
-	} else {
-		return (int)d;
-	}
+    if(d>=0){
+        if((d-DoubleToInt(d)) == 0)
+            return DoubleToInt(d);
+        else
+            return DoubleToInt(d+1);
+    } else {
+        return DoubleToInt(d);
+    }
 }
 
 inline int Round(const double d)
 {
-	return (int)(d+0.5);
+    return DoubleToInt(d+0.5);
 }
-
 
 inline int Floor(const double d)
 {
-	if(d>=0){
-		return (int)d;
-	} else {
-		return -(int)(-d);
-	}
+    if(d>=0){
+        return DoubleToInt(d);
+    } else {
+        return -DoubleToInt(-d);
+    }
 }
 
 inline int Ceil(const double d)
 {
-	if(d==(int)d){
-		return (int)d;
-	} else {
-		if(d>0){
-			return 1+(int)d;
-		} else {
-			return -(1+(int)(-d));
-		}
-	}
+    if(d==DoubleToInt(d)){
+        return DoubleToInt(d);
+    } else {
+        if(d>0){
+            return 1+DoubleToInt(d);
+        } else {
+            return -(1+DoubleToInt(-d));
+        }
+    }
 }
-
-#if 0
-inline int Tile(const int tile, const int tf)
-{
-	if(tf<0){
-		// Tile in negative direction
-		if(tile>tf && tile<=0)return 1;
-		else return 0;
-	} else if(tf>0){
-		// Tile in positive direction
-		if(tile<tf && tile>=0)return 1;
-		else return 0;
-	} else {
-		return 1;
-	}
-}
-#endif
 
 #endif

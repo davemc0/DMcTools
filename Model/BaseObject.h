@@ -25,19 +25,19 @@ typedef enum {DMC_BASE_OBJECT, DMC_TRI_OBJECT, DMC_MESH_OBJECT, DMC_RENDER_OBJEC
 
 struct BaseObject
 {
-	char Name[64];
+    char Name[64];
     int DispLists[OBJ_ALL+1]; // So you can have a disp list for each set of attribs.
-	Matrix44 Transform; // The current transformation.
-	Matrix44 TexTransform; // The current texture transformation.
-	BBox Box;
+    Matrix44 Transform; // The current transformation.
+    Matrix44 TexTransform; // The current texture transformation.
+    BBox Box;
     Vector dcolor; // The object-wide colors.
     double alpha;
-	Vector scolor, ecolor, acolor;
-	double shininess, creaseAngle; // Used for later generation of normals.
-	int ObjID; // OpenGL display list ID.
-	TexInfo *TexPtr; // Index into the texture database.
+    Vector scolor, ecolor, acolor;
+    double shininess, creaseAngle; // Used for later generation of normals.
+    int ObjID; // OpenGL display list ID.
+    TexInfo *TexPtr; // Index into the texture database.
     ObjectTypes ObjectType; // My cheat for RTTI.
-	bool DColorValid, AlphaValid, SColorValid, EColorValid, AColorValid, ShininessValid; // Are object-wide values valid?
+    bool DColorValid, AlphaValid, SColorValid, EColorValid, AColorValid, ShininessValid; // Are object-wide values valid?
     bool CullBack; // Rendering instructions.
     bool RenderOnOff; // Toggle whether to display this object or not.
     bool RenderAsSBRDF; // Application specific, obviously.
@@ -45,29 +45,29 @@ struct BaseObject
 
     // These counts are mainly for user information.
     int FaceCount, VertexCount, EdgeCount;
-    
+
     // This is a mask of bits regarding the fields of the mesh
     // elements.  See the #defines in AElements.h and (and maybe other
     // user-defined ones like QElements.h) Some bits tell what
     // elements exist. Other bits tell what elements are valid or used.
     unsigned int FaceType, VertexType, EdgeType;
-	
-	inline BaseObject()
-	{
-		// cerr << "Making BaseObject.\n";
+
+    inline BaseObject()
+    {
+        // cerr << "Making BaseObject.\n";
         ObjectType = DMC_BASE_OBJECT;
-		Name[0] = '\0';
-		TexPtr = NULL;
+        Name[0] = '\0';
+        TexPtr = NULL;
         ObjID = -1;
-		SColorValid = EColorValid = AColorValid = false;
-		DColorValid = ShininessValid = AlphaValid = false;
-		alpha = 1.0;
-		creaseAngle = M_PI * 0.5;
-		shininess = 32.0;
-		dcolor = Vector(0,1,0);
-		scolor = Vector(0,0,0);
-		ecolor = Vector(0,0,0);
-		acolor = Vector(0.2,0.2,0.2);
+        SColorValid = EColorValid = AColorValid = false;
+        DColorValid = ShininessValid = AlphaValid = false;
+        alpha = 1.0;
+        creaseAngle = M_PI * 0.5;
+        shininess = 32.0;
+        dcolor = Vector(0,1,0);
+        scolor = Vector(0,0,0);
+        ecolor = Vector(0,0,0);
+        acolor = Vector(0.2,0.2,0.2);
         EdgeCount = VertexCount = FaceCount = 0;
         EdgeType = VertexType = FaceType = OBJ_NONE;
         CullBack = true;
@@ -76,28 +76,28 @@ struct BaseObject
         RenderPriority = 1000;
         for(int i=0; i<OBJ_ALL+1; i++)
             DispLists[i] = -1;
-	}
+    }
 
     virtual ~BaseObject() {}
 
-	virtual void Dump() const = 0;
-	
-	virtual void GenColors() = 0;
-	virtual void GenNormals() = 0;
-	virtual void GenTexCoords() = 0;
-	virtual void GenTangents() = 0;
-	
-	virtual void RemoveColors() = 0;
-	virtual void RemoveNormals() = 0;
-	virtual void RemoveTexCoords() = 0;
-	virtual void RemoveTangents() = 0;
-	
-	virtual void RebuildBBox() = 0;
-	
-	virtual void ApplyTransform(Matrix44 &Mat) = 0;
-	
+    virtual void Dump() const = 0;
+
+    virtual void GenColors() = 0;
+    virtual void GenNormals() = 0;
+    virtual void GenTexCoords() = 0;
+    virtual void GenTangents() = 0;
+
+    virtual void RemoveColors() = 0;
+    virtual void RemoveNormals() = 0;
+    virtual void RemoveTexCoords() = 0;
+    virtual void RemoveTangents() = 0;
+
+    virtual void RebuildBBox() = 0;
+
+    virtual void ApplyTransform(Matrix44 &Mat) = 0;
+
     // Transform all texcoords by this matrix.
-	virtual void ApplyTextureTransform(Matrix44 &Mat) = 0;
+    virtual void ApplyTextureTransform(Matrix44 &Mat) = 0;
 };
 
 #endif

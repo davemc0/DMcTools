@@ -94,16 +94,16 @@ void s_DEF_name(char *objname)
 void s_Separator_end()
 {
     ASSERT_RM(Stack.size() > 1, "LoadVRML: Internal Separator{} stack bug.");
-    
+
     Stack.pop_back();
 }
 
 void s_Tex2Tran_begin()
 {
     YYObject &S = Stack.back();
-    
+
     ASSERT_RM((!S.InTexture2Transform) && (!S.InTransform), "Shouldn't be in a Texture2Transform.");
-    
+
     S.InTexture2Transform = true;
     S.RotationAngle = 0;
     S.RotationAxis = Vector(0,0,1);
@@ -115,11 +115,11 @@ void s_Tex2Tran_begin()
 void s_Tex2Tran_end()
 {
     YYObject &S = Stack.back();
-    
+
     ASSERT_RM(S.InTexture2Transform, "Should be in a Texture2Transform.");
-    
+
     S.InTexture2Transform = false;
-    
+
     // Make the texture transformation matrix.
     S.TexTransform.LoadIdentity();
     S.TexTransform.Translate(S.Translation);
@@ -132,9 +132,9 @@ void s_Tex2Tran_end()
 void s_Transform_begin()
 {
     YYObject &S = Stack.back();
-    
+
     ASSERT_RM((!S.InTexture2Transform) && (!S.InTransform), "Shouldn't be in a Texture2Transform.");
-    
+
     S.InTransform = true;
     S.RotationAngle = 0;
     S.RotationAxis = Vector(0,0,1);
@@ -148,11 +148,11 @@ void s_Transform_begin()
 void s_Transform_end()
 {
     YYObject &S = Stack.back();
-    
+
     ASSERT_RM(S.InTransform, "Should be in a Texture2Transform.");
-    
+
     S.InTransform = false;
-    
+
     // Make the texture transformation matrix.
     // S.Transform.LoadIdentity();
     S.Transform.Translate(S.Translation);
@@ -167,7 +167,7 @@ void s_Transform_end()
 void s_CreaseAngle(float cr)
 {
     YYObject &S = Stack.back();
-    
+
     S.creaseAngle = cr;
 }
 
@@ -175,7 +175,7 @@ void s_InitCylinder()
 {
     s_Separator_begin();
     YYObject &S = Stack.back();
-    
+
     S.ObjRadius = 1;
     S.ObjHeight = 2;
 }
@@ -185,30 +185,30 @@ void s_InitCylinder()
 void s_EndCylinder()
 {
     YYObject &S = Stack.back();
-    
+
     // XXX Bug: We are replacing the current vertex list.
     S.verts.clear();
     S.VertexIndices.clear();
-    
+
     S.texcoords.clear();
     S.TexCoordIndices.clear();
-    
+
     Vector P0(cos(0.) * S.ObjRadius, sin(0.) * S.ObjRadius, S.ObjHeight * 0.5);
     S.verts.push_back(P0);
     S.verts.push_back(Vector(P0.x, P0.y, -P0.z));
-    
+
     S.texcoords.push_back(Vector(0,0,0));
     S.texcoords.push_back(Vector(1,0,0));
-    
+
 #define NUM_CYL_SIDES 32
     int i=1;
     for(i=1; i<NUM_CYL_SIDES; i++) {
         double t = i / double(NUM_CYL_SIDES);
-        Vector P(cos(M_PI * 2.0 * t) * S.ObjRadius, 
+        Vector P(cos(M_PI * 2.0 * t) * S.ObjRadius,
             sin(M_PI * 2.0 * t) * S.ObjRadius, S.ObjHeight * 0.5);
         S.verts.push_back(P);
         S.verts.push_back(Vector(P.x, P.y, -P.z));
-        
+
         S.VertexIndices.push_back((i-1)*2);
         S.VertexIndices.push_back((i-1)*2+1);
         S.VertexIndices.push_back(i*2);
@@ -217,10 +217,10 @@ void s_EndCylinder()
         S.VertexIndices.push_back((i-1)*2+1);
         S.VertexIndices.push_back(i*2+1);
         S.VertexIndices.push_back(-1);
-        
+
         S.texcoords.push_back(Vector(0,t,0));
         S.texcoords.push_back(Vector(1,t,0));
-        
+
         S.TexCoordIndices.push_back((i-1)*2);
         S.TexCoordIndices.push_back((i-1)*2+1);
         S.TexCoordIndices.push_back(i*2);
@@ -229,9 +229,9 @@ void s_EndCylinder()
         S.TexCoordIndices.push_back((i-1)*2+1);
         S.TexCoordIndices.push_back(i*2+1);
         S.TexCoordIndices.push_back(-1);
-        
+
     }
-    
+
     S.VertexIndices.push_back((i-1)*2);
     S.VertexIndices.push_back((i-1)*2+1);
     S.VertexIndices.push_back(0*2);
@@ -240,7 +240,7 @@ void s_EndCylinder()
     S.VertexIndices.push_back((i-1)*2+1);
     S.VertexIndices.push_back(0*2+1);
     S.VertexIndices.push_back(-1);
-    
+
     S.TexCoordIndices.push_back((i-1)*2);
     S.TexCoordIndices.push_back((i-1)*2+1);
     S.TexCoordIndices.push_back(0*2);
@@ -249,7 +249,7 @@ void s_EndCylinder()
     S.TexCoordIndices.push_back((i-1)*2+1);
     S.TexCoordIndices.push_back(0*2+1);
     S.TexCoordIndices.push_back(-1);
-    
+
     s_OutputIndexedFaceSet();
     s_Separator_end();
 }
@@ -258,18 +258,18 @@ void s_InitCube()
 {
     s_Separator_begin();
     YYObject &S = Stack.back();
-    
+
     S.ObjWidth = S.ObjHeight = S.ObjDepth = 2;
 }
 
 void s_EndCube()
 {
     YYObject &S = Stack.back();
-    
+
     S.ObjWidth *= 0.5;
     S.ObjHeight *= 0.5;
     S.ObjDepth *= 0.5;
-    
+
     // XXX Bug: We are replacing the current vertex list.
     S.verts.clear();
     S.verts.push_back(Vector(-S.ObjWidth, -S.ObjHeight, -S.ObjDepth));
@@ -280,15 +280,15 @@ void s_EndCube()
     S.verts.push_back(Vector(S.ObjWidth, -S.ObjHeight, S.ObjDepth));
     S.verts.push_back(Vector(S.ObjWidth, S.ObjHeight, -S.ObjDepth));
     S.verts.push_back(Vector(S.ObjWidth, S.ObjHeight, S.ObjDepth));
-    
+
     S.VertexIndices.clear();
     int listi[] = {1, 3, 7, 5, -1, 0, 2, 6, 4, -1,
         4, 5, 7, 6, -1, 0, 1, 3, 2, -1,
         2, 3, 7, 6, -1, 0, 1, 5, 4, -1};
-    
+
     for(int i=0; i<5*3*2; i++)
         S.VertexIndices.push_back(listi[i]);
-    
+
     s_OutputIndexedFaceSet();
     s_Separator_end();
 }
@@ -369,28 +369,28 @@ void s_CameraParam3(Vector *v, float f, int p)
 void s_ObjRadius(float v)
 {
     YYObject &S = Stack.back();
-    
+
     S.ObjRadius = v;
 }
 
 void s_ObjWidth(float v)
 {
     YYObject &S = Stack.back();
-    
+
     S.ObjWidth = v;
 }
 
 void s_ObjHeight(float v)
 {
     YYObject &S = Stack.back();
-    
+
     S.ObjHeight = v;
 }
 
 void s_ObjDepth(float v)
 {
     YYObject &S = Stack.back();
-    
+
     S.ObjDepth = v;
 }
 
@@ -398,7 +398,7 @@ void s_ObjDepth(float v)
 void s_Matrix(double *mat)
 {
     Matrix44 Right(mat, true);
-    
+
     YYObject &S = Stack.back();
     S.Transform *= Right;
 }
@@ -407,7 +407,7 @@ void s_Matrix(double *mat)
 void s_Scale(Vector *s)
 {
     YYObject &S = Stack.back();
-    
+
     if(S.InTexture2Transform)
         S.Scale = *s;
     else if(S.InTransform)
@@ -420,7 +420,7 @@ void s_Scale(Vector *s)
 void s_Rotation(float angle, Vector *axis)
 {
     YYObject &S = Stack.back();
-    
+
     if(S.InTexture2Transform)
         S.RotationAngle = angle;
     else if(S.InTransform)
@@ -436,7 +436,7 @@ void s_Rotation(float angle, Vector *axis)
 void s_Translation(Vector *t)
 {
     YYObject &S = Stack.back();
-    
+
     if(S.InTexture2Transform)
         S.Translation = *t;
     else if(S.InTransform)
@@ -449,7 +449,7 @@ void s_Translation(Vector *t)
 void s_Center(Vector *c)
 {
     YYObject &S = Stack.back();
-    
+
     if(S.InTexture2Transform)
         S.Center = *c;
     else if(S.InTransform)
@@ -462,13 +462,13 @@ void s_Center(Vector *c)
 void s_Texture2_filename(char *texFName)
 {
     YYObject &S = Stack.back();
-    
+
     if(texFName == NULL || texFName[0] == '\0') {
         // fprintf(stderr, "Texuring turned off.\n");
         S.TexPtr = NULL;
         return;
     }
-    
+
 #if 0
     // XXX Replace with a hack to distinguish an SBRDF from a standard texture.
     // XXX - Hack for Manuel's stuff
@@ -483,7 +483,7 @@ void s_Texture2_filename(char *texFName)
         }
     }
 #endif
-    
+
     S.TexPtr = Model::TexDB.FindByNameOrAdd(texFName);
 }
 
@@ -568,7 +568,7 @@ void s_SpecularColors(vector<Vector> *V)
 
 void s_Transparencies(vector<double> *V)
 {
-    // YYObject &S = 
+    // YYObject &S =
     Stack.back();
 }
 
@@ -623,7 +623,7 @@ static int DoVertex(Mesh &B, YYObject &S, vector<AVertex *> &VertPtrs, int cii, 
     AVertex *Vrt = new AVertex;
     Vrt->V = Vp;
     B.Box += Vp;
-    
+
     // cerr << ind << Vp << endl;
 
     if((int)S.TexCoordIndices.size() > 0) {
@@ -632,7 +632,7 @@ static int DoVertex(Mesh &B, YYObject &S, vector<AVertex *> &VertPtrs, int cii, 
         Vrt->Tex = S.TexTransform * S.texcoords[S.TexCoordIndices[cii]];
         VertData = VertData | OBJ_TEXCOORDS;
     }
-    
+
     switch(S.NormalBinding)
     {
     case PER_VERTEX:
@@ -676,7 +676,7 @@ static int DoVertex(Mesh &B, YYObject &S, vector<AVertex *> &VertPtrs, int cii, 
         ASSERT_RM(0, "Unknown normal binding.");
         break;
     }
-    
+
     switch(S.MaterialBinding)
     {
     case PER_VERTEX:
@@ -719,7 +719,7 @@ static int DoVertex(Mesh &B, YYObject &S, vector<AVertex *> &VertPtrs, int cii, 
         ASSERT_RM(0, "Unknown dcolor binding.");
         break;
     }
-    
+
     // Insert the vertex into the mesh. VertData tells what data pieces it has.
     // If these are the same as the data in VertPtrs[ind], just return.
     // If not, add this vertex to the end of VertPtrs and return its index.
@@ -732,7 +732,7 @@ static int DoVertex(Mesh &B, YYObject &S, vector<AVertex *> &VertPtrs, int cii, 
         // This vertex has been accessed before. Does ours have the same data?
         // AVertex *OldV = VertPtrs[ind];
         // The data is the same. Bail.
-        
+
         // The data is different. Add a new vertex.
         // Step through a crazily linked list of shared vertices.
         int ifoo;
@@ -744,7 +744,7 @@ static int DoVertex(Mesh &B, YYObject &S, vector<AVertex *> &VertPtrs, int cii, 
                 break;
             }
         }
-        
+
         if(ifoo<0) {
             // This vertex has different data. Add the vertex and point to it.
             B.AddVertex(Vrt->V, Vrt);
@@ -756,7 +756,7 @@ static int DoVertex(Mesh &B, YYObject &S, vector<AVertex *> &VertPtrs, int cii, 
             ind = newind;
         }
     }
-    
+
     return ind;
 }
 
@@ -769,7 +769,7 @@ void s_OutputIndexedFaceSet()
         // fprintf(stderr, "No vertex indices.\n");
         return;
     }
-    
+
     // This is mostly for copying state.
     // The rest of the function re-copies the vertex values.
     Mesh *Bp = new Mesh;
@@ -779,9 +779,9 @@ void s_OutputIndexedFaceSet()
     B.VertexType = HAS_ATTRIBS;
     B.EdgeType = HAS_ATTRIBS;
     B.FaceType = HAS_ATTRIBS;
-    
+
     int N = int((int)S.verts.size());
-    
+
     if(S.MaterialBinding == PER_VERTEX) {
         ASSERT_R((int)S.dcolors.size() == N);
     }
@@ -790,7 +790,7 @@ void s_OutputIndexedFaceSet()
     }
     if((int)S.TexCoordIndices.size() == (int)S.VertexIndices.size())
         B.VertexType = B.VertexType | OBJ_TEXCOORDS;
-    
+
     // Create the vertices and add them to the mesh.
     vector<AVertex *> VertPtrs; // Map vertex indices to vertex structs.
     VertPtrs.resize(N);
@@ -799,24 +799,24 @@ void s_OutputIndexedFaceSet()
         VertPtrs[i] = NULL;
     }
 
-	PlaceToName = B.Name; // Hack.
-	CopyNameThing = true; // Indicate to copy into the given string, instead of point from it.
-    
+    PlaceToName = B.Name; // Hack.
+    CopyNameThing = true; // Indicate to copy into the given string, instead of point from it.
+
     // Make sure the texture coord index list is the right size.
     if(S.TexPtr && (int)S.TexCoordIndices.size() > 0)
         ASSERT_RM((int)S.TexCoordIndices.size() == (int)S.VertexIndices.size(),
         "Wrong num. of texcoord indices.");
-     
+
     if((int)S.alphas.size() > 0)
         ASSERT_RM(S.alphas.size() == S.dcolors.size(), "Inconsistent alpha list.");
-    
+
     int FaceNum = 0, ci = 0, vertsThisPoly = 0;
     // i is the index into VertexIndices. ci only counts non- negative 1s.
     for(i=0; i<(int)S.VertexIndices.size(); i++) {
         if(S.VertexIndices[i] != -1) {
             if(vertsThisPoly >= 2) {
                 // Handle arbitrary convex polygons by issuing one tri.
-                
+
                 int vi0 = S.VertexIndices[i-vertsThisPoly];
                 int vi1 = S.VertexIndices[i-1];
                 int vi2 = S.VertexIndices[i];
@@ -827,7 +827,7 @@ void s_OutputIndexedFaceSet()
                     vi0 = DoVertex(B, S, VertPtrs, i-vertsThisPoly, ci-vertsThisPoly, FaceNum, FF);
                     vi1 = DoVertex(B, S, VertPtrs, i-1, ci-1, FaceNum, FF);
                     vi2 = DoVertex(B, S, VertPtrs, i, ci, FaceNum, FF);
-                    
+
                     // Now add the necessary edges and faces.
                     Edge *E0 = B.FindEdge(VertPtrs[vi0], VertPtrs[vi1], AEdgeFactory);
                     Edge *E1 = B.FindEdge(VertPtrs[vi1], VertPtrs[vi2], AEdgeFactory);
@@ -850,7 +850,7 @@ void s_OutputIndexedFaceSet()
                     B.AddFace(VertPtrs[vi0], VertPtrs[vi1], VertPtrs[vi2], E0, E1, E2, FF);
                 }
             }
-            
+
             ci++;
             vertsThisPoly++;
         } else {
@@ -904,7 +904,7 @@ void s_OutputIndexedFaceSet()
     // The final result of this function is to add this object to the
     // list of objects that will be returned to the user.
     thisModel->Objs.push_back(Bp);
-    
+
     // Update bounding box of the whole model.
     thisModel->Box += B.Box;
 }
@@ -918,7 +918,7 @@ bool Model::LoadVRML(const char *fname, const unsigned int RequiredAttribs,
 
     InFile = fopen(fname, "r");
     ASSERT_RM(InFile, "Error opening input file");
-    
+
     // Read first line to verify that it's VRML 1.0. Best to do this
     // here, since it's hard to make lex'er distinguish between this
     // first line and a comment.
@@ -929,7 +929,7 @@ bool Model::LoadVRML(const char *fname, const unsigned int RequiredAttribs,
         fclose(InFile);
         return true;
     }
-    
+
     // ObjectSet is a global pointer into our list of objects which
     // allows the global callback routines to store objects in our model.
     Objs.clear();
@@ -937,11 +937,11 @@ bool Model::LoadVRML(const char *fname, const unsigned int RequiredAttribs,
     Stack.clear();
     YYObject First;
     Stack.push_back(First);
-    
+
     // fprintf(stderr, "Starting parse.\n");
     int parseret = yyparse();
     fclose(InFile);
-    
+
     if(parseret) {
         fprintf(stderr, "Parsing terminated with %i errors.\n", yynerrs);
         return true;
@@ -951,6 +951,6 @@ bool Model::LoadVRML(const char *fname, const unsigned int RequiredAttribs,
 
     // Check that state stack is balanced -- should always be true.
     ASSERT_RM(Stack.size()==1, "LoadVRML:: Internal error -- Stack depth bad.");
-    
+
     return false;
 }

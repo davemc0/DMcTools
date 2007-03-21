@@ -8,6 +8,6 @@
 // Returns false on success.
 bool Model::SavePLY(const char *fname)
 {
-	ASSERT_RM(0, "Not written.");
+    ASSERT_RM(0, "Not written.");
     return true;
 }

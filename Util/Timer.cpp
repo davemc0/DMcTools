@@ -33,17 +33,17 @@ __forceinline void GetPentiumCounter(DWORD &hix, DWORD &lox)
 {
     DWORD hi, lo;
 
-	__asm
-	{
-		xor   eax,eax	          // VC won't realize that eax is modified w/out this
-								  //   instruction to modify the val.
-								  //   Problem shows up in release mode builds
-		_emit 0x0F		          // Pentium high-freq counter to edx;eax
-		_emit 0x31
+    __asm
+    {
+        xor   eax,eax             // VC won't realize that eax is modified w/out this
+                                  //   instruction to modify the val.
+                                  //   Problem shows up in release mode builds
+        _emit 0x0F                // Pentium high-freq counter to edx;eax
+        _emit 0x31
         mov   hi,edx
-		mov   lo,eax
-		xor   edx,edx	          // so VC gets that edx is modified
-	}
+        mov   lo,eax
+        xor   edx,edx             // so VC gets that edx is modified
+    }
 
     hix = hi;
     lox = lo;
@@ -68,23 +68,23 @@ double Timer::GetCurTime()
 // Slow, inaccurate timer.
 double Timer::GetCurTime()
 {
-	struct _timeb timebuffer;
-	_ftime( &timebuffer );
-	
-	time_t sec = timebuffer.time;
-	unsigned short milli = timebuffer.millitm;
-	double dtime = double(sec) + double(milli) * 0.001;
-	
-	return dtime;
+    struct _timeb timebuffer;
+    _ftime( &timebuffer );
+
+    time_t sec = timebuffer.time;
+    unsigned short milli = timebuffer.millitm;
+    double dtime = double(sec) + double(milli) * 0.001;
+
+    return dtime;
 }
 
 #elif defined(DMC_MACHINE_sgi) || defined(DMC_MACHINE_hp) ||  defined(DMC_MACHINE_gcc)
 
 double Timer::GetCurTime()
 {
-	struct tms buffer;
-	double dtime=double(times(&buffer)) * clock_interval;
-	return dtime;
+    struct tms buffer;
+    double dtime=double(times(&buffer)) * clock_interval;
+    return dtime;
 }
 
 #else
@@ -115,7 +115,7 @@ Timer::Timer()
     QueryPerformanceCounter( &tim1q );
 
     high_bias = hi0;
-    
+
 #ifdef DMC_LAPTOP
     double QRefTicks = (double(tim1q.x.HighPart - tim0q.x.HighPart) * 4294967296.0) +
         double(tim1q.x.LowPart) - double(tim0q.x.LowPart); // High probably 0.
@@ -130,30 +130,30 @@ Timer::Timer()
     double PRefTicks = double(hi1 - hi0) * 4294967296.0 + double(lo1) - double(lo0);
     Multiplier = QRefTicks / (QTicksPerSec * PRefTicks);
 #endif
-    
+
     Going = false;
-	StartTime = GetCurTime();
-	ElapsedTime = 0;
+    StartTime = GetCurTime();
+    ElapsedTime = 0;
 }
 
 // Start or re-start the timer.
 double Timer::Start()
 {
-	Going = true;
-	StartTime = GetCurTime();
-	
-	return ElapsedTime;
+    Going = true;
+    StartTime = GetCurTime();
+
+    return ElapsedTime;
 }
 
 // Stop the timer and set ElapsedTime to be the total time it's run so far.
 double Timer::Stop()
 {
-	Going = false;
-	double CurTime = GetCurTime();
-	ElapsedTime += CurTime - StartTime;
-	StartTime = CurTime;
-	
-	return ElapsedTime;
+    Going = false;
+    double CurTime = GetCurTime();
+    ElapsedTime += CurTime - StartTime;
+    StartTime = CurTime;
+
+    return ElapsedTime;
 }
 
 // Return elapsed time on the timer.
@@ -162,10 +162,10 @@ double Timer::Stop()
 // If it's not going, it's just ElapsedTime.
 double Timer::Read()
 {
-	if(Going)
-		return ElapsedTime + (GetCurTime() - StartTime);
-	else
-		return ElapsedTime;
+    if(Going)
+        return ElapsedTime + (GetCurTime() - StartTime);
+    else
+        return ElapsedTime;
 }
 
 // Reset the elapsed time to 0.
@@ -173,12 +173,12 @@ double Timer::Read()
 // silver stopwatch. Return the elapsed time *before* it was reset.
 double Timer::Reset()
 {
-	double CurTime = GetCurTime();
-	double El = ElapsedTime + (CurTime - StartTime);
-	StartTime = CurTime;
-	ElapsedTime = 0;
-	
-	return El;
+    double CurTime = GetCurTime();
+    double El = ElapsedTime + (CurTime - StartTime);
+    StartTime = CurTime;
+    ElapsedTime = 0;
+
+    return El;
 }
 
 StatTimer::StatTimer(int _MaxEvents)

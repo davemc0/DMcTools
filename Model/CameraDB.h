@@ -19,7 +19,7 @@ public:
 #define DMC_CAM_ORTHO 0
 #define DMC_CAM_PERSP 1
     char *CameraName;
-	int CameraID; // This is the OpenGL Camera object ID.
+    int CameraID; // This is the OpenGL Camera object ID.
     int CameraType; // 0 = Orthographic, 1 = Perspective.
 
     // XXX These are only used for loading from VRML.
@@ -32,7 +32,7 @@ public:
     // The projection matrix
     float wL,wR,wB,wT;        // WINDOW EXTENTS DEFINED AS A RECT ON NearPlane
     float Near,Far;           // DISTANCES TO NEAR AND FAR PLANES (IN VIEWING DIR)
-    
+
     bool ProjectionValid, ViewValid; // Tells whether the camera data is valid.
 
     inline CameraInfo()
@@ -48,7 +48,7 @@ public:
         ProjectionValid = ViewValid = false;
         ComputePerspective(DtoR(45), 1, 1, 1000);
     }
-    
+
     Matrix44 GetProjectionMatrix();
     Matrix44 GetViewMatrix() {return WorldToEye;}
 
@@ -61,26 +61,26 @@ public:
     void GetFrame(Vector &XCol, Vector &YCol, Vector &ZCol, Vector &OCol);
     double GetFOVX(); // Returns vertical FOV in radians.
     double GetFOVY(); // Returns vertical FOV in radians.
-    
+
     // Switch to a Perspective camera and set its params
     void ComputePerspective(double fovyRad, double aspect, double znear, double zfar);
     // Switch to an Ortho camera and set its params
     void SetOrtho(double Wid, double Hgt, double znear, double zfar);
-    
+
     // Compute the eight corners of the view frustum
     void ComputeCamPoints(f3Vector V[8]);
-    
+
     // Calculate the six planes for a camera. User must have prealloced an array
     // of 24 floats (6 planes * 4 coeffs each).
     void ComputeCamPlanes(const f3Vector V[8], float P[][4]);
-    
+
     void Xform(const Matrix44 &M);
-    
+
     void VRMLtoMatrix();
-    
+
     void WriteToFile(FILE *fp, int FrameNum);
     int ReadFromFile(FILE *fp, int &FrameNum);  // RETURNS "1" IF SUCCESSFUL, "0" IF EOF
-    
+
     inline void Dump()
     {
         std::cerr << CameraName<<" "<<CameraID<<" "<<CameraType<<" "<<Position<<" "<<Orientation
@@ -92,41 +92,41 @@ class CameraDB
 {
 public:
     std::vector<CameraInfo *> CameraList;
-    
+
     // Returns -1 if not found.
     inline CameraInfo *FindByName(const char *name)
     {
-        ASSERT_R(name); 
+        ASSERT_R(name);
         for(int tind=0; tind<(int)CameraList.size(); tind++) {
             if(!strcmp(CameraList[tind]->CameraName, name))
                 return CameraList[tind];
         }
-        
+
         return NULL;
     }
-        
+
     inline CameraInfo *Add(char *name=NULL)
     {
         CameraInfo *x = new CameraInfo();
         x->CameraName = name;
-        
+
         CameraList.push_back(x);
 
-		return x;
+        return x;
     }
 
     // Adds it if not found.
     inline CameraInfo *FindByNameOrAdd(const char *name)
     {
-        ASSERT_R(name); 
+        ASSERT_R(name);
         CameraInfo *x = FindByName(name);
         if(x == NULL) {
             x = Add();
-        } 
-        
+        }
+
         return x;
     }
-    
+
     inline void Dump()
     {
         for(int i=0; i<(int)CameraList.size(); i++) {
