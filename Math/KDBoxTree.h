@@ -4,59 +4,58 @@
 //
 // Copyright David K. McAllister, Sep. 1999.
 
-#ifndef _kdboxtree_h
-#define _kdboxtree_h
+#ifndef dmc_kdboxtree_h
+#define dmc_kdboxtree_h
 
-#include <Math/BBox.h>
+#include "Math/BBox.h"
 
 #include <vector>
 #include <algorithm>
 
-// The class _Tp must support the following functions:
-// friend inline bool lessX(const _Tp &a, const _Tp &b);
-// friend inline bool lessY(const _Tp &a, const _Tp &b);
-// friend inline bool lessZ(const _Tp &a, const _Tp &b);
-// inline bool operator==(const _Tp &a) const;
-// inline Vector &std::vector() const;
-// These can point to the normal ones if no ties cannot occur.
-// friend inline bool lessFX(const _Tp &a, const _Tp &b);
-// friend inline bool lessFY(const _Tp &a, const _Tp &b);
-// friend inline bool lessFZ(const _Tp &a, const _Tp &b);
+// The class Item_T must support the following functions:
+// friend DMC_INLINE bool lessX(const Item_T &a, const Item_T &b);
+// friend DMC_INLINE bool lessY(const Item_T &a, const Item_T &b);
+// friend DMC_INLINE bool lessZ(const Item_T &a, const Item_T &b);
+// DMC_INLINE bool operator==(const Item_T &a) const;
+// DMC_INLINE Vector &std::vector() const;
+// These can point to the normal ones if no ties can occur.
+// friend DMC_INLINE bool lessFX(const Item_T &a, const Item_T &b);
+// friend DMC_INLINE bool lessFY(const Item_T &a, const Item_T &b);
+// friend DMC_INLINE bool lessFZ(const Item_T &a, const Item_T &b);
 
 #ifndef DMC_KD_MAX_BOX_SIZE
 #define DMC_KD_MAX_BOX_SIZE 128
 #endif
 
-template<class _Tp>
+template<typename Item_T>
 class KDBoxTree
 {
-    BBox Box;
-    std::vector<_Tp> Items;
-    _Tp Med;
+    BBox<Vector> Box;
+    std::vector<Item_T> Items;
+    Item_T Med;
     KDBoxTree *left, *right;
-    bool (*myless)(const _Tp &a, const _Tp &b);
+    bool (*myless)(const Item_T &a, const Item_T &b);
 
 public:
-    inline KDBoxTree() {left = right = NULL; myless = NULL;}
+    KDBoxTree() {left = right = NULL; myless = NULL;}
 
-    inline KDBoxTree(const _Tp *first, const _Tp *last)
+    KDBoxTree(const Item_T *first, const Item_T *last)
     {
         left = right = NULL;
         myless = NULL;
         Items.assign(first, last);
-        for(typename std::vector<_Tp>::iterator I = Items.begin(); I!=Items.end(); I++)
+        for(typename std::vector<Item_T>::iterator I = Items.begin(); I!=Items.end(); I++)
             Box += I->vector();
 
         // std::cerr << "Constructed KDBoxTree with " << Items.size() << " items.\n";
     }
 
     // A copy constructor.
-    inline KDBoxTree(const KDBoxTree &Tr) : Box(Tr.Box), Items(Tr.Items), Med(Tr.Med)
+    KDBoxTree(const KDBoxTree &Tr) : Box(Tr.Box), Items(Tr.Items), Med(Tr.Med)
     {
         // std::cerr << "Copying KDBoxTree\n";
         myless = Tr.myless;
-        if(Tr.left)
-        {
+        if(Tr.left) {
             left = new KDBoxTree(*Tr.left);
             right = new KDBoxTree(*Tr.right);
             ASSERT_RM(left && right, "memory alloc failed");
@@ -65,7 +64,7 @@ public:
             left = right = NULL;
     }
 
-    inline ~KDBoxTree()
+    ~KDBoxTree()
     {
         if(left)
             delete left;
@@ -74,7 +73,7 @@ public:
     }
 
     // Remove everything in the tree.
-    inline void clear()
+    void clear()
     {
         if(left)
             delete left;
@@ -87,15 +86,14 @@ public:
         Box.Reset();
     }
 
-    inline void insert(const _Tp &It)
+    void insert(const Item_T &It)
     {
         //std::cerr << "Box In\n";
         Box += It.vector();
 
         // std::cerr << Items.size() << Box << " " << It.Vert->V << std::endl;
 
-        if(left)
-        {
+        if(left) {
             // Insert into the kids.
             if(myless(It, Med))
                 left->insert(It);
@@ -107,16 +105,14 @@ public:
         Items.push_back(It);
 
         // Do I need to split the box?
-        if(Items.size() > DMC_KD_MAX_BOX_SIZE)
-        {
+        if(Items.size() > DMC_KD_MAX_BOX_SIZE) {
             // Find which dimension.
             Vector d = Box.MaxV - Box.MinV;
 
-            if(d.x > d.y) myless = (d.x > d.z) ? _Tp::lessX : _Tp::lessZ;
-            else myless = (d.y > d.z) ? _Tp::lessY : _Tp::lessZ;
+            if(d.x > d.y) myless = (d.x > d.z) ? Item_T::lessX : Item_T::lessZ;
+            else myless = (d.y > d.z) ? Item_T::lessY : Item_T::lessZ;
 
-            for(typename std::vector<_Tp>::const_iterator Ti = Items.begin(); Ti != Items.end(); Ti++)
-            {
+            for(typename std::vector<Item_T>::const_iterator Ti = Items.begin(); Ti != Items.end(); Ti++) {
                 Vector Vf = Ti->vector();
                 if(IsNaN(Vf.x) || IsNaN(Vf.y) || IsNaN(Vf.z))
                     std::cerr << "NAN " << Vf << std::endl;
@@ -125,14 +121,13 @@ public:
             // Split the box into two kids and find median.
             sort(Items.begin(), Items.end(), myless);
 
-            _Tp *MedP = &Items[Items.size()/2];
+            Item_T *MedP = &Items[Items.size()/2];
 
             // Handle yucky case of median being duplicate.
-            if(!myless(*(MedP-1), *MedP))
-            {
+            if(!myless(*(MedP-1), *MedP)) {
                 // Shift gears to more complex comparator.
-                if(d.x > d.y) myless = d.x > d.z ? _Tp::lessFX : _Tp::lessFZ;
-                else myless = d.y > d.z ? _Tp::lessFY : _Tp::lessFZ;
+                if(d.x > d.y) myless = d.x > d.z ? Item_T::lessFX : Item_T::lessFZ;
+                else myless = d.y > d.z ? Item_T::lessFY : Item_T::lessFZ;
 
                 sort(Items.begin(), Items.end(), myless);
             }
@@ -151,13 +146,12 @@ public:
     // This function probably should be const but it's hard because we would
     // have to make Res const (since it's part of the Tree) and we can't make
     // Res const because it's returned by modifying it. Maybe switch to pointers?
-    inline bool find(const _Tp &It, _Tp &Res)
+    bool find(const Item_T &It, Item_T &Res)
     {
         // fprintf(stderr, "F: 0x%08x ", long(this));
         // std::cerr << Items.size() << Box << " " << It.Vert->V << std::endl;
 
-        if(left)
-        {
+        if(left) {
             // Find into the kids.
             if(myless(It, Med))
                 return left->find(It, Res);
@@ -165,10 +159,8 @@ public:
                 return right->find(It, Res);
         }
 
-        for(_Tp *I =&(*Items.begin()); I!=&(*Items.end()); I++)
-        {
-            if(*I == It)
-            {
+        for(Item_T *I =&(*Items.begin()); I!=&(*Items.end()); I++) {
+            if(*I == It) {
                 Res = *I;
                 return true;
             }
@@ -179,7 +171,7 @@ public:
 
     // Finds a close enough item to the query point.
     // Returns true if there is one, false if not.
-    inline bool find(const _Tp &It, _Tp &Res, const double &D)
+    bool find(const Item_T &It, Item_T &Res, const double &D)
     {
         if(FNE(It, Res, Sqr(D)))
             return true;
@@ -192,7 +184,7 @@ public:
 
     // Finds the closest item to the query point.
     // Returns the distance to it (not squared).
-    inline double nearest(const _Tp &It, _Tp &Res) const
+    double nearest(const Item_T &It, Item_T &Res) const
     {
         double dist = FC(It, Res);
 
@@ -203,16 +195,12 @@ public:
     {
         std::cerr << Box << std::endl;
 
-        if(left)
-        {
+        if(left) {
             left->Dump();
             right->Dump();
-        }
-        else
-        {
+        } else {
             std::cerr << "Count = " << Items.size() << std::endl;
-            for(int i=0; i<Items.size(); i++)
-            {
+            for(int i=0; i<Items.size(); i++) {
                 const Vector &V = Items[i].vector();
                 fprintf(stderr, "%d %0.20lf %0.20lf %0.20lf\n", i, V.x, V.y, V.z);
                 // std::cerr << i << " " << Items[i].vector() << std::endl;
@@ -220,7 +208,7 @@ public:
         }
     }
 
-    const BBox &GetBBox()
+    const BBox<Vector> &GetBBox()
     {
         return Box;
     }
@@ -228,20 +216,18 @@ public:
 private:
     // Finds a close enough item in the same box as the query point.
     // Returns true if there is one, false if not.
-    inline bool FNE(const _Tp &It, _Tp &Res, const double &DSqr = 0)
+    bool FNE(const Item_T &It, Item_T &Res, const double &DSqr = 0)
     {
-        if(left)
-        {
+        if(left) {
             // Find into the kids.
             if(myless(It, Med))
                 return left->FNE(It, Res, DSqr);
             else
                 return right->FNE(It, Res, DSqr);
         }
-
-        for(_Tp *I=Items.begin(); I!=Items.end(); I++)
-            if(VecEq(I->vector(), It.vector(), DSqr))
-            {
+ 
+        for(typename std::vector<Item_T>::iterator I=Items.begin(); I!=Items.end(); I++)
+            if(VecEq(I->vector(), It.vector(), DSqr)) {
                 Res = *I;
                 return true;
             }
@@ -252,10 +238,9 @@ private:
     // Find a close enough item in any box.
     // Returns true if there is one, false if not.
     // Uses box - bounding box test.
-    inline bool FNEB(const _Tp &It, _Tp &Res, const double &D = 0)
+    bool FNEB(const Item_T &It, Item_T &Res, const double &D = 0)
     {
-        if(left)
-        {
+        if(left) {
             if(left->Box.SphereIntersect(It.vector(), D))
                 if(left->FNEB(It, Res, D))
                     return true;
@@ -267,9 +252,8 @@ private:
         }
 
         double DSqr = Sqr(D);
-        for(_Tp *I=Items.begin(); I!=Items.end(); I++)
-            if(VecEq(I->vector(), It.vector(), DSqr))
-            {
+        for(typename std::vector<Item_T>::iterator I=Items.begin(); I!=Items.end(); I++)
+            if(VecEq(I->vector(), It.vector(), DSqr)) {
                 Res = *I;
                 return true;
             }
@@ -279,10 +263,9 @@ private:
 
     // Finds the closest item in the same box as the query point.
     // Returns it in Res and returns distance from It.
-    inline double FC(const _Tp &It, _Tp &Res) const
+    double FC(const Item_T &It, Item_T &Res) const
     {
-        if(left)
-        {
+        if(left) {
             // Find into the kids.
             if(myless(It, Med))
                 return left->FC(It, Res);
@@ -294,11 +277,9 @@ private:
             return DMC_MAXFLOAT;
 
         double BestLenSqr = DMC_MAXFLOAT;
-        for(const _Tp *I=Items.begin(); I!=Items.end(); I++)
-        {
+        for(typename std::vector<Item_T>::const_iterator I=Items.begin(); I!=Items.end(); I++) {
             double lensqr;
-            if((lensqr = (I->vector() - It.vector()).length2()) < BestLenSqr)
-            {
+            if((lensqr = (I->vector() - It.vector()).length2()) < BestLenSqr) {
                 Res = *I;
                 BestLenSqr = lensqr;
             }
@@ -311,10 +292,9 @@ private:
     // Returns it in Res and returns distance from It.
     // If there are none then it returns D and doesn't touch Res.
     // Uses box - bounding box test.
-    inline double FCB(const _Tp &It, _Tp &Res, const double &D) const
+    double FCB(const Item_T &It, Item_T &Res, const double &D) const
     {
-        if(left)
-        {
+        if(left) {
             double tb = D; // Value to beat.
             if(left->Box.SphereIntersect(It.vector(), tb))
                 tb = left->FCB(It, Res, tb);
@@ -326,11 +306,9 @@ private:
         }
 
         double BestLenSqr = D*D;
-        for(const _Tp *I=Items.begin(); I!=Items.end(); I++)
-        {
+        for(typename std::vector<Item_T>::const_iterator I=Items.begin(); I!=Items.end(); I++) {
             double lensqr;
-            if((lensqr = (I->vector() - It.vector()).length2()) < BestLenSqr)
-            {
+            if((lensqr = (I->vector() - It.vector()).length2()) < BestLenSqr) {
                 Res = *I;
                 BestLenSqr = lensqr;
             }

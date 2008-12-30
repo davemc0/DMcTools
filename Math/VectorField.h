@@ -3,43 +3,42 @@
 //
 // Copyright David K. McAllister, 2006.
 
-#ifndef _VectorField_h
-#define _VectorField_h
+#ifndef dmc_VectorField_h
+#define dmc_VectorField_h
 
-#include <Util/Assert.h>
-#include <Math/MiscMath.h>
+#include "Util/Assert.h"
+#include "Math/MiscMath.h"
 
 #include <utility>
 #include <vector>
 
-// _SpaceType is the data type that locates a point in the field (input)
-// _VecType is the data type returned by the field (output)
-template<class _SpaceType, class _VecType>
+// Space_T is the data type that locates a point in the field (input)
+// Vector_T is the data type returned by the field (output)
+template<class Space_T, class Vector_T>
 class VectorField
 {
 public:
-    virtual _VecType Sample(const _SpaceType &P) const = 0;
+    virtual Vector_T Sample(const Space_T &P) const = 0;
 };
 
-
-template<class _SpaceType, class _VecType>
-class RBFVectorField : public VectorField<_SpaceType, _VecType>
+template<class Space_T, class Vector_T>
+class RBFVectorField : public VectorField<Space_T, Vector_T>
 {
-    typedef std::pair<_SpaceType, _VecType> RBFCenter;
+    typedef std::pair<Space_T, Vector_T> RBFCenter;
 
     std::vector<RBFCenter> Centers;
     double Sigma, Mu;
 
 public:
-    virtual _VecType Sample(const _SpaceType &P) const
+    virtual Vector_T Sample(const Space_T &P) const
     {
-        _VecType Sum; Sum.Zero();
-        _VecType::ElType TotalWgt = 0;
+        Vector_T Sum; Sum.Zero();
+        Vector_T::ElType TotalWgt = 0;
 
         for(std::vector<RBFCenter>::const_iterator it = Centers.begin(); it != Centers.end(); it++) {
-            _SpaceType::ElType dist = _SpaceType::ElType(0);
+            Space_T::ElType dist = Space_T::ElType(0);
             dist = (it->first - P).length();
-            _SpaceType::ElType Wgt = Gaussian(dist, Sigma, Mu);
+            Space_T::ElType Wgt = Gaussian(dist, Sigma, Mu);
 
             TotalWgt += Wgt;
             Sum += it->second * Wgt;
@@ -51,16 +50,16 @@ public:
         return Sum;
     }
 
-    void Insert(const _SpaceType &P, const _VecType &V)
+    void Insert(const Space_T &P, const Vector_T &V)
     {
         Centers.push_back(RBFCenter(P, V));
     }
 
     // Tell it the parameters for interpolation
-    void InterpGaussian(const double _Sigma, const double _Mu)
+    void InterpGaussian(const double Sigma_, const double Mu_)
     {
-        Sigma = _Sigma;
-        Mu = _Mu;
+        Sigma = Sigma_;
+        Mu = Mu_;
     }
 };
 

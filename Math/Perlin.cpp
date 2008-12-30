@@ -3,8 +3,8 @@
 //
 // Copyright David K. McAllister, July 1999.
 
-#include <Math/Perlin.h>
-#include <Util/Utils.h>
+#include "Math/Perlin.h"
+#include "Util/Utils.h"
 
 int Perlin::Pr[4][MAX_OCTAVES];
 double Perlin::Ampl[MAX_OCTAVES];

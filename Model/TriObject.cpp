@@ -3,8 +3,8 @@
 //
 // Copyright David K. McAllister, July 1999.
 
-#include <Model/Model.h>
-#include <Model/Mesh.h>
+#include "Model/Model.h"
+#include "Model/Mesh.h"
 
 using namespace std;
 
@@ -129,7 +129,7 @@ void TriObject::QuadsToTris(bool KeepBad)
 
     cerr << "Converting from " << (int(verts.size())/4) << " quads.\n";
 
-    vector<Vector> _verts, _normals, _texcoords, _dcolors;
+    vector<d3Vector> verts_, normals_, texcoords_, dcolors_;
 
     bool DoNormals=false, DoTexcoords=false, DoDColors=false;
 
@@ -142,60 +142,60 @@ void TriObject::QuadsToTris(bool KeepBad)
         bool DoSecond = KeepBad || !(verts[i] == verts[i+3] || verts[i] == verts[i+2] || verts[i+2] == verts[i+3]);
 
         if(DoFirst) {
-            _verts.push_back(verts[i]);
-            _verts.push_back(verts[i+1]);
-            _verts.push_back(verts[i+2]);
+            verts_.push_back(verts[i]);
+            verts_.push_back(verts[i+1]);
+            verts_.push_back(verts[i+2]);
         }
         if(DoSecond) {
-            _verts.push_back(verts[i]);
-            _verts.push_back(verts[i+2]);
-            _verts.push_back(verts[i+3]);
+            verts_.push_back(verts[i]);
+            verts_.push_back(verts[i+2]);
+            verts_.push_back(verts[i+3]);
         }
 
         if(DoNormals) {
             if(DoFirst) {
-                _normals.push_back(normals[i]);
-                _normals.push_back(normals[i+1]);
-                _normals.push_back(normals[i+2]);
+                normals_.push_back(normals[i]);
+                normals_.push_back(normals[i+1]);
+                normals_.push_back(normals[i+2]);
             }
             if(DoSecond) {
-                _normals.push_back(normals[i]);
-                _normals.push_back(normals[i+2]);
-                _normals.push_back(normals[i+3]);
+                normals_.push_back(normals[i]);
+                normals_.push_back(normals[i+2]);
+                normals_.push_back(normals[i+3]);
             }
         }
 
         if(DoTexcoords) {
             if(DoFirst) {
-                _texcoords.push_back(texcoords[i]);
-                _texcoords.push_back(texcoords[i+1]);
-                _texcoords.push_back(texcoords[i+2]);
+                texcoords_.push_back(texcoords[i]);
+                texcoords_.push_back(texcoords[i+1]);
+                texcoords_.push_back(texcoords[i+2]);
             }
             if(DoSecond) {
-                _texcoords.push_back(texcoords[i]);
-                _texcoords.push_back(texcoords[i+2]);
-                _texcoords.push_back(texcoords[i+3]);
+                texcoords_.push_back(texcoords[i]);
+                texcoords_.push_back(texcoords[i+2]);
+                texcoords_.push_back(texcoords[i+3]);
             }
         }
 
         if(DoDColors) {
             if(DoFirst) {
-                _dcolors.push_back(dcolors[i]);
-                _dcolors.push_back(dcolors[i+1]);
-                _dcolors.push_back(dcolors[i+2]);
+                dcolors_.push_back(dcolors[i]);
+                dcolors_.push_back(dcolors[i+1]);
+                dcolors_.push_back(dcolors[i+2]);
             }
             if(DoSecond) {
-                _dcolors.push_back(dcolors[i]);
-                _dcolors.push_back(dcolors[i+2]);
-                _dcolors.push_back(dcolors[i+3]);
+                dcolors_.push_back(dcolors[i]);
+                dcolors_.push_back(dcolors[i+2]);
+                dcolors_.push_back(dcolors[i+3]);
             }
         }
     }
 
-    verts = _verts;
-    if(DoNormals) normals = _normals;
-    if(DoTexcoords) texcoords = _texcoords;
-    if(DoDColors) dcolors = _dcolors;
+    verts = verts_;
+    if(DoNormals) normals = normals_;
+    if(DoTexcoords) texcoords = texcoords_;
+    if(DoDColors) dcolors = dcolors_;
 
     if(DoNormals) ASSERT_RM(normals.size() == verts.size(), "Bad normal count.");
     if(DoTexcoords) ASSERT_RM(texcoords.size() == verts.size(), "Bad texcoords count.");

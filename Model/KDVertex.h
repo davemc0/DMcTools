@@ -3,19 +3,19 @@
 //
 // Copyright David K. McAllister, Aug. 1999.
 
-#ifndef _kd_vertex_h
-#define _kd_vertex_h
+#ifndef dmc_kd_vertex_h
+#define dmc_kd_vertex_h
 
-#include <Math/KDBoxTree.h>
-#include <Model/MeshElements.h>
+#include "Math/KDBoxTree.h"
+#include "Model/MeshElements.h"
 
 struct KDVertex
 {
     Vertex *Vert;
 
-    inline KDVertex() {Vert = NULL;}
+    DMC_INLINE KDVertex() {Vert = NULL;}
 
-    inline KDVertex(Vertex *Ver) : Vert(Ver) {}
+    DMC_INLINE KDVertex(Vertex *Ver) : Vert(Ver) {}
 
     static bool lessX(const KDVertex &a, const KDVertex &b)
     {
@@ -70,12 +70,12 @@ struct KDVertex
         else return a.Vert->V.y < b.Vert->V.y;
     }
 
-    inline bool operator==(const KDVertex &a) const
+    DMC_INLINE bool operator==(const KDVertex &a) const
     {
         return Vert->V == a.Vert->V;
     }
 
-    inline KDVertex& operator=(const KDVertex &a)
+    DMC_INLINE KDVertex& operator=(const KDVertex &a)
     {
 #ifdef TMP_DEBUG
         of << this << " assign " << &a << endl;
@@ -85,7 +85,7 @@ struct KDVertex
         return *this;
     }
 
-    inline Vector& vector() const
+    DMC_INLINE Vector& vector() const
     {
         return Vert->V;
     }

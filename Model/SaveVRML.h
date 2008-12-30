@@ -3,13 +3,13 @@
 //
 // Copyright David K. McAllister, July 1999.
 
-#ifndef _savevrml_h
-#define _savevrml_h
+#ifndef dmc_savevrml_h
+#define dmc_savevrml_h
 
-#include <Model/Model.h>
-#include <Model/Mesh.h>
+#include "Model/Model.h"
+#include "Model/Mesh.h"
 
-#include <stdio.h>
+#include <cstdio>
 
 // Cast a TriObject to this to save it out as VRML.
 // This is done by Model::SaveVRML.
@@ -19,12 +19,12 @@ class WritableVRMLTriObject : public TriObject
     int Ind;
     bool DoIndent;
 
-    inline void IncIndent()
+    DMC_INLINE void IncIndent()
     {
         Ind += 2;
     }
 
-    inline void DecIndent()
+    DMC_INLINE void DecIndent()
     {
         Ind -= 2;
     }
@@ -37,14 +37,14 @@ class WritableVRMLTriObject : public TriObject
     void writeVertices();
     void writeIndices();
 public:
-    inline WritableVRMLTriObject()
+    DMC_INLINE WritableVRMLTriObject()
     {
         Ind = 0;
         out = NULL;
         DoIndent = false;
     }
 
-    inline WritableVRMLTriObject(TriObject o) : TriObject(o)
+    DMC_INLINE WritableVRMLTriObject(TriObject o) : TriObject(o)
     {
         Ind = 0;
         out = NULL;
@@ -61,12 +61,12 @@ class WritableVRMLMesh : public Mesh
     int Ind;
     bool DoIndent;
 
-    inline void IncIndent()
+    DMC_INLINE void IncIndent()
     {
         Ind += 2;
     }
 
-    inline void DecIndent()
+    DMC_INLINE void DecIndent()
     {
         Ind -= 2;
     }
@@ -80,7 +80,7 @@ class WritableVRMLMesh : public Mesh
     void writeIndices();
 
 public:
-    inline WritableVRMLMesh()
+    DMC_INLINE WritableVRMLMesh()
     {
         Ind = 0;
         out = NULL;
@@ -88,8 +88,8 @@ public:
     }
 
     // XXX Want to make sure it doesn't copy all the data.
-    inline WritableVRMLMesh(Mesh &Mo, bool _DoIndent = false)
-      : Mesh(Mo), DoIndent(_DoIndent)
+    DMC_INLINE WritableVRMLMesh(Mesh &Mo, bool DoIndent = false)
+      : Mesh(Mo), DoIndent(DoIndent)
     {
         Ind = 0;
         out = NULL;

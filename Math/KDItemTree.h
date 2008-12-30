@@ -3,26 +3,26 @@
 //
 // Copyright David K. McAllister, Sep. 1999.
 
-#ifndef _kdItemtree_h
-#define _kdItemtree_h
+#ifndef dmc_kdItemtree_h
+#define dmc_kdItemtree_h
 
-#include <Math/Vector.h>
+#include "Math/Vector.h"
 
 #include <algorithm>
 
-template<class _Tp>
+template<class Item_T>
 class KDItem
 {
 public:
-    _Tp Value;
+    Item_T Value;
     KDItem *lower, *higher;
 
-    inline KDItem() {lower = higher = NULL;}
+    DMC_INLINE KDItem() {lower = higher = NULL;}
 
-    inline KDItem(const _Tp &_Val) : Value(_Val) {lower = higher = NULL;}
+    DMC_INLINE KDItem(const Item_T &Value) : Value(Value) {lower = higher = NULL;}
 
     // A copy constructor.
-    inline KDItem(const KDItem &Tr) : Value(Tr.Value)
+    DMC_INLINE KDItem(const KDItem &Tr) : Value(Tr.Value)
     {
         // cerr << "Copying KDItem\n";
         lower = higher = NULL;
@@ -38,7 +38,7 @@ public:
         }
     }
 
-    inline ~KDItem()
+    DMC_INLINE ~KDItem()
     {
         if(lower)
             delete lower;
@@ -47,16 +47,16 @@ public:
     }
 };
 
-// The class _Tp needs to inherit from Vector.
+// The class Item_T needs to inherit from Vector.
 // Or you can edit this to require .vector().
 
 // Always stores the lesser item in the lower child.
-template<class _Tp, int NumDim = 3>
+template<class Item_T, int NumDim = 3>
 class KDItemTree
 {
-    KDItem<_Tp> *Root;
+    KDItem<Item_T> *Root;
 
-    inline bool lessX(const Vector &a, const Vector &b) const
+    DMC_INLINE bool lessX(const Vector &a, const Vector &b) const
     {
         //cerr << "lessX\n";
         if(a.x < b.x) return true;
@@ -66,7 +66,7 @@ class KDItemTree
         else return a.z < b.z;
     }
 
-    inline bool lessY(const Vector &a, const Vector &b) const
+    DMC_INLINE bool lessY(const Vector &a, const Vector &b) const
     {
         if(a.y < b.y) return true;
         else if(a.y > b.y) return false;
@@ -75,7 +75,7 @@ class KDItemTree
         else return a.x < b.x;
     }
 
-    inline bool lessZ(const Vector &a, const Vector &b) const
+    DMC_INLINE bool lessZ(const Vector &a, const Vector &b) const
     {
         if(a.z < b.z) return true;
         else if(a.z > b.z) return false;
@@ -84,7 +84,7 @@ class KDItemTree
         else return a.y < b.y;
     }
 
-    inline bool myless(const Vector &a, const Vector &b, const int lev) const
+    DMC_INLINE bool myless(const Vector &a, const Vector &b, const int lev) const
     {
         if(lev==2) return lessZ(a, b);
         else if(lev) return lessY(a, b);
@@ -92,53 +92,53 @@ class KDItemTree
     }
 
     // Returns true if the two are close enough.
-    inline bool within(const Vector &a, const Vector &b, const double threshSq) const
+    DMC_INLINE bool within(const Vector &a, const Vector &b, const double threshSq) const
     {
         return (a-b).length2() < threshSq;
     }
 
 public:
-    inline KDItemTree()
+    DMC_INLINE KDItemTree()
     {
         Root = NULL;
     }
 
     // A copy constructor.
-    inline KDItemTree(const KDItemTree &Tr)
+    DMC_INLINE KDItemTree(const KDItemTree &Tr)
     {
         if(Tr.Root)
         {
-            Root = new KDItem<_Tp>(*Tr.Root);
+            Root = new KDItem<Item_T>(*Tr.Root);
             ASSERT_RM(Root, "memory alloc failed");
         }
         else
             Root = NULL;
     }
 
-    inline ~KDItemTree()
+    DMC_INLINE ~KDItemTree()
     {
         if(Root)
             delete Root;
     }
 
     // Remove everything in the tree.
-    inline void clear()
+    DMC_INLINE void clear()
     {
         if(Root)
             delete Root;
         Root = NULL;
     }
 
-    inline bool empty() const
+    DMC_INLINE bool empty() const
     {
         return Root == NULL;
     }
 
     // Insert an item into the tree.
-    inline void insert(const _Tp &Val)
+    DMC_INLINE void insert(const Item_T &Val)
     {
         //cerr << "In\n";
-        KDItem<_Tp> *It = new KDItem<_Tp>(Val);
+        KDItem<Item_T> *It = new KDItem<Item_T>(Val);
         ASSERT_RM(It, "memory alloc failed");
 
         // fprintf(stderr, "I: 0x%08x ", long(this));
@@ -157,8 +157,8 @@ public:
     }
 
     // Find an exact match. Returns NULL if not there.
-    // Queries given a _Tp.
-    inline const _Tp * find(const _Tp &Qr) const
+    // Queries given a Item_T.
+    DMC_INLINE const Item_T * find(const Item_T &Qr) const
     {
         // fprintf(stderr, "F: 0x%08x ", long(this));
         // cerr << Value.size() << Box << " " << Qr.Vert->V << endl;
@@ -170,8 +170,8 @@ public:
     }
 
     // Find an exact match. Returns NULL if not there.
-    // Queries on a Vector instead of on a _Tp.
-    inline const _Tp * findv(const Vector &Qr) const
+    // Queries on a Vector instead of on a Item_T.
+    DMC_INLINE const Item_T * findv(const Vector &Qr) const
     {
         if(Root)
             return rfind(Root, Qr);
@@ -180,8 +180,8 @@ public:
     }
 
     // Find a close enough one. Returns NULL if not there.
-    // Queries on a Vector instead of on a _Tp.
-    inline const _Tp * findv(const Vector &Qr, double thresh) const
+    // Queries on a Vector instead of on a Item_T.
+    DMC_INLINE const Item_T * findv(const Vector &Qr, double thresh) const
     {
         if(Root)
             return rfindeps(Root, Qr, thresh);
@@ -190,10 +190,10 @@ public:
     }
 
     // Find the closest one. Returns NULL if tree is empty.
-    // Queries on a Vector instead of on a _Tp.
-    inline const _Tp * nearestv(const Vector &Qr) const
+    // Queries on a Vector instead of on a Item_T.
+    DMC_INLINE const Item_T * nearestv(const Vector &Qr) const
     {
-        const _Tp *bestItem = NULL;
+        const Item_T *bestItem = NULL;
         double bestdSqr = DMC_MAXFLOAT;
         rnearest(Root, Qr, bestdSqr, bestItem);
         return bestItem;
@@ -201,7 +201,7 @@ public:
 
 private:
     // This one is called recursively internally.
-    inline void rinsert(KDItem<_Tp> *Root, KDItem<_Tp> *It, int lev = 0)
+    DMC_INLINE void rinsert(KDItem<Item_T> *Root, KDItem<Item_T> *It, int lev = 0)
     {
         if(lev==3)
             lev = 0;
@@ -231,8 +231,8 @@ private:
     // that can be pruned because the distance to that partition from
     // the query point is farther away than the currently closest point.
     // Uses a global best point.
-    inline void rnearest(KDItem<_Tp> *Root, const Vector &Qr,
-        double &bestdSqr, const _Tp *&bestItem, int lev = 0) const
+    DMC_INLINE void rnearest(KDItem<Item_T> *Root, const Vector &Qr,
+        double &bestdSqr, const Item_T *&bestItem, int lev = 0) const
     {
         if(Root == NULL)
             return;
@@ -282,7 +282,7 @@ private:
     }
 
     // This one is called recursively internally.
-    inline const _Tp * rfind(const KDItem<_Tp> *Root, const Vector &Qr,
+    DMC_INLINE const Item_T * rfind(const KDItem<Item_T> *Root, const Vector &Qr,
         int lev = 0) const
     {
         if(lev==3)
@@ -305,7 +305,7 @@ private:
 
     // This one returns any point that is within a distance epsilon.
     // This one is called recursively internally.
-    inline const _Tp * rfindeps(const KDItem<_Tp> *Root, const Vector &Qr,
+    DMC_INLINE const Item_T * rfindeps(const KDItem<Item_T> *Root, const Vector &Qr,
         double thresh, int lev = 0) const
     {
         if(lev==3)
@@ -318,7 +318,7 @@ private:
         {
             if(Root->lower)
             {
-                if(const _Tp *Res = rfindeps(Root->lower, Qr, thresh, lev+1))
+                if(const Item_T *Res = rfindeps(Root->lower, Qr, thresh, lev+1))
                     return Res;
             }
             // Didn't find in the proper half.
@@ -337,7 +337,7 @@ private:
         {
             if(Root->higher)
             {
-                if(const _Tp *Res = rfindeps(Root->higher, Qr, thresh, lev+1))
+                if(const Item_T *Res = rfindeps(Root->higher, Qr, thresh, lev+1))
                     return Res;
             }
 

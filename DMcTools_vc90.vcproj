@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8.00"
+	Version="9.00"
 	Name="DMcTools"
 	ProjectGUID="{EC42DB71-11A4-4387-8D55-F545CAD99A7D}"
 	Keyword="Win32Proj"
+	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
 		<Platform
@@ -22,7 +23,6 @@
 			OutputDirectory="Debug"
 			IntermediateDirectory="Debug"
 			ConfigurationType="4"
-			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			CharacterSet="2"
 			>
 			<Tool
@@ -44,14 +44,14 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories=".,..,Half,../Goodies/include"
-				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
+				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;DMC_DEBUG"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="true"
-				DebugInformationFormat="4"
+				Detect64BitPortabilityProblems="false"
+				DebugInformationFormat="3"
 				EnablePREfast="false"
 			/>
 			<Tool
@@ -88,7 +88,6 @@
 			OutputDirectory="Release"
 			IntermediateDirectory="Release"
 			ConfigurationType="4"
-			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			CharacterSet="2"
 			>
 			<Tool
@@ -108,23 +107,24 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				Optimization="3"
 				InlineFunctionExpansion="2"
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
-				EnableFiberSafeOptimizations="true"
-				WholeProgramOptimization="false"
+				EnableFiberSafeOptimizations="false"
+				WholeProgramOptimization="true"
 				AdditionalIncludeDirectories=".,..,Half,../Goodies/include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
 				StringPooling="true"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
-				EnableEnhancedInstructionSet="2"
+				EnableEnhancedInstructionSet="1"
 				FloatingPointModel="2"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="true"
-				DebugInformationFormat="3"
+				Detect64BitPortabilityProblems="false"
+				DebugInformationFormat="0"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -160,7 +160,6 @@
 			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
 			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="4"
-			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			CharacterSet="2"
 			>
 			<Tool
@@ -227,7 +226,6 @@
 			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
 			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="4"
-			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			CharacterSet="2"
 			>
 			<Tool
@@ -352,14 +350,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Model\LoadPLY.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Model\LoadTRI.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\Model\LoadVRML.cpp"
 				>
 			</File>
@@ -400,14 +390,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Model\SavePLY.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Model\SaveTRI.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\Model\SaveVRML.cpp"
 				>
 			</File>
@@ -424,15 +406,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Image\tLoadSave.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Model\TriObject.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Image\ucImage.cpp"
+				RelativePath=".\Util\Utils.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Util\Utils.cpp"
+				RelativePath=".\Image\VCD.cpp"
 				>
 			</File>
 		</Filter>
@@ -474,7 +460,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Image\Color.h"
+				RelativePath=".\Image\ColorMap.h"
 				>
 			</File>
 			<File
@@ -483,10 +469,6 @@
 			</File>
 			<File
 				RelativePath=".\Half\eLut.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Image\fImage.h"
 				>
 			</File>
 			<File
@@ -574,10 +556,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Image\Pixel.h"
-				>
-			</File>
-			<File
 				RelativePath=".\Image\PullPush.h"
 				>
 			</File>
@@ -630,15 +608,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Math\TrigTable.h"
-				>
-			</File>
-			<File
 				RelativePath=".\Model\TriObject.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Image\ucImage.h"
 				>
 			</File>
 			<File

@@ -6,7 +6,7 @@
 #ifndef render_object_h
 #define render_object_h
 
-#include <Model/BaseObject.h>
+#include "Model/BaseObject.h"
 
 #include <vector>
 
@@ -19,7 +19,7 @@ struct RenderObject : public BaseObject
     std::vector<f3Vector> dcolors; // Must have a length of 0 or verts.size().
     std::vector<int> indices; // Pointers into the other lists.
 
-    inline RenderObject()
+    DMC_INLINE RenderObject()
     {
         // cerr << "Making RenderObject.\n";
         ObjectType = DMC_RENDER_OBJECT;

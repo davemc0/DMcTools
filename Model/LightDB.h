@@ -3,12 +3,10 @@
 //
 // Copyright David K. McAllister, July 1999.
 
-#ifndef _Lightdb_h
-#define _Lightdb_h
+#ifndef dmc_Lightdb_h
+#define dmc_Lightdb_h
 
-// #include <Model/TriObject.h>
-#include <Image/ucImage.h>
-#include <Util/Utils.h>
+#include "Util/Utils.h"
 
 #include <vector>
 
@@ -24,7 +22,7 @@ struct LightInfo
     float DropOffRate;
     float CutOffAngle;
 
-    inline LightInfo()
+    DMC_INLINE LightInfo()
     {
         LightName = NULL;
         Enabled = true;
@@ -37,7 +35,7 @@ struct LightInfo
         CutOffAngle = 0.785398;
     }
 
-    inline void Dump()
+    DMC_INLINE void Dump()
     {
         std::cerr << LightName<<" "<<(Enabled?"on ":"off ")<<LightID<<" "<<LightType<<" "
             <<Intensity<<" "<<Color<<" "<<Position
@@ -51,7 +49,7 @@ public:
     std::vector<LightInfo *> LightList;
 
     // Returns -1 if not found.
-    inline LightInfo *FindByName(const char *name)
+    DMC_INLINE LightInfo *FindByName(const char *name)
     {
         ASSERT_R(name);
         for(int tind=0; tind<(int)LightList.size(); tind++) {
@@ -62,7 +60,7 @@ public:
         return NULL;
     }
 
-    inline LightInfo *Add(char *name=NULL)
+    DMC_INLINE LightInfo *Add(char *name=NULL)
     {
         LightInfo *x = new LightInfo();
         x->LightName = name;
@@ -73,7 +71,7 @@ public:
     }
 
     // Adds it if not found.
-    inline LightInfo *FindByNameOrAdd(const char *name)
+    DMC_INLINE LightInfo *FindByNameOrAdd(const char *name)
     {
         ASSERT_R(name);
         LightInfo *x = FindByName(name);
@@ -84,7 +82,7 @@ public:
         return x;
     }
 
-    inline void Dump()
+    DMC_INLINE void Dump()
     {
         for(int i=0; i<(int)LightList.size(); i++) {
             std::cerr << i << ": ";

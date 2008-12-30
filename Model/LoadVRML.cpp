@@ -4,16 +4,16 @@
 // Changes Copyright David K. McAllister, July 1999.
 // Originally written by Bill Mark, June 1998.
 
-#include <Model/LoadVRML.h>
-#include <Model/Mesh.h>
-#include <Model/AElements.h>
-#include <Model/Model.h>
-#include <Model/BisonMe.h>
-#include <Model/LightDB.h>
-#include <Model/CameraDB.h>
+#include "Model/LoadVRML.h"
+#include "Model/Mesh.h"
+#include "Model/AElements.h"
+#include "Model/Model.h"
+#include "Model/BisonMe.h"
+#include "Model/LightDB.h"
+#include "Model/CameraDB.h"
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 
 using namespace std;
 
@@ -56,7 +56,7 @@ int yywrap()
 #endif
 
 // Error handler for bison
-void yyerror(char *s)
+void yyerror(const char *s)
 {
     fprintf(stderr, "* %s, on line %i:\n", s, my_linecount);
     fprintf(stderr, "%s\n", my_linetext); // str includes newline, add one
@@ -310,7 +310,7 @@ void s_LightParam1(float f, int p)
 {
     LightInfo *L = LitDB.LightList.back();
     if(p == 1)
-        L->Enabled = f;
+        L->Enabled = f!=0.0f;
     else if(p == 2)
         L->Intensity = f;
     else if(p == 6)
@@ -338,7 +338,7 @@ void s_InitCamera(int CameraType)
 {
     CameraInfo *L = CamDB.Add();
     L->CameraType = CameraType;
-    ThingToName = &L->CameraName;
+    ThingToName = (char **)&L->CameraName;
     CopyNameThing = false;
 }
 
@@ -459,7 +459,7 @@ void s_Center(Vector *c)
 }
 
 // Load the specified texture.
-void s_Texture2_filename(char *texFName)
+void s_Texture2_filename(const char *texFName)
 {
     YYObject &S = Stack.back();
 

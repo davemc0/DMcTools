@@ -5,31 +5,31 @@
 
 // Provides scattered data interpolation on arbitrary 2D data.
 // Uses two types:
-// _WType is the type of the weight value. This is usually float.
+// Weight_T is the type of the weight value. This is usually float.
 // Some day I should try unsigned short or something.
 //
-// _Tp is the type of the data. This is usually float.
+// Data_T is the type of the data. This is usually float.
 // Should also work with Pixel, Vector, unsigned int, etc.
 
-#ifndef pullpush_h
-#define pullpush_h
+#ifndef dmc_pullpush_h
+#define dmc_pullpush_h
 
-// #include <Util/Utils.h>
-// #include <Math/MiscMath.h>
+// #include "Util/Utils.h"
+// #include "Math/MiscMath.h"
+
 // #include <algorithm>
+// #include <cstdlib>
+// #include <cstdio>
 
-// #include <stdlib.h>
-// #include <stdio.h>
-
-template<class _WType>
-inline _WType MIN1(_WType x)
+template<class Weight_T>
+DMC_INLINE Weight_T MIN1(Weight_T x)
 {
     return (x) < 1.0f ? (x) : 1.0f;
 }
 
 // Could special case W >= 1.
-template<class _Tp, class _WType>
-inline void Composite(_Tp &R, _WType &W, _Tp tD, _WType tW)
+template<class Data_T, class Weight_T>
+DMC_INLINE void Composite(Data_T &R, Weight_T &W, Data_T tD, Weight_T tW)
 {
     R = tD + W * (R - tD);
     W = MIN1(W + tW * (1 - W));
@@ -41,8 +41,8 @@ inline void Composite(_Tp &R, _WType &W, _Tp tD, _WType tW)
 //
 // All values of Weights must be <= 1.
 
-template<class _Tp, class _WType>
-void PullPush(_Tp *Data, _WType *Weights, int wid, int hgt)
+template<class Data_T, class Weight_T>
+void PullPush(Data_T *Data, Weight_T *Weights, int wid, int hgt)
 {
 #ifdef PP_DEBUG
     DoDebug("Inn", Data, Weights, wid, hgt);
@@ -57,8 +57,8 @@ void PullPush(_Tp *Data, _WType *Weights, int wid, int hgt)
     cerr << "Shrinking to " << widp << "x" << hgtp << endl;
 
     // XXX What about initializing these?
-    _Tp *Data1 = new _Tp[widp * hgtp];
-    _WType *Weights1 = new _WType[widp * hgtp];
+    Data_T *Data1 = new Data_T[widp * hgtp];
+    Weight_T *Weights1 = new Weight_T[widp * hgtp];
 
     // Make the smaller level.
     int x, y;
@@ -68,9 +68,9 @@ void PullPush(_Tp *Data, _WType *Weights, int wid, int hgt)
             int x2 = x<<1;
             int y2 = y<<1;
 
-            _WType w = Weights[y2*wid+x2];
-            _WType Wgt = w;
-            _Tp Dat = Data[y2*wid+x2] * w;
+            Weight_T w = Weights[y2*wid+x2];
+            Weight_T Wgt = w;
+            Data_T Dat = Data[y2*wid+x2] * w;
 
             if(x2>0) {
                 w = Weights[y2*wid+(x2-1)] / 2;
@@ -154,8 +154,8 @@ void PullPush(_Tp *Data, _WType *Weights, int wid, int hgt)
             int x1 = x>>1;
 
             // An even pixel. // No need to mult/div by weight.
-            _WType tw = Weights1[y1*widp+x1];
-            _Tp tD = Data1[y1*widp+x1];
+            Weight_T tw = Weights1[y1*widp+x1];
+            Data_T tD = Data1[y1*widp+x1];
 
             Composite(Data[y*wid+x], Weights[y*wid+x], tD, tw);
 
@@ -163,7 +163,7 @@ void PullPush(_Tp *Data, _WType *Weights, int wid, int hgt)
             if(x>=wid) break;
 
             // An odd pixel.
-            _WType w = Weights1[y1*widp+x1] / 2;
+            Weight_T w = Weights1[y1*widp+x1] / 2;
             tw = w;
             tD = w * Data1[y1*widp+x1];
 
@@ -187,9 +187,9 @@ void PullPush(_Tp *Data, _WType *Weights, int wid, int hgt)
             int x1 = x>>1;
 
             // An even pixel.
-            _WType w = Weights1[y1*widp+x1] / 2;
-            _WType tw = w;
-            _Tp tD = w * Data1[y1*widp+x1];
+            Weight_T w = Weights1[y1*widp+x1] / 2;
+            Weight_T tw = w;
+            Data_T tD = w * Data1[y1*widp+x1];
 
             if(y1+1 < hgtp)
             {

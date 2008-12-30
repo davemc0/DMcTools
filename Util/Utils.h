@@ -3,19 +3,18 @@
 //
 // Copyright David K. McAllister, 1998.
 
-#ifndef _util_h
-#define _util_h
+#ifndef dmc_util_h
+#define dmc_util_h
 
 #include "toolconfig.h"
 
-#include <string.h>
-#include <stdlib.h>
-
+#include <cstring>
+#include <cstdlib>
 #include <iostream>
 
 // Returns 0 on MIPS, PA-RISC, SPARC
 // Returns 1 on Intel x86
-static inline bool AmLittleEndian()
+static DMC_INLINE bool AmLittleEndian()
 {
     typedef union { int integer; char byte[4]; } endianTest;
     endianTest etest;
@@ -24,7 +23,7 @@ static inline bool AmLittleEndian()
 }
 
 // Swap endian-ness of the array. length is the number of 8-byte words to swap.
-static inline void ConvertDouble(double *array, int length)
+static DMC_INLINE void ConvertDouble(double *array, int length)
 {
     unsigned char b0, b1, b2, b3, b4, b5, b6, b7;
     unsigned char *ptr = (unsigned char *)array;
@@ -52,7 +51,7 @@ static inline void ConvertDouble(double *array, int length)
 }
 
 // Swap endian-ness of the array. length is the number of 4-byte words to swap.
-static inline void ConvertLong(unsigned int *array, int length)
+static DMC_INLINE void ConvertLong(unsigned int *array, int length)
 {
     unsigned char b0, b1, b2, b3;
     unsigned char *ptr = (unsigned char *)array;
@@ -72,7 +71,7 @@ static inline void ConvertLong(unsigned int *array, int length)
 }
 
 // Swap endian-ness of the array. length is the number of 2-byte shorts to swap.
-static inline void ConvertShort(unsigned short *array, int length)
+static DMC_INLINE void ConvertShort(unsigned short *array, int length)
 {
     unsigned char b0, b1;
     unsigned char *ptr = (unsigned char *)array;
@@ -88,7 +87,7 @@ static inline void ConvertShort(unsigned short *array, int length)
 }
 
 // Given an argument vector, remove NumDel strings from it, starting at i.
-static inline void RemoveArgs(int &argc, char **argv, int &i, int NumDel=1)
+static DMC_INLINE void RemoveArgs(int &argc, char **argv, int &i, int NumDel=1)
 {
     argc -= NumDel;
     memmove(&(argv[i]), &(argv[i+NumDel]), (argc-i) * sizeof(char *));
@@ -98,7 +97,7 @@ static inline void RemoveArgs(int &argc, char **argv, int &i, int NumDel=1)
 // Note: NRand (normal distribution) is in MiscMath.h
 
 // A random number on 0.0 to 1.0.
-inline double DRand()
+DMC_INLINE double DRand()
 {
 #ifdef DMC_MACHINE_win
 #define ONEOVERRAND_MAX (1.0 / double(RAND_MAX*RAND_MAX))
@@ -108,29 +107,25 @@ inline double DRand()
 #endif
 }
 
-// A random number on 0.0 to high.
-inline double DRand(double high)
+DMC_INLINE double DRand(const double high) { return DRand() * high; } // A random number on 0.0 to high.
+DMC_INLINE double DRand(const double low, const double high) { return low + DRand() * (high - low); } // A random number on low to high.
+
+// A random number on 0.0 to 1.0.
+DMC_INLINE float DRandf()
 {
 #ifdef DMC_MACHINE_win
-    return double((rand()<<15)|rand()) * (high * ONEOVERRAND_MAX);
+#define ONEOVERRAND_MAXF (1.0f / float(RAND_MAX*RAND_MAX))
+    return float((rand()<<15)|rand()) * ONEOVERRAND_MAXF;
 #else
-    return drand48() * high;
+    return drand48();
 #endif
 }
 
-// A random number on low to high.
-inline double DRand(double low, double high)
-{
-    double span = high - low;
-#ifdef DMC_MACHINE_win
-    return low + double((rand()<<15)|rand()) * (span * ONEOVERRAND_MAX);
-#else
-    return low + drand48() * span;
-#endif
-}
+DMC_INLINE float DRandf(const float high) { return DRandf() * high; } // A random number on 0.0 to high.
+DMC_INLINE float DRandf(const float low, const float high) { return low + DRandf() * (high - low); } // A random number on low to high.
 
 // A random number.
-inline int LRand()
+DMC_INLINE int LRand()
 {
 #ifdef DMC_MACHINE_win
     return abs((rand() ^ (rand() << 15) ^ (rand() << 30)));
@@ -139,10 +134,8 @@ inline int LRand()
 #endif
 }
 
-inline int LRand(int high)
-{
-    return LRand() % high;
-}
+DMC_INLINE int LRand(const int high) { return LRand() % high; } // A random number on 0 to high.
+DMC_INLINE int LRand(const int low, const int high) { return low + (LRand() % (high - low)); } // A random number on low to high.
 
 // Seeds the random number generator based on time and/or process ID.
 extern void SRand();
@@ -159,14 +152,14 @@ char *GetFileBaseName(const char *inpath);
 // Return just the path without a filename. Ends in '/' if any.
 char *GetFilePath(const char *inpath);
 
-inline void ToLower(char *str)
+DMC_INLINE void ToLower(char *str)
 {
     for(; *str; str++)
         if((*str >= 'A') && (*str <= 'Z'))
             *str += 32;
 }
 
-inline void ToUpper(char *str)
+DMC_INLINE void ToUpper(char *str)
 {
     for(; *str; str++)
         if((*str >= 'a') && (*str <= 'z'))
@@ -177,21 +170,24 @@ inline void ToUpper(char *str)
 extern int HashString(const char *);
 
 // Used for setting up the floating point output the way I like it.
-inline void FloatFmt(std::ostream& os, int prec = 8)
+DMC_INLINE void FloatFmt(std::ostream& os, int prec = 8)
 {
     os.precision(prec);
     os.setf(std::ios_base::fixed,std::ios_base::floatfield);
     os.setf(std::ios_base::fixed|std::ios_base::showpoint|std::ios_base::showpos, std::ios_base::floatfield);
 }
 
-inline void cpuid(unsigned cmd, unsigned int &a, unsigned int &b, unsigned int &c, unsigned int &d)
+DMC_INLINE void cpuid(unsigned int cmd, unsigned int &a, unsigned int &b, unsigned int &c, unsigned int &d)
 {
-    unsigned int aa, bb, cc, dd;
+    unsigned int aa=0, bb=0, cc=0, dd=0;
 #ifdef __GNUC__
-	asm("cpuid": "=a" (a), "=b" (b), "=c" (c), "=d" (d) : "a" (in));
+	asm("cpuid": "=a" (a), "=b" (b), "=c" (c), "=d" (d) : "a" (cmd));
 #else
     __asm {
       mov eax, cmd
+      xor ebx, ebx
+      xor ecx, ecx
+      xor edx, edx
       cpuid
       mov aa, eax
       mov bb, ebx
@@ -202,7 +198,7 @@ inline void cpuid(unsigned cmd, unsigned int &a, unsigned int &b, unsigned int &
     a = aa; b = bb; c = cc; d = dd;
 }
 
-inline bool HasMMX()
+DMC_INLINE bool HasMMX()
 {
     unsigned int a=0, b=0, c=0, d=0;
     cpuid(0, a, b, c, d);
@@ -211,7 +207,7 @@ inline bool HasMMX()
     if(d & (1<<23)) return true; else return false;
 }
 
-inline bool HasSSE()
+DMC_INLINE bool HasSSE()
 {
     unsigned int a=0, b=0, c=0, d=0;
     cpuid(0, a, b, c, d);
@@ -220,7 +216,7 @@ inline bool HasSSE()
     if(d & (1<<25)) return true; else return false;
 }
 
-inline bool HasSSE2()
+DMC_INLINE bool HasSSE2()
 {
     unsigned int a=0, b=0, c=0, d=0;
     cpuid(0, a, b, c, d);
@@ -229,7 +225,7 @@ inline bool HasSSE2()
     if(d & (1<<26)) return true; else return false;
 }
 
-inline bool HasSSE3()
+DMC_INLINE bool HasSSE3()
 {
     unsigned int a=0, b=0, c=0, d=0;
     cpuid(0, a, b, c, d);
@@ -238,8 +234,18 @@ inline bool HasSSE3()
     if(c & (1<<0)) return true; else return false;
 }
 
+DMC_INLINE unsigned int NumCores()
+{
+    unsigned int a=0, b=0, c=0, d=0;
+    cpuid(0, a, b, c, d);
+    if(a < 4) return 1;
+    cpuid(4, a, b, c, d);
+    unsigned int num = (a>>26) + 1;
+    return num;
+}
+
 // You must allocate at least 13 bytes, on a 4-byte boundary.
-inline void CPUVendorString(char *val)
+DMC_INLINE void CPUVendorString(char *val)
 {
     unsigned int a=0, b=0, c=0, d=0;
     cpuid(0, a, b, c, d);

@@ -1,83 +1,86 @@
 //////////////////////////////////////////////////////////////////////
 // ImageLoadSave.cpp - Load and save images of many file formats.
 //
-// Copyright David K. McAllister, Aug. 1997.
+// Copyright David K. McAllister, Aug. 1997 - 2007.
 
-#include <Image/ImageLoadSave.h>
-#include <Util/Utils.h>
-#include <Image/tImage.h>
+// How loading works:
+// tImage<>.Load() calls tLoad<>().
+// tLoad<>() creates an ImageLoadSave and calls into it to do the loading.
+// ImageLoadSave.Load() creates a tImage of the data type and num channels of the image file.
+// Its baseImage is returned by ImageLoadSave.Load().
+// tImage.Load() of the dest image converts the returned image to this one's type.
+//
+// For working with a baseImage rather than a known image type, call LoadtImage().
+// This creates an ImageLoadSave and calls into it to do the loading.
+// ImageLoadSave.Load() creates a tImage of the data type and num channels of the image file.
+// Its baseImage is returned by ImageLoadSave.Load().
+// LoadtImage() returns the created baseImage.
 
-#ifdef DMC_USE_TIFF
-#include <tiffio.h>
-#endif
+// How saving works:
+// tImage<>.Save() calls tSave<>().
+// tSave<>() looks at the source image and the chosen file format. 
+// If the chosen format cannot support the image type, it creates another image of a supported type.
+// It calls ImageLoadSave.Save(), which saves the image.
+// If a converted image was created, it is deleted.
 
-#ifdef DMC_USE_JPEG
+#include "Image/ImageLoadSave.h"
+#include "Image/tImage.h"
+#include "Image/RGBEio.h"
+#include "Util/Utils.h"
+
+#include "tiffio.h"
 extern "C" {
-#include <jpeglib.h>
-}
-#endif
-
-#ifdef DMC_USE_PNG
-extern "C" {
+#include "jpeglib.h"
 #ifdef DMC_MACHINE_win
-#include <png.h>
+#include "png.h"
 #else
 #include "/usr/include/png.h"
 #endif
-}
-#endif
-
 #ifdef DMC_USE_MAT
-extern "C" {
-#include <mat.h>
+#include "mat.h"
+#endif
 }
-#endif
-
-#ifdef DMC_USE_RGBE
-#include "RGBEio.h"
-#endif
 
 #include <fstream>
 #include <string>
 using namespace std;
-
 
 #define RAS_MAGIC 0x59a66a95
 #define GIF_MAGIC 0x47494638
 #define JPEG_MAGIC 0xffd8ffe0
 #define RGB_MAGIC 0x01da0101
 
+namespace {
 #ifdef DMC_DEBUG
-static bool Verbose = true;
+bool Verbose = true;
 #else
-static bool Verbose = false;
+bool Verbose = false;
 #endif
+};
 
 // A back-door way to set this.
 bool dmcTGA_R5G6B5 = false;
 
-static void GetExtension(string &exts, const char *fname)
+// Return an int whose bytes equal the characters of the extension string
+// Used by tSave() and ImageLoadSave::Load().
+int GetExtensionVal(const char *fname)
 {
     char *ext = GetFileExtension(fname);
     ToLower(ext);
-    exts = ext;
+    return (ext[0]<<0)|(ext[1]<<8)|(ext[2]<<16);
 }
 
-// Fills wid, hgt, chan, Pix, and secret.
-// Pix points to the same data as does secret.Pix.
-// The data must be deleted by secret.
-// secret must also be deleted by the caller.
-// Pix and secret will be NULL on error.
+// Fills wid, hgt, chan, Pix, and baseImg.
+// Pix points to the same data as does baseImg.Pix.
+// The data must be deleted by baseImg.
+// baseImg must also be deleted by the caller (tLoad or LoadtImage).
+// Pix and baseImg will be NULL on error.
 void ImageLoadSave::Load(const char *fname)
 {
-    if(Pix)
-        delete [] Pix;
+    ASSERT_R(fname);
+    ASSERT_R(Pix == NULL && wid == 0 && hgt == 0 && chan == 0);
 
-    Pix = NULL;
-    wid = hgt = chan = 0;
-
-    string exts;
-    GetExtension(exts, fname);
+    int exts = GetExtensionVal(fname);
 
     ifstream InFile(fname, ios::in | ios::binary);
     if(!InFile.is_open()) throw DMcError("Failed to open file '" + string(fname) + "'");
@@ -89,30 +92,30 @@ void ImageLoadSave::Load(const char *fname)
     unsigned int eMagic = Magic;
     ConvertLong(&eMagic, 1);
 
-    if(Magic==RAS_MAGIC || eMagic==RAS_MAGIC || exts=="ras") {
+    if(Magic==RAS_MAGIC || eMagic==RAS_MAGIC || exts==RAS_) {
         LoadRas(fname);
-    } else if(Magic==GIF_MAGIC || eMagic==GIF_MAGIC || exts=="gif") {
+    } else if(Magic==GIF_MAGIC || eMagic==GIF_MAGIC || exts==GIF_) {
         LoadGIF(fname);
-    } else if(Magic==JPEG_MAGIC || eMagic==JPEG_MAGIC || exts=="jpg") {
+    } else if(Magic==JPEG_MAGIC || eMagic==JPEG_MAGIC || exts==JPG_) {
         LoadJPEG(fname);
-    } else if(Magic==RGB_MAGIC || eMagic==RGB_MAGIC || exts=="rgb") {
+    } else if(Magic==RGB_MAGIC || eMagic==RGB_MAGIC || exts==RGB_) {
         LoadRGB(fname);
     } else if((Mag[0]=='P' && (Mag[1]=='5' || Mag[1]=='6' || Mag[1]=='7' || Mag[1]=='8' || Mag[1]=='Z')) ||
         (Mag[3]=='P' && (Mag[2]=='5' || Mag[2]=='6' || Mag[2]=='7' || Mag[2]=='8' || Mag[2]=='Z')) ||
-        exts=="ppm" || exts=="pgm" || exts=="pam" || exts=="pfm" || exts=="psm" || exts=="pzm") {
+        exts==PPM_ || exts==PGM_ || exts==PAM_ || exts==PFM_ || exts==PSM_ || exts==PZM_) {
             LoadPPM(fname);
     } else if((Mag[1]=='P' && Mag[2]=='N' && Mag[3]=='G') ||
-        (Mag[2]=='P' && Mag[1]=='N' && Mag[0]=='G') || exts=="png") {
+        (Mag[2]=='P' && Mag[1]=='N' && Mag[0]=='G') || exts==PNG_) {
             LoadPNG(fname);
     } else if((Mag[0]=='B' && Mag[1]=='M') ||
-        (Mag[3]=='B' && Mag[2]=='M') || exts=="bmp") {
+        (Mag[3]=='B' && Mag[2]=='M') || exts==BMP_) {
             LoadBMP(fname);
-    } else if((Mag[0]==0 || Mag[3]==0) && (exts=="tga")) {
+    } else if((Mag[0]==0 || Mag[3]==0) && (exts==TGA_)) {
         LoadTGA(fname, dmcTGA_R5G6B5);
-    } else if(exts=="tif") {
+    } else if(exts==TIF_) {
         LoadTIFF(fname);
-    } else if(exts=="hdr") {
-        LoadHDR(fname);
+    } else if(exts==HDR_) {
+        LoadRGBE(fname);
     } else {
         stringstream er;
         er << "Could not determine file type of `" << fname << "'.\n";
@@ -120,407 +123,97 @@ void ImageLoadSave::Load(const char *fname)
         er << "Extension was " << exts << endl;
         throw DMcError(er.str());
     }
+    Pix = NULL; // When loading, Pix is only used by Load*(). baseImg carries the data when we return from here.
+}
+
+// Allocate a tImage of the appropriate type for the file being loaded.
+// Called by Load*(). It creates a tImage that matches the is_* and chan args. Stores the pointer to the tImage in baseImg.
+unsigned char *ImageLoadSave::ImageAlloc()
+{
+    switch(chan) {
+    case 1:
+        if(is_uint) { baseImg = new ui1Image(wid,hgt);
+        } else if(is_float) { baseImg = new f1Image(wid,hgt);
+        } else if(is_ushort) { baseImg = new us1Image(wid,hgt);
+        } else { baseImg = new uc1Image(wid,hgt);
+        }
+        break;
+    case 2:
+        if(is_ushort) { baseImg = new us2Image(wid,hgt);
+        } else { baseImg = new uc2Image(wid,hgt);
+        }
+        break;
+    case 3:
+        if(is_float) { baseImg = new f3Image(wid,hgt);
+        } else if(is_ushort) { baseImg = new us3Image(wid,hgt);
+        } else { baseImg = new uc3Image(wid,hgt);
+        }
+        break;
+    case 4:
+        if(is_ushort) { baseImg = new us4Image(wid,hgt);
+        } else { baseImg = new uc4Image(wid,hgt);
+        }
+        break;
+    }
+    Pix = (unsigned char *)baseImg->pv_virtual();
+    return Pix;
 }
 
 // Choose a saver based strictly on extension.
 // The individual savers may look at chan, is_uint, etc. to decide a format.
-void ImageLoadSave::Save(const char *_fname) const
+void ImageLoadSave::Save(const char *fname_) const
 {
-    char *fname = strdup(_fname);
-    string exts;
-    GetExtension(exts, fname);
+    ASSERT_R(fname_);
+    char *fname = strdup(fname_);
+    int exts = GetExtensionVal(fname);
 
     char *outfname3 = strchr(fname, '\n');
-    if(outfname3) {
-        *outfname3 = '\0';
-    }
-
+    if(outfname3) *outfname3 = '\0';
     outfname3 = strchr(fname, '\r');
-    if(outfname3) {
-        *outfname3 = '\0';
-    }
+    if(outfname3) *outfname3 = '\0';
 
-    if(exts=="gif")
-        SaveGIF(fname);
-    else if(exts=="tif")
-        SaveTIFF(fname);
-    else if(exts=="tga")
-        SaveTGA(fname);
-    else if(exts=="jpg")
-        SaveJPEG(fname);
-    else if(exts=="png")
-        SavePNG(fname);
-    else if(exts=="bmp")
-        SaveBMP(fname);
-    else if(exts=="hdr")
-        SaveHDR(fname);
-    else if(exts=="mat")
-        SaveMAT(fname);
-    else if(exts=="ppm" || exts=="pgm" || exts=="pam" ||
-        exts=="psm" || exts=="pfm" || exts=="pzm")
-        SavePPM(fname);
-    else
-        throw DMcError("Saving file with unknown filename extension '" + exts + "' in filename '" + _fname + "'");
+    switch(exts) {
+    case BMP_:
+        SaveBMP(fname);  // 1 3
+        break;
+    case GIF_:
+        SaveGIF(fname);  // 1 3
+        break;
+    case HDR_:
+        SaveRGBE(fname); // 3f
+        break;
+    case JPG_:
+        SaveJPEG(fname); // 1 3
+        break;
+    case TGA_:
+        SaveTGA(fname);  // 1 3 4
+        break;
+    case TIF_:
+        SaveTIFF(fname); // 1 2 3 4 uc, us, ui, f
+        break;
+    case MAT_:
+        SaveMAT(fname);  // 1 2 3 4
+        break;
+    case PNG_:
+        SavePNG(fname);  // 1 2 3 4
+        break;
+    case PPM_:
+    case PGM_:
+    case PAM_:
+    case PSM_:
+    case PFM_:
+    case PZM_:
+        SavePPM(fname);  // 1s 2s 3s 4s 1f 3f 1uc 3uc 4uc
+        break;
+    default:
+        throw DMcError("Saving file with unknown filename extension in filename '" + string(fname_) + "'");
+        break;
+    }
 
     if(fname)
         delete [] fname;
 }
 
-// For loading an image into whatever kind of tImage is most appropriate.
-// XXX Broken: Points to image data, not image struct.
-// Also, how am I supposed to tell what kind it loaded, anyway?
-baseImage *LoadtImage(const char *fname)
-{
-    ImageLoadSave loader;
-    loader.Load(fname);
-
-    if(loader.Pix == NULL) {
-        // I can't deal with deleting this data here.
-        ASSERT_R(loader.secret == NULL); // This may be too strong.
-    }
-
-    return (baseImage *)loader.secret;
-}
-
-// Load an image and store it in the tImage out.
-// Assumes that out has already been cleared.
-template <class _ImgType> void tLoad(const char *fname, _ImgType *out)
-{
-    // Delete the old contents of the image.
-    out->SetSize();
-
-    ImageLoadSave loader;
-    loader.Load(fname);
-
-    if(loader.Pix == NULL) {
-        // I can't deal with deleting this data here.
-        ASSERT_R(loader.secret == NULL); // This may be too strong.
-        return;
-    }
-
-    baseImage *unk = (baseImage *)loader.secret;
-
-    // Now find out the type of the loaded image and convert to type of out.
-    // Need a case for every kind of image file format.
-    // If in and out are the same type, just grab the data.
-    // The cast to _ImgType is a cheat to make it compile.
-    // That code will only get called when the types are really the same.
-    // *** Comment out the image kinds that we currently can't load.
-    switch(loader.chan) {
-    case 1:
-        if(loader.is_uint) {
-            if(typeid(_ImgType) == typeid(ui1Image)) {out->swap(*(_ImgType *)unk);}
-            else {*out = *(ui1Image *)unk; delete (ui1Image *)unk;}
-        } else if(loader.is_float) {
-            if(typeid(_ImgType) == typeid(f1Image)) {out->swap(*(_ImgType *)unk);}
-            else {*out = *(f1Image *)unk; delete (f1Image *)unk;}
-        } else if(loader.is_ushort) {
-            if(typeid(_ImgType) == typeid(us1Image)) {out->swap(*(_ImgType *)unk);}
-            else {*out = *(us1Image *)unk; delete (us1Image *)unk;}
-        } else {
-            if(typeid(_ImgType) == typeid(uc1Image)) {out->swap(*(_ImgType *)unk);}
-            else {*out = *(uc1Image *)unk; delete (uc1Image *)unk;}
-        }
-        break;
-    case 2:
-        /* if(loader.is_uint) {
-        if(typeid(_ImgType) == typeid(ui2Image)) {out->swap(*(_ImgType *)unk);}
-        else {*out = *(ui2Image *)unk; delete (ui2Image *)unk;}
-        } else if(loader.is_float) {
-        if(typeid(_ImgType) == typeid(f2Image)) {out->swap(*(_ImgType *)unk);}
-        else {*out = *(f2Image *)unk; delete (f2Image *)unk;}
-        } else */ if(loader.is_ushort) {
-            if(typeid(_ImgType) == typeid(us2Image)) {out->swap(*(_ImgType *)unk);}
-            else {*out = *(us2Image *)unk; delete (us2Image *)unk;}
-        } else {
-            if(typeid(_ImgType) == typeid(uc2Image)) {out->swap(*(_ImgType *)unk);}
-            else {*out = *(uc2Image *)unk; delete (uc2Image *)unk;}
-        }
-        break;
-    case 3:
-        /* if(loader.is_uint) {
-        if(typeid(_ImgType) == typeid(ui3Image)) {out->swap(*(_ImgType *)unk);}
-        else {*out = *(ui3Image *)unk; delete (ui3Image *)unk;}
-        } else */ if(loader.is_float) {
-            if(typeid(_ImgType) == typeid(f3Image)) {out->swap(*(_ImgType *)unk);}
-            else {*out = *(f3Image *)unk; delete (f3Image *)unk;}
-        } else if(loader.is_ushort) {
-            if(typeid(_ImgType) == typeid(us3Image)) {out->swap(*(_ImgType *)unk);}
-            else {*out = *(us3Image *)unk; delete (us3Image *)unk;}
-        } else {
-            if(typeid(_ImgType) == typeid(uc3Image)) {out->swap(*(_ImgType *)unk);}
-            else {*out = *(uc3Image *)unk; delete (uc3Image *)unk;}
-        }
-        break;
-    case 4:
-        /* if(loader.is_uint) {
-        if(typeid(_ImgType) == typeid(ui4Image)) {out->swap(*(_ImgType *)unk);}
-        else {*out = *(ui4Image *)unk; delete (ui4Image *)unk;}
-        } else if(loader.is_float) {
-        if(typeid(_ImgType) == typeid(f4Image)) {out->swap(*(_ImgType *)unk);}
-        else {*out = *(f4Image *)unk; delete (f4Image *)unk;}
-        } else */ if(loader.is_ushort) {
-            if(typeid(_ImgType) == typeid(us4Image)) {out->swap(*(_ImgType *)unk);}
-            else {*out = *(us4Image *)unk; delete (us4Image *)unk;}
-        } else {
-            if(typeid(_ImgType) == typeid(uc4Image)) {out->swap(*(_ImgType *)unk);}
-            else {*out = *(uc4Image *)unk; delete (uc4Image *)unk;}
-        }
-        break;
-    default:
-        ASSERT_R(0);
-        break;
-    }
-    loader.Pix = NULL;
-}
-
-// Instantiations. Need a case for every kind of image that will
-// have the capability to load an image (all of them).
-template void tLoad(const char *fname, uc1Image *out);
-template void tLoad(const char *fname, uc2Image *out);
-template void tLoad(const char *fname, uc3Image *out);
-template void tLoad(const char *fname, uc4Image *out);
-template void tLoad(const char *fname, us1Image *out);
-template void tLoad(const char *fname, us2Image *out);
-template void tLoad(const char *fname, us3Image *out);
-template void tLoad(const char *fname, us4Image *out);
-template void tLoad(const char *fname, ui1Image *out);
-//template void tLoad(const char *fname, ui2Image *out);
-//template void tLoad(const char *fname, ui3Image *out);
-//template void tLoad(const char *fname, ui4Image *out);
-template void tLoad(const char *fname, f1Image *out);
-//template void tLoad(const char *fname, f2Image *out);
-template void tLoad(const char *fname, f3Image *out);
-//template void tLoad(const char *fname, f4Image *out);
-#if 0
-template void tLoad(const char *fname, h1Image *out);
-//template void tLoad(const char *fname, h2Image *out);
-template void tLoad(const char *fname, h3Image *out);
-template void tLoad(const char *fname, h4Image *out);
-#endif
-
-// XXX Using the virtual members of baseImage, this could be done without templating.
-// Save a tImage. Need to know all the details about it.
-template <class _ImgType> void tSave(const char *fname, const _ImgType *img)
-{
-    ImageLoadSave saver;
-    saver.SetImage((unsigned char *)img->pp(), img->w(), img->h(),
-        img->chan(), (typeid(typename _ImgType::PixType::ElType)==typeid(unsigned int)),
-        (typeid(typename _ImgType::PixType::ElType)==typeid(unsigned short)),
-        (typeid(typename _ImgType::PixType::ElType)==typeid(float)));
-    saver.Save(fname);
-    saver.Pix = NULL; saver.wid = saver.hgt = saver.chan = 0;
-}
-
-// Instantiations. Need a case for every kind of image that will
-// have the capability to save an image (all of them).
-template void tSave(const char *fname, const uc1Image *out);
-template void tSave(const char *fname, const uc2Image *out);
-template void tSave(const char *fname, const uc3Image *out);
-template void tSave(const char *fname, const uc4Image *out);
-template void tSave(const char *fname, const us1Image *out);
-template void tSave(const char *fname, const us2Image *out);
-template void tSave(const char *fname, const us3Image *out);
-template void tSave(const char *fname, const us4Image *out);
-template void tSave(const char *fname, const ui1Image *out);
-//template void tSave(const char *fname, const ui2Image *out);
-//template void tSave(const char *fname, const ui3Image *out);
-//template void tSave(const char *fname, const ui4Image *out);
-template void tSave(const char *fname, const f1Image *out);
-//template void tSave(const char *fname, const f2Image *out);
-template void tSave(const char *fname, const f3Image *out);
-//template void tSave(const char *fname, const f4Image *out);
-#if 0
-template void tSave(const char *fname, const h1Image *out);
-//template void tSave(const char *fname, const h2Image *out);
-template void tSave(const char *fname, const h3Image *out);
-template void tSave(const char *fname, const h4Image *out);
-#endif
-
-void ImageLoadSave::ucLoad(const char *fname, int ch)
-{
-    if(ch<0) ch = 0;
-
-    switch(ch) {
-    case 0:
-        {
-            // Don't care what kind of image you get.
-            Load(fname);
-            unsigned char *old = Pix;
-            if(Pix == NULL) throw DMcError("ucLoad received a NULL image from Load()");
-
-            baseImage *unk = (baseImage *)secret;
-
-            // Find out the type of unk and convert from it to unsigned char.
-            // Need a case for every kind of image file format.
-            switch(chan) {
-    case 1:
-        if(is_uint) {
-            ui1Image *Img = (ui1Image *)unk; uc1Image tmp = *Img; delete Img;
-            Pix = new unsigned char[tmp.size_bytes()]; memcpy(Pix, tmp.pp(), tmp.size_bytes());
-        } else if(is_float) {
-            f1Image *Img = (f1Image *)unk; uc1Image tmp = *Img; delete Img;
-            Pix = new unsigned char[tmp.size_bytes()]; memcpy(Pix, tmp.pp(), tmp.size_bytes());
-        } else if(is_ushort) {
-            us1Image *Img = (us1Image *)unk; uc1Image tmp = *Img; delete Img;
-            Pix = new unsigned char[tmp.size_bytes()]; memcpy(Pix, tmp.pp(), tmp.size_bytes());
-        } else {
-            uc1Image *Img = (uc1Image *)unk; Pix = new unsigned char[size_bytes()];
-            memcpy(Pix, old, size_bytes()); delete Img;
-        }
-        break;
-    case 2:
-        if(is_uint) {
-            ui2Image *Img = (ui2Image *)unk; uc2Image tmp = *Img; delete Img;
-            Pix = new unsigned char[tmp.size_bytes()]; memcpy(Pix, tmp.pp(), tmp.size_bytes());
-        } else if(is_float) {
-            f2Image *Img = (f2Image *)unk; uc2Image tmp = *Img; delete Img;
-            Pix = new unsigned char[tmp.size_bytes()]; memcpy(Pix, tmp.pp(), tmp.size_bytes());
-        } else if(is_ushort) {
-            us2Image *Img = (us2Image *)unk; uc2Image tmp = *Img; delete Img;
-            Pix = new unsigned char[tmp.size_bytes()]; memcpy(Pix, tmp.pp(), tmp.size_bytes());
-        } else {
-            uc2Image *Img = (uc2Image *)unk; Pix = new unsigned char[size_bytes()];
-            memcpy(Pix, old, size_bytes()); delete Img;
-        }
-        break;
-    case 3:
-        if(is_uint) {
-            ui3Image *Img = (ui3Image *)unk; uc3Image tmp = *Img; delete Img;
-            Pix = new unsigned char[tmp.size_bytes()]; memcpy(Pix, tmp.pp(), tmp.size_bytes());
-        } else if(is_float) {
-            f3Image *Img = (f3Image *)unk; uc3Image tmp = *Img; delete Img;
-            Pix = new unsigned char[tmp.size_bytes()]; memcpy(Pix, tmp.pp(), tmp.size_bytes());
-        } else if(is_ushort) {
-            us3Image *Img = (us3Image *)unk; uc3Image tmp = *Img; delete Img;
-            Pix = new unsigned char[tmp.size_bytes()]; memcpy(Pix, tmp.pp(), tmp.size_bytes());
-        } else {
-            uc3Image *Img = (uc3Image *)unk; Pix = new unsigned char[size_bytes()];
-            memcpy(Pix, old, size_bytes()); delete Img;
-        }
-        break;
-    case 4:
-        if(is_uint) {
-            ui4Image *Img = (ui4Image *)unk; uc4Image tmp = *Img; delete Img;
-            Pix = new unsigned char[tmp.size_bytes()]; memcpy(Pix, tmp.pp(), tmp.size_bytes());
-        } else if(is_float) {
-            f4Image *Img = (f4Image *)unk; uc4Image tmp = *Img; delete Img;
-            Pix = new unsigned char[tmp.size_bytes()]; memcpy(Pix, tmp.pp(), tmp.size_bytes());
-        } else if(is_ushort) {
-            us3Image *Img = (us3Image *)unk; uc3Image tmp = *Img; delete Img;
-            Pix = new unsigned char[tmp.size_bytes()]; memcpy(Pix, tmp.pp(), tmp.size_bytes());
-        } else {
-            uc4Image *Img = (uc4Image *)unk; Pix = new unsigned char[size_bytes()];
-            memcpy(Pix, old, size_bytes()); delete Img;
-        }
-        break;
-    default:
-        ASSERT_R(0);
-        break;
-            }
-            break;
-        }
-        // If you know how many channels you want, make an image of that size.
-        // Then copy the data to unsigned char. The tImage will be destroyed.
-    case 1:
-        {
-            uc1Image tmp(fname);
-            wid = tmp.w(); hgt = tmp.h(); chan = ch;
-            Pix = new unsigned char[tmp.size_bytes()];
-            memcpy(Pix, tmp.pp(), tmp.size_bytes());
-            break;
-        }
-    case 2:
-        {
-            uc2Image tmp(fname);
-            wid = tmp.w(); hgt = tmp.h(); chan = ch;
-            Pix = new unsigned char[tmp.size_bytes()];
-            memcpy(Pix, tmp.pp(), tmp.size_bytes());
-            break;
-        }
-    case 3:
-        {
-            uc3Image tmp(fname);
-            wid = tmp.w(); hgt = tmp.h(); chan = ch;
-            Pix = new unsigned char[tmp.size_bytes()];
-            memcpy(Pix, tmp.pp(), tmp.size_bytes());
-            break;
-        }
-    case 4:
-        {
-            uc4Image tmp(fname);
-            wid = tmp.w(); hgt = tmp.h(); chan = ch;
-            Pix = new unsigned char[tmp.size_bytes()];
-            memcpy(Pix, tmp.pp(), tmp.size_bytes());
-            break;
-        }
-    }
-}
-
-// Allocate a tImage of the appropriate type for the info stored in this ImageLoadSave.
-unsigned char *ImageLoadSave::ImageAlloc()
-{
-    switch(chan) {
-    case 1:
-        if(is_uint) {
-            ui1Image *tmp = new ui1Image(wid,hgt);
-            Pix = (unsigned char *)tmp->pp();
-            secret = tmp;
-        } else if(is_float) {
-            f1Image *tmp = new f1Image(wid,hgt);
-            Pix = (unsigned char *)tmp->pp();
-            secret = tmp;
-        } else if(is_ushort) {
-            us1Image *tmp = new us1Image(wid,hgt);
-            Pix = (unsigned char *)tmp->pp();
-            secret = tmp;
-        } else {
-            uc1Image *tmp = new uc1Image(wid,hgt);
-            Pix = (unsigned char *)tmp->pp();
-            secret = tmp;
-        }
-        break;
-    case 2:
-        if(is_ushort) {
-            us2Image *tmp = new us2Image(wid,hgt);
-            Pix = (unsigned char *)tmp->pp();
-            secret = tmp;
-        } else {
-            uc2Image *tmp = new uc2Image(wid,hgt);
-            Pix = (unsigned char *)tmp->pp();
-            secret = tmp;
-            break;
-        }
-    case 3:
-        if(is_float) {
-            f3Image *tmp = new f3Image(wid,hgt);
-            Pix = (unsigned char *)tmp->pp();
-            secret = tmp;
-        } else if(is_ushort) {
-            us3Image *tmp = new us3Image(wid,hgt);
-            Pix = (unsigned char *)tmp->pp();
-            secret = tmp;
-        } else {
-            uc3Image *tmp = new uc3Image(wid,hgt);
-            Pix = (unsigned char *)tmp->pp();
-            secret = tmp;
-        }
-        break;
-    case 4:
-        if(is_ushort) {
-            us4Image *tmp = new us4Image(wid,hgt);
-            Pix = (unsigned char *)tmp->pp();
-            secret = tmp;
-        } else {
-            uc4Image *tmp = new uc4Image(wid,hgt);
-            Pix = (unsigned char *)tmp->pp();
-            secret = tmp;
-            break;
-        }
-    }
-
-    return Pix;
-}
 
 //////////////////////////////////////////////////////
 // Sun Raster File Format
@@ -802,7 +495,8 @@ struct rawImageRec
     int *rowSize;
 };
 
-static void RawImageGetRow(rawImageRec *raw, unsigned char *buf, int y, int z)
+namespace {
+void RawImageGetRow(rawImageRec *raw, unsigned char *buf, int y, int z)
 {
     unsigned char *iPtr, *oPtr, pixel;
     int count;
@@ -837,6 +531,7 @@ static void RawImageGetRow(rawImageRec *raw, unsigned char *buf, int y, int z)
         fread(buf, 1, raw->sizeX, raw->file);
     }
 }
+};
 
 void ImageLoadSave::LoadRGB(const char *fname)
 {
@@ -926,6 +621,18 @@ void ImageLoadSave::LoadRGB(const char *fname)
 
 #ifdef DMC_USE_JPEG
 
+void JPEGError(j_common_ptr cinfo)
+{
+    const char *msgtext = "";
+    if (cinfo->err->msg_code > 0 && cinfo->err->msg_code <= cinfo->err->last_jpeg_message) {
+        msgtext = cinfo->err->jpeg_message_table[cinfo->err->msg_code];
+    }
+
+    stringstream st;
+    st << "JPEG error or warning: " << msgtext;
+    throw DMcError(st.str());
+}
+
 void ImageLoadSave::LoadJPEG(const char *fname)
 {
 #define NUM_ROWS 16
@@ -934,10 +641,11 @@ void ImageLoadSave::LoadJPEG(const char *fname)
     FILE *infile;
     unsigned int y;
     JSAMPROW row_ptr[NUM_ROWS];
-
     if((infile = fopen(fname, "rb"))==NULL) throw DMcError("Can't open JPEG file " + string(fname));
 
     cinfo.err = jpeg_std_error(&jerr);
+    cinfo.err->output_message = JPEGError;
+
     jpeg_create_decompress(&cinfo);
 
     jpeg_stdio_src(&cinfo, infile);
@@ -978,6 +686,8 @@ void ImageLoadSave::SaveJPEG(const char *fname) const
     if((outfile = fopen(fname, "wb"))==NULL) throw DMcError("SaveJPEG() failed: can't write to " + string(fname));
 
     cinfo.err = jpeg_std_error(&jerr);
+    cinfo.err->output_message = JPEGError;
+
     jpeg_create_compress(&cinfo);
 
     jpeg_stdio_dest(&cinfo, outfile);
@@ -988,9 +698,9 @@ void ImageLoadSave::SaveJPEG(const char *fname) const
     cinfo.in_color_space = (chan==1) ? JCS_GRAYSCALE : JCS_RGB;
 
     jpeg_set_defaults(&cinfo);
+    jpeg_set_quality (&cinfo, 80, true);
 
     jpeg_start_compress(&cinfo, TRUE);
-
     for(y=0; y<hgt; y++) {
         row_ptr[0] = &Pix[y*wid*chan];
         jpeg_write_scanlines(&cinfo, row_ptr, 1);
@@ -1025,14 +735,21 @@ void ImageLoadSave::SaveJPEG(const char *fname) const
 #define NONE 1
 #define LEMPELZIV 5
 
+void TiffErrHand(const char *module, const char *fmt, va_list ap)
+{
+    char Err[1024];
+    sprintf(Err, fmt, ap);
+    throw DMcError(string(module) + string(Err));
+}
+
 void ImageLoadSave::LoadTIFF(const char *fname)
 {
     TIFF* tif; // tif file handler
 
-#ifdef DMC_DEBUG
-    cerr << "Attempting to open " << fname << " as TIFF.\n";
-    cerr << "TIFF version is " << TIFFGetVersion() << endl;
-#endif
+    TIFFSetErrorHandler(TiffErrHand);
+
+    if(Verbose) cerr << "Attempting to open " << fname << " as TIFF.\n";
+    if(Verbose) cerr << "TIFF version is " << TIFFGetVersion() << endl;
 
     tif = TIFFOpen(fname, "r");
     if(!tif) throw DMcError("Could not open TIFF file '" + string(fname) + "'.");
@@ -1047,144 +764,44 @@ void ImageLoadSave::LoadTIFF(const char *fname)
     TIFFGetField(tif, TIFFTAG_BITSPERSAMPLE, &bitspersample);
     bitspersample = bitspersample & 0xffff;
 
-#ifdef DMC_DEBUG
-    if(Verbose) cerr << "size=" << wid <<"x"<< hgt << " TIFFTAG_SAMPLESPERPIXEL=" << chan << endl;
-    int tmp = 0;
-    int bitspersample = 0;
-    cerr << "TIFFTAG_BITSPERSAMPLE " << bitspersample << endl;
-    TIFFGetField(tif, TIFFTAG_COMPRESSION, &tmp);
-    cerr << "TIFFTAG_COMPRESSION " << tmp << endl;
-    TIFFGetField(tif, TIFFTAG_PHOTOMETRIC, &tmp);
-    cerr << "TIFFTAG_PHOTOMETRIC " << tmp << endl;
-    TIFFGetField(tif, TIFFTAG_EXTRASAMPLES, &tmp);
-    cerr << "TIFFTAG_EXTRASAMPLES " << tmp << endl;
+    if(Verbose) {
+        cerr << "size=" << wid <<"x"<< hgt << endl;
+        cerr << "TIFFTAG_SAMPLESPERPIXEL=" << chan << endl;
+        int tmp = 0, tmp2 = 0;
+        TIFFGetField(tif, TIFFTAG_EXTRASAMPLES, &tmp, &tmp2);
+        cerr << "TIFFTAG_EXTRASAMPLES " << tmp << ": " << tmp2 << endl;
+        cerr << "TIFFTAG_BITSPERSAMPLE " << bitspersample << endl;
+        TIFFGetField(tif, TIFFTAG_COMPRESSION, &tmp);
+        cerr << "TIFFTAG_COMPRESSION " << tmp << endl;
+        TIFFGetField(tif, TIFFTAG_PHOTOMETRIC, &tmp);
+        cerr << "TIFFTAG_PHOTOMETRIC " << tmp << endl;
 
-    TIFFPrintDirectory(tif, stderr, 0);
-#endif
+        TIFFPrintDirectory(tif, stderr, 0);
+    }
 
     is_uint = false;
     is_ushort = false;
     is_float = false;
-    int bytespersample = bitspersample / 8;
     if(bitspersample == 32) is_float = true;
     if(bitspersample == 16) is_ushort = true;
 
+    // XXX How do we distinguish a uint from a float image?
     if(bitspersample > 16) throw DMcError("The TIFF library can save float TIFF, but not load them.");
 
-    // XXX How do we distinguish a uint from a float image?
-
-    // Loads the data into a 32-bit word for each pixel.
-    uint32 *ABGR = (uint32*) _TIFFmalloc(size() * bytespersample * 4); // buffer for image data
-    if(ABGR==NULL) throw DMcError("ABGR TIFFmalloc failed.");
-    if(!TIFFReadRGBAImage(tif, wid, hgt, ABGR, 0)) throw DMcError("TIFFReadRGBAImage failed.");
-
+    // Loads the data into a 32-bit word for each pixel, regardless of chan.
+    chan = 4;
     Pix = ImageAlloc();
+    if(!TIFFReadRGBAImage(tif, wid, hgt, (uint32 *) Pix, 0)) { throw DMcError("TIFFReadRGBAImage failed."); }
 
-    unsigned char *a = (unsigned char *) ABGR;
-    unsigned char *row;
-    int k, x;
 
-    // If it's not four channels, we need to pack it more tightly.
-    // Move forward through the returned data and backward through Pix.
-#ifdef DMC_LITTLE_ENDIAN
-    if(is_float) {
-        memcpy(Pix, ABGR, wid * hgt * chan * bytespersample);
-    } else
-        switch(chan) {
-case 1:
-    for (k=hgt-1; k>=0; k--) {
-        row = &Pix[k*wid];
-        for(x=0; x<wid; x++) {
-            row[x] = *a; a += 4;
-        }
+    if(Verbose) {
+        int dircount = 0;
+        do {
+            dircount++;
+        } while (TIFFReadDirectory(tif));
+        if(dircount > 1)
+            cerr << fname << "contains " << dircount << " directories!!!\n";
     }
-    break;
-case 2:
-    for (k=hgt-1; k>=0; k--) {
-        row = &Pix[k*wid*2];
-        for(x=0; x<2*wid; ) {
-            row[x++] = *(a+0);
-            row[x++] = *(a+3);
-            a += 4;
-        }
-    }
-    break;
-case 3:
-    for (k=hgt-1; k>=0; k--) {
-        row = &Pix[k*wid*3];
-        for(x=0; x<3*wid; ) {
-            row[x++] = *(a+0);
-            row[x++] = *(a+1);
-            row[x++] = *(a+2);
-            a += 4;
-        }
-    }
-    break;
-case 4:
-    for (k=hgt-1; k>=0; k--) {
-        row = &Pix[k*wid*4];
-        memcpy(row, a, wid*4);
-        a += wid*4;
-    }
-    break;
-    }
-#else
-    switch(chan) {
-case 1:
-    a += 3;
-    for (k=hgt-1; k>=0; k--) {
-        row = &Pix[k*wid];
-        for(x=0; x<wid; x++) {
-            row[x] = *a; a += 4;
-        }
-    }
-    break;
-case 2:
-    for (k=hgt-1; k>=0; k--) {
-        row = &Pix[k*wid*2];
-        for(x=0; x<2*wid; ) {
-            row[x++] = *(a+3);
-            row[x++] = *(a+0);
-            a += 4;
-        }
-    }
-    break;
-case 3:
-    for (k=hgt-1; k>=0; k--) {
-        row = &Pix[k*wid*3];
-        for(x=0; x<3*wid; ) {
-            row[x++] = *(a+3);
-            row[x++] = *(a+2);
-            row[x++] = *(a+1);
-            a += 4;
-        }
-    }
-    break;
-case 4:
-    for (k=hgt-1; k>=0; k--) {
-        row = &Pix[k*wid*4];
-        for(x=0; x<4*wid; ) {
-            row[x++] = *(a+3);
-            row[x++] = *(a+2);
-            row[x++] = *(a+1);
-            row[x++] = *(a);
-            a += 4;
-        }
-    }
-    break;
-    }
-#endif
-
-    _TIFFfree(ABGR);
-
-#ifdef DMC_DEBUG
-    int dircount = 0;
-    do {
-        dircount++;
-    } while (TIFFReadDirectory(tif));
-    if(dircount > 1)
-        cerr << "**** Contains " << dircount << " directories.\n";
-#endif
 
     TIFFClose(tif);
 }
@@ -1194,6 +811,8 @@ void ImageLoadSave::SaveTIFF(const char *fname) const
 {
     if(Pix==NULL || chan < 1 || wid < 1 || hgt < 1) throw DMcError("Image is not defined. Not saving.");
 
+    TIFFSetErrorHandler(TiffErrHand);
+
     TIFF *tif = TIFFOpen(fname, "w");
     if(tif==NULL) throw DMcError("TIFFOpen failed: " + string(fname));
 
@@ -1202,11 +821,11 @@ void ImageLoadSave::SaveTIFF(const char *fname) const
     else if(is_ushort) bitsperchan = 16;
     int bytesperchan = bitsperchan / 8;
 
+    // WARNING: It seems to have a problem with two-channel images. Am I setting things wrong, or what?
     TIFFSetField(tif, TIFFTAG_IMAGEWIDTH, wid);
     TIFFSetField(tif, TIFFTAG_IMAGELENGTH, hgt);
     TIFFSetField(tif, TIFFTAG_BITSPERSAMPLE, bitsperchan);
     TIFFSetField(tif, TIFFTAG_COMPRESSION, LEMPELZIV);
-    // TIFFSetField(tif, TIFFTAG_COMPRESSION, NONE);
     TIFFSetField(tif, TIFFTAG_PHOTOMETRIC, (chan > 2) ? PHOTOMETRIC_RGB : PHOTOMETRIC_MINISBLACK);
     TIFFSetField(tif, TIFFTAG_SAMPLESPERPIXEL, chan);
     TIFFSetField(tif, TIFFTAG_ORIENTATION, ORIENTATION_TOPLEFT);
@@ -1220,13 +839,12 @@ void ImageLoadSave::SaveTIFF(const char *fname) const
     if(chan==2 || chan==4)
         TIFFSetField(tif, TIFFTAG_EXTRASAMPLES, 1, &extyp);
 
-    unsigned char *c = Pix;
-
     // Write one row of the image at a time
+    unsigned char *c = Pix;
     for (int l = 0; l < hgt; l++) {
         if(TIFFWriteScanline(tif, c, l, 0) < 0) {
             TIFFClose(tif);
-             throw DMcError("TIFFWriteScanline failed: " + string(fname));
+            throw DMcError("TIFFWriteScanline failed: " + string(fname));
         }
         c += wid*chan*bytesperchan;
     }
@@ -1254,7 +872,8 @@ void ImageLoadSave::SaveTIFF(const char *fname) const
 
 #ifdef DMC_USE_PNG
 
-static double guess_display_gamma()
+namespace {
+double guess_display_gamma()
 {
     /* Try to guess a good value for the display exponent */
     /* Taken from rpng program by Greg Roelofs.
@@ -1322,6 +941,7 @@ static double guess_display_gamma()
 
     return display_exponent;
 }
+};
 
 // Read a PNG file.
 void ImageLoadSave::LoadPNG(const char *fname)
@@ -1525,7 +1145,7 @@ void ImageLoadSave::SavePNG(const char *fname) const
 #endif /* DMC_USE_PNG */
 
 //////////////////////////////////////////////////////
-// MAT File Format
+// Matlab MAT File Format
 
 #ifdef DMC_USE_MAT
 
@@ -1624,14 +1244,12 @@ void ImageLoadSave::SaveMAT(const char *fname) const
 //////////////////////////////////////////////////////
 // HDR (RGBE) File Format
 
-#ifdef DMC_USE_RGBE
-
 // Currently this loads and saves f3Images, not rgbeImages.
 // I will add this later.
-void ImageLoadSave::LoadHDR(const char* fname)
+void ImageLoadSave::LoadRGBE(const char* fname)
 {
     FILE *filep = fopen(fname, "rb");
-    if(filep == NULL) throw DMcError("LoadHDR: Unable to load HDR: " + string(fname));
+    if(filep == NULL) throw DMcError("LoadRGBE: Unable to load HDR: " + string(fname));
 
     int i, j, row;
     float exposure;
@@ -1639,15 +1257,15 @@ void ImageLoadSave::LoadHDR(const char* fname)
     /*a very basic RADIANCE pic file header */
     char line[1000];
     fgets(line, 1000, filep);
-    if(!strcmp(line, "#?RADIANCE")) throw DMcError("LoadHDR: Not a HDR file: " + string(fname));
+    if(!strcmp(line, "#?RADIANCE")) throw DMcError("LoadRGBE: Not a HDR file: " + string(fname));
 
     fgets(line, 1000, filep);
     fgets(line, 1000, filep);
     fscanf(filep, "EXPOSURE=%f\n", &exposure);
-    // cerr << "Reading HDR file with exposure " << exposure << endl;
+    if(Verbose) cerr << "Reading HDR file with exposure " << exposure << endl;
     //fgets(line, 1000, filep);
     fscanf(filep, "-Y %d +X %d\n", &hgt, &wid);
-    // cerr << wid << "x" << hgt << endl;
+    if(Verbose) cerr << wid << "x" << hgt << endl;
     is_uint = false;
     is_float = true;
     chan = 3;
@@ -1660,7 +1278,7 @@ void ImageLoadSave::LoadHDR(const char* fname)
 
     float invexp = 1.0f / exposure;
 
-    /* Convert separated channel representation to per pixel representation */
+    /* Convert RGBE representation to float,float,float representation */
     int k=0;
     float *P = (float *)Pix;
     for (row=0;row<hgt;row++) {
@@ -1683,15 +1301,15 @@ void ImageLoadSave::LoadHDR(const char* fname)
 // XXX Here's a global variable. It's totally evil. Use it to set the outgoing exposure.
 float DMcExposureGlobal = 1.0f;
 
-void ImageLoadSave::SaveHDR(const char* fname) const
+void ImageLoadSave::SaveRGBE(const char* fname) const
 {
     ASSERT_R(is_float && chan==3);
     ASSERT_R(Pix);
 
     FILE *filep = fopen(fname, "wb");
-    if(filep == NULL) throw DMcError("SaveHDR: Unable to save HDR: " + string(fname));
+    if(filep == NULL) throw DMcError("SaveRGBE: Unable to save HDR: " + string(fname));
 
-    char* comments = "no comment";
+    const char * comments = "no comment";
 
     /*Allocate enough space for one row of COLOR at a time */
     COLOR* oneRow;
@@ -1735,18 +1353,3 @@ void ImageLoadSave::SaveHDR(const char* fname) const
 
     if(Verbose) cerr << "Wrote out HDR file with exposure " << exposure << endl;
 }
-
-#else /* DMC_USE_RGBE */
-
-void ImageLoadSave::LoadHDR(const char *fname)
-{
-    throw DMcError("HDR Support not compiled in.");
-}
-
-void ImageLoadSave::SaveHDR(const char *fname) const
-{
-    throw DMcError("HDR Support not compiled in.");
-}
-
-#endif /* DMC_USE_RGBE */
-

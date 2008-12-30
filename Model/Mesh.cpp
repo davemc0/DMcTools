@@ -3,8 +3,8 @@
 //
 // Copyright David K. McAllister, Aug. 1999.
 
-#include <Model/Mesh.h>
-#include <Model/AElements.h>
+#include "Model/Mesh.h"
+#include "Model/AElements.h"
 
 #include <map>
 using namespace std;
@@ -42,14 +42,14 @@ Face *AFaceFactory()
 }
 
 // Return true if vector is bad.
-inline bool CheckVec(const Vector &V)
+DMC_INLINE bool CheckVec(const Vector &V)
 {
     double len2 = V.length2();
     return (len2 < 0.97 || len2 > 1.03 || !Finite(V.x) || !Finite(V.y) || !Finite(V.z));
 }
 
 // Return true if vector is bad.
-inline bool CompareVecs(const Vector &V0, const Vector &V1, double Eps = 1e-1)
+DMC_INLINE bool CompareVecs(const Vector &V0, const Vector &V1, double Eps = 1e-1)
 {
     Vector F = Abs(CompDiv(V0, V1) - 1.);
     //if( F.x>Eps || F.y>Eps || F.z>Eps)
@@ -363,7 +363,7 @@ void Mesh::ExportRenderObject(RenderObject &Ob, unsigned int AcceptedAttribs)
     // Copy the BaseObject values.
     *(BaseObject *)&Ob = *((BaseObject *)this);
     Ob.ObjectType = DMC_RENDER_OBJECT;
-    Ob.VertexType = VertexType & AcceptedAttribs | HAS_ATTRIBS;
+    Ob.VertexType = (VertexType & AcceptedAttribs) | HAS_ATTRIBS; // XXX Are parens in right place?
     Ob.EdgeType = HAS_ATTRIBS;
     Ob.FaceType = HAS_ATTRIBS;
 
@@ -514,7 +514,7 @@ void Mesh::FixFacing()
 }
 
 // Debug: See if all the vertices are inside the box.
-bool Mesh::CheckSize(const BBox &Box)
+bool Mesh::CheckSize(const BBox<Vector> &Box)
 {
     bool bad = false;
     for(Vertex *V = Verts; V; V = V->next) {
@@ -540,7 +540,7 @@ void Mesh::CheckIntegrity(const bool Slow)
 
         WARN_R((int)E->Faces.size() > 0, "Edge must have at least one face!");
         if((int)E->Faces.size() < 1 || (int)E->Faces.size() > 2)
-            fprintf(stderr, "Nonmanifold Edge: %d 0x%08x\n", (int)E->Faces.size(), (DMCINT64)(E));
+            fprintf(stderr, "Nonmanifold Edge: %d 0x%08llx\n", (int)E->Faces.size(), (DMCINT64) 0 /* (E) */);
 
         WARN_R(E->v0 != E->v1, "Edge with the same vertices!");
         WARN_R(E->v0 && E->v1, "Edge vertex pointer is NULL!");
@@ -1060,7 +1060,7 @@ void Mesh::GenTexCoords()
 }
 
 // Sometimes we get a bad tangent from all the vertices having the same U texcoord.
-inline Vector ComputeFaceTangent(const Vector &P1, const Vector &P2, const Vector &P3,
+DMC_INLINE Vector ComputeFaceTangent(const Vector &P1, const Vector &P2, const Vector &P3,
                          const Vector &T1, const Vector &T2, const Vector &T3, const Vector &N)
 {
     Vector Vec1 = P3 - P2;
@@ -1154,7 +1154,7 @@ void Mesh::RebuildBBox()
 
 void Mesh::ApplyTransform(Matrix44 &Mat)
 {
-    // XXX If this object is part of a model, the model bbox should also be recomuted.
+    // XXX If this object is part of a model, the model bbox should also be recomputed.
     Box.Reset();
 
     for(Vertex *V = Verts; V; V = V->next) {

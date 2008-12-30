@@ -3,7 +3,7 @@
 //
 // Copyright David K. McAllister, Dec. 2001.
 
-#include <Model/Model.h>
+#include "Model/Model.h"
 #include "Model/RenderObject.h"
 
 void RenderObject::Dump() const

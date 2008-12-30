@@ -3,13 +3,12 @@
 //
 // Copyright David K. McAllister, Feb. 2000.
 
-#ifndef _auint_h
-#define _auint_h
+#ifndef dmc_auint_h
+#define dmc_auint_h
 
 #include "toolconfig.h"
 
-#include <stdio.h>
-
+#include <cstdio>
 #include <vector>
 
 class auint
@@ -17,13 +16,13 @@ class auint
     std::vector<unsigned char> val;
 
 public:
-    inline auint()
+    DMC_INLINE auint()
     {
         val.resize(1);
         val[0] = 0;
     }
 
-    inline auint(int x)
+    DMC_INLINE auint(int x)
     {
         val.clear();
 
@@ -36,7 +35,7 @@ public:
             val.push_back(num[i] - '0');
     }
 
-    inline auint &operator+=(const auint &b)
+    DMC_INLINE auint &operator+=(const auint &b)
     {
         unsigned char carry = 0;
         for(int i=b.val.size()-1,j=val.size()-1; i>=0 || j>=0; i--,j--)
@@ -58,7 +57,7 @@ public:
         return *this;
     }
 
-    inline auint operator*(const auint &b) const
+    DMC_INLINE auint operator*(const auint &b) const
     {
         auint r;
         r.val.clear();
@@ -97,7 +96,7 @@ public:
     friend std::ostream& operator<<(std::ostream& os, const auint& v);
 };
 
-inline std::ostream& operator<<(std::ostream& os, const auint& v)
+DMC_INLINE std::ostream& operator<<(std::ostream& os, const auint& v)
 {
     for(int i=0; i< v.val.size(); i++)
         os << char(v.val[i] + '0');

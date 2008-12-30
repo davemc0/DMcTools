@@ -15,11 +15,11 @@
 #ifndef tri_object_h
 #define tri_object_h
 
-#include <Model/BaseObject.h>
+#include "Model/BaseObject.h"
 
 #include <vector>
 
-// Ripped directly from <GL/gl.h>
+// Ripped directly from "GL/gl.h"
 #define L_POINTS 0x0000
 #define L_LINES 0x0001
 #define L_LINE_LOOP 0x0002
@@ -42,7 +42,7 @@ struct TriObject : public BaseObject
     std::vector<Vector> dcolors; // Must have a length of 0, 1, or verts.size().
     std::vector<double> alphas; // Must have a length of 0 or dcolors.size().
 
-    inline TriObject()
+    DMC_INLINE TriObject()
     {
         // cerr << "Making TriObject.\n";
         PrimType = 4;

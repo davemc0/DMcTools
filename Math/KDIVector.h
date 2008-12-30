@@ -8,19 +8,19 @@
 
 // This class only works with KDItemTree.
 
-#ifndef _kd_ivector_h
-#define _kd_ivector_h
+#ifndef dmc_kd_ivector_h
+#define dmc_kd_ivector_h
 
-#include <Math/Vector.h>
-#include <Math/KDItemTree.h>
+#include "Math/Vector.h"
+#include "Math/KDItemTree.h"
 
-struct KDIVector : public Vector
+struct KDIVector : public f3Vector
 {
     // Might add things here like normal and coords in spherical map.
 
-    inline KDIVector() {}
+    DMC_INLINE KDIVector() {}
 
-    inline KDIVector(Vector _Vert) : Vector(_Vert) {}
+    DMC_INLINE KDIVector(const f3Vector &Vert) : f3Vector(Vert) {}
 };
 
 #endif

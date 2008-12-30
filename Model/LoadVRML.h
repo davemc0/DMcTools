@@ -3,12 +3,12 @@
 //
 // Copyright David K. McAllister, July 1999.
 
-#ifndef _readvrml_h
-#define _readvrml_h
+#ifndef dmc_loadvrml_h
+#define dmc_loadvrml_h
 
-#include <Model/TriObject.h>
+#include "Model/TriObject.h"
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #ifdef DMC_MACHINE_win
 // This gets alloca() for Bison.
@@ -79,7 +79,7 @@ extern void s_MaterialBinding(int Binding);
 
 extern void s_CreaseAngle(float);
 extern void s_OutputIndexedFaceSet();
-extern void s_Texture2_filename(char *);
+extern void s_Texture2_filename(const char *);
 extern void s_Info(char *);
 extern void s_Matrix(double *mat);
 extern void s_Center(Vector *);
@@ -110,6 +110,6 @@ extern void s_ObjHeight(float);
 extern void s_ObjDepth(float);
 extern void s_ObjRadius(float);
 
-extern void yyerror(char *s);
+extern void yyerror(const char *s);
 
 #endif

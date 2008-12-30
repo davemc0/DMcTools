@@ -3,13 +3,12 @@
 //
 // Copyright David K. McAllister, July 1999.
 
-#include <Model/Model.h>
-#include <Model/SaveVRML.h>
-#include <Model/AElements.h>
+#include "Model/Model.h"
+#include "Model/SaveVRML.h"
+#include "Model/AElements.h"
 
-#include <stdio.h>
-#include <string.h>
-
+#include <cstdio>
+#include <cstring>
 #include <map>
 
 using namespace std;
@@ -338,9 +337,9 @@ void WritableVRMLTriObject::writeIndices()
     }
 }
 
-void WritableVRMLTriObject::Write(FILE *_out, int ind)
+void WritableVRMLTriObject::Write(FILE *out_, int ind)
 {
-    out = _out;
+    out = out_;
     Ind = ind;
 
     indent(); fprintf(out, "Separator\n");
@@ -746,9 +745,9 @@ void WritableVRMLMesh::writeIndices()
     indent(); fprintf(out, "}\n\n");
 }
 
-void WritableVRMLMesh::Write(FILE *_out, int ind)
+void WritableVRMLMesh::Write(FILE *out_, int ind)
 {
-    out = _out;
+    out = out_;
     Ind = ind;
 
     indent(); fprintf(out, "Separator\n");

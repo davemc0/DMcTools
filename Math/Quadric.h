@@ -4,11 +4,11 @@
 // Changes Copyright David K. McAllister, Aug. 1999.
 // Originally written by Peter-Pike Sloan, 1997.
 
-#ifndef _quadric_h
-#define _quadric_h
+#ifndef dmc_quadric_h
+#define dmc_quadric_h
 
-#include <Math/Matrix44.h>
-#include <Math/Vector.h>
+#include "Math/Matrix44.h"
+#include "Math/Vector.h"
 
 // 3-Dimensional quadrics (x,y,z generally).
 // The matrix looks like this (w/respect to indices).
@@ -38,8 +38,7 @@
 struct Quadric3
 {
     // XXX I made it a float to save space.
-    // This doesn't affect the number of near-singular quadrics
-    // very much.
+    // This doesn't affect the number of near-singular quadrics very much.
     float vals[10];
 
     // XXX There are no constructors.
@@ -53,14 +52,14 @@ struct Quadric3
     // near-singular quadrics. Something like 1e-7.
     bool FindMin(Vector& p, double SingThresh = 0) const;
 
-    inline void zero()
+    DMC_INLINE void zero()
     {
         for(int i=0;i<10;i++)
             vals[i] = 0.0f;
     }
 
     // Generate the matrix associated with the quadric.
-    inline Matrix44 matrix44() const
+    DMC_INLINE Matrix44 matrix44() const
     {
         double mat[4][4];
         mat[0][0] = vals[0]; mat[0][1] = vals[4]; mat[0][2] = vals[5]; mat[0][3] = vals[6];
@@ -72,7 +71,7 @@ struct Quadric3
     }
 
     // Add 2 Quadric3s.
-    inline Quadric3 operator+(const Quadric3& q) const
+    DMC_INLINE Quadric3 operator+(const Quadric3& q) const
     {
         Quadric3 rval;
         for(int i=0; i<10; i++)
@@ -80,7 +79,7 @@ struct Quadric3
         return rval;
     }
 
-    inline Quadric3 operator+=(const Quadric3& q)
+    DMC_INLINE Quadric3 operator+=(const Quadric3& q)
     {
         for(int i=0; i<10; i++)
             vals[i] += q.vals[i];
@@ -89,7 +88,7 @@ struct Quadric3
 
     // Compute the outer product of this 4-vector with itself.
     // Used to generate a quadric representing a plane.
-    inline void DoSym(const double A, const double B, const double C, const double D)
+    DMC_INLINE void DoSym(const double A, const double B, const double C, const double D)
     {
         vals[0] = A*A;
         vals[1] = B*B;
@@ -106,13 +105,13 @@ struct Quadric3
         vals[9] = C*D;
     };
 
-    inline void DoSym(const Vector &N, const double D)
+    DMC_INLINE void DoSym(const Vector &N, const double D)
     {
         DoSym(N.x, N.y, N.z, D);
     }
 
     // Compute p * Q * p.
-    inline double MulPt(const Vector& p) const
+    DMC_INLINE double MulPt(const Vector& p) const
     {
         return ((p.x*p.x*vals[0] + p.y*p.y*vals[1] + p.z*p.z*vals[2] + vals[3] +
             2*p.x*p.y*vals[4] + 2*p.x*p.z*vals[5] + 2*p.y*p.z*vals[7] +
@@ -120,7 +119,7 @@ struct Quadric3
     }
 
     // Compute the 4-vector Q * p.
-    inline void MulVec(const Vector& p, double res[4]) const
+    DMC_INLINE void MulVec(const Vector& p, double res[4]) const
     {
         // Compute Qp
         res[0] = (p.x*vals[0] + p.y*vals[4] + p.z*vals[5] + vals[6]);
@@ -131,7 +130,7 @@ struct Quadric3
 
     // Using above equation, squared terms multiplied by v, rest by v/2
     // Compute Q' such that pQ'p = v * pQp
-    inline void Scale(double v)
+    DMC_INLINE void Scale(double v)
     {
         // Squared stuff.
         for(int i=0;i<10;i++)

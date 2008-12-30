@@ -6,12 +6,12 @@
 * 10/10/85
 */
 
-#include <stdio.h>
+#include "Util/Assert.h"
+#include "Image/RGBEio.h"
 
-#include <math.h>
+#include <cstdio>
+#include <cmath>
 #include <malloc.h>
-
-#include <Image/RGBEio.h>
 
 #define MINELEN 8 /* minimum scanline length for encoding */
 #define MAXELEN 0x7fff /* maximum scanline length for encoding */
@@ -183,7 +183,7 @@ int freadscan(COLOR *scanline, RGBE *clrscan, int len, FILE *fp) /* read in a sc
 }
 
 
-inline int setrgbe(RGBE rgbe,double r,double g,double b) /* assign a short color value */
+DMC_INLINE int setrgbe(RGBE rgbe,double r,double g,double b) /* assign a short color value */
 {
     double d;
     int e;
@@ -207,7 +207,7 @@ inline int setrgbe(RGBE rgbe,double r,double g,double b) /* assign a short color
 }
 
 
-inline int rgbe_color(COLOR col, RGBE rgbe) /* convert short to float color */
+DMC_INLINE int rgbe_color(COLOR col, RGBE rgbe) /* convert short to float color */
 {
     float f;
 

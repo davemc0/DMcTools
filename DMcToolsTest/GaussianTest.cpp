@@ -1,8 +1,9 @@
-#include <stdio.h>
-#include <math.h>
-#include <Math/MiscMath.h>
+#include "Math/MiscMath.h"
 
-int main()
+#include <cstdio>
+#include <cmath>
+
+bool GaussianTest(int argc, char **argv)
 {
     double sigma = 0.7;
     double r1s = sigma*sigma;
@@ -26,5 +27,5 @@ int main()
         printf("%f %f\n", x, gx);
     }
 
-    return 0;
+    return true;
 }

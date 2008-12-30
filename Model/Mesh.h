@@ -1,5 +1,5 @@
 //////////////////////////////////////////////////////////////////////
-// Mesh.h - Represent an object as a mesh.
+// Mesh.h - Represent a 3D geometric object as a mesh.
 //
 // Copyright David K. McAllister, Aug. 1999.
 //
@@ -13,11 +13,11 @@
 
 #define DMC_MESH_DEBUG
 
-#include <Model/MeshElements.h>
-#include <Model/KDVertex.h>
-#include <Math/KDBoxTree.h>
-#include <Model/TriObject.h>
-#include <Model/RenderObject.h>
+#include "Model/MeshElements.h"
+#include "Model/KDVertex.h"
+#include "Math/KDBoxTree.h"
+#include "Model/TriObject.h"
+#include "Model/RenderObject.h"
 
 #include <set>
 #include <vector>
@@ -41,7 +41,7 @@ struct Mesh : public BaseObject
 
     bool FacesAreFixed; // True when FixFacing() has been run and nothing has changed since then.
 
-    inline Mesh()
+    DMC_INLINE Mesh()
     {
         MeshMaxDist = 0;
         Verts = NULL;
@@ -53,7 +53,7 @@ struct Mesh : public BaseObject
     }
 
     // Make a Mesh from the given TriObject.
-    inline Mesh(const TriObject &M, Vertex *(*VF)()=NULL,
+    DMC_INLINE Mesh(const TriObject &M, Vertex *(*VF)()=NULL,
         Edge *(*EF)()=NULL, Face *(*FF)()=NULL)
     {
         ObjectType = DMC_MESH_OBJECT;
@@ -161,7 +161,7 @@ struct Mesh : public BaseObject
 
     // Makes sure the mesh is sane and counts everything, too.
     void CheckIntegrity(const bool Detailed = false);
-    bool CheckSize(const BBox &Box);
+    bool CheckSize(const BBox<Vector> &Box);
 
     /////////////////////////////////////////////////////////////////
     // The single-element interface.
@@ -169,7 +169,7 @@ struct Mesh : public BaseObject
     // Add the vertex without seeing if it already exists.
     // Doesn't make anything point to this vertex.
     // If the Vertex is really a subclass, make it yourself and pass it in.
-    inline Vertex *AddVertex(const Vector &Pos, Vertex *Ver = NULL)
+    DMC_INLINE Vertex *AddVertex(const Vector &Pos, Vertex *Ver = NULL)
     {
         if(Ver == NULL)
             Ver = new Vertex;
@@ -187,7 +187,7 @@ struct Mesh : public BaseObject
 
     // Makes the vertices point to this edge.
     // If the Edge is really a subclass, make it yourself and pass it in.
-    inline Edge *AddEdge(Vertex *v0, Vertex *v1, Edge *E = NULL)
+    DMC_INLINE Edge *AddEdge(Vertex *v0, Vertex *v1, Edge *E = NULL)
     {
         // Add the edge to the front.
         if(E == NULL)
@@ -209,7 +209,7 @@ struct Mesh : public BaseObject
 
     // Makes the edges and vertices point to this face.
     // If the Face is really a subclass, make it yourself and pass it in.
-    inline Face *AddFace(Vertex *v0, Vertex *v1, Vertex *v2, Edge *e0, Edge *e1, Edge *e2, Face *F = NULL)
+    DMC_INLINE Face *AddFace(Vertex *v0, Vertex *v1, Vertex *v2, Edge *e0, Edge *e1, Edge *e2, Face *F = NULL)
     {
         // Create the face.
         if(F == NULL)
@@ -239,7 +239,7 @@ struct Mesh : public BaseObject
         return F;
     }
 
-    inline Vertex *FindVertex(const Vector &V)
+    DMC_INLINE Vertex *FindVertex(const Vector &V)
     {
         Vertex Ver;
         Ver.V = V;
@@ -261,7 +261,7 @@ struct Mesh : public BaseObject
     // Returns NULL if the edge doesn't exist.
     Edge *FindEdge(Vertex *v0, Vertex *v1, Edge *(*EF)()=NULL);
 
-    inline void DeleteVertex(Vertex *V)
+    DMC_INLINE void DeleteVertex(Vertex *V)
     {
         if(V->next) {
             // Not list tail.

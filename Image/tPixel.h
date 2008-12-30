@@ -2,267 +2,283 @@
 // tPixel.h - Generic pixel class suitable for graphics and stuff.
 //
 // Copyright David K. McAllister, June 2001.
+// Renovated in March 2007.
 
-#ifndef _tPixel_h
-#define _tPixel_h
+#ifndef dmc_tPixel_h
+#define dmc_tPixel_h
 
-#include <Util/Assert.h>
-#include <Math/MiscMath.h>
-
-#ifdef DMC_USE_HALF_FLOAT
-#include <Half/half.h>
-#endif
+#include "Util/Assert.h"
+#include "Math/MiscMath.h"
+#include "Half/half.h"
 
 #include <iostream>
 #include <limits>
+#include <typeinfo>
 
+// Various things we need to know about the pixel elements types
+template <class Elem_T>
+struct element_traits
+{
+    typedef int MathType;        // For most channel types, do the math using signed int.
+    typedef float FloatMathType; // But sometimes even int types need float math, but not double.
+    static const bool normalized = true; // True for char and short. False otherwise.
+    static Elem_T one() { return std::numeric_limits<Elem_T>::max(); } // An intensity of 1.0 (it's either MAXINT or 1.0).
+};
+
+// For unsigned char and unsigned short the math type is a signed int, but for unsigned int we want it to be its own math type.
+template <>
+struct element_traits<unsigned int> {
+    typedef unsigned int MathType;
+    typedef float FloatMathType;
+    static const bool normalized = false;
+    static unsigned int one() { return 1; }
+};
+
+template <>
+struct element_traits<int> {
+    typedef int MathType;
+    typedef float FloatMathType;
+    static const bool normalized = false;
+    static int one() { return 1; }
+};
+
+template <>
+struct element_traits<half> {
+    typedef float MathType;
+    typedef float FloatMathType;
+    static const bool normalized = false;
+    static float one() { return 1; }
+};
+
+template <>
+struct element_traits<float> {
+    typedef float MathType;
+    typedef float FloatMathType;
+    static const bool normalized = false;
+    static float one() { return 1; }
+};
+
+template <>
+struct element_traits<double> {
+    typedef double MathType;
+    typedef double FloatMathType;
+    static const bool normalized = false;
+    static double one() { return 1; }
+};
+
+// Multiplication needs specialization for ints.
+template <class Elem_T>
+DMC_INLINE void mult_asgn(Elem_T &a, const Elem_T &b) { a *= b; }
+
+// Shamelessly copied from Alvy Ray Smith's Principles of Image Compositing
+template <>
+DMC_INLINE void mult_asgn<unsigned char>(unsigned char &a, const unsigned char &b)
+{
+    int t = int(a) * int(b) + 0x80;
+    a = (unsigned char)(((t>>8) + t) >> 8);
+}
+
+template <>
+DMC_INLINE void mult_asgn<unsigned short>(unsigned short &a, const unsigned short &b)
+{
+    int t = int(a) * int(b) + 0x8000;
+    a = (unsigned short)(((t>>16) + t) >> 16);
+}
+
+// Using basePixel has the problem that it can only be used with these six data types unless you change this class.
 class basePixel
 {
-    // I declared these static since they don't depend on member data.
-    // I was having trouble with them not being able to find a proper this.
+public:
+    // Convert pixel channel from In_T to Out_T.
+    // unsigned char and unsigned short use 0.X for N-bit fixed point. int is non-normalized (i.e., just an integer).
+    // Floating point map min -> max intensity to 0.0 -> 1.0, a la OpenGL.
+    // These float to int converts are slow without SSE, so make sure you TURN ON SSE.
+    // The float to int versions also do a Clamp().
+    template<class Out_T, class In_T>
+    static void channel_cast(Out_T &d, const In_T &s)
+    {
+        if(typeid(In_T) == typeid(Out_T)) // both are same: Simple assign
+            d = static_cast<Out_T>(s); // static_cast shouldn't be required but gcc complains.
+        else if(!element_traits<In_T>::normalized && !element_traits<Out_T>::normalized) // neither is normalized: Static cast
+            d = static_cast<Out_T>(s);
+        else if(!element_traits<Out_T>::normalized) // Normalized int to float (non-normalized): Scale
+            d = static_cast<Out_T>(s / static_cast<typename element_traits<Out_T>::FloatMathType>(element_traits<In_T>::one()));
+        else if(!element_traits<In_T>::normalized) // float (non-normalized) to normalized int: Scale and Clamp
+            d = static_cast<Out_T>(Clamp<In_T>(0, s * static_cast<In_T>(element_traits<Out_T>::one()), static_cast<In_T>(element_traits<Out_T>::one())));
+        else if(std::numeric_limits<In_T>::digits < std::numeric_limits<Out_T>::digits) { // both are integer: Complicated shift. Use specializations.
+            ASSERT_R(0); // Should only arrive here with signed ints. Not yet implemented.
+        }
+    }
 
-    // This technique has the problem that it can only be used with these
-    // six data types unless you change this class. I believe that's only
-    // true if you depend on the pixel type casting operators in the tPixelN
-    // derived classes. We'll see. What about a five-channel image?
-
-    public:
-    // Convert to type d from type s for pixels.
-    // This encodes the assumptions of 0.X for N-bit fixed point.
-    // Float and double map min -> max intensity to 0.0 -> 1.0, a la OpenGL.
-    // These float to int converts are slow without SSE, so turn on SSE.
-    // The float to int also do a Clamp.
-
-    static void channel_cast(unsigned char &d, const unsigned char &s) {d = s;}
-    static void channel_cast(unsigned short &d, const unsigned char &s) {unsigned short t=s; d=(t<<8)|t;}
-    static void channel_cast(unsigned int &d, const unsigned char &s) {unsigned int t=s; d=(t<<24)|(t<<16)|(t<<8)|t;}
-    static void channel_cast(half &d, const unsigned char &s) {d = s/float(0xff);}
-    static void channel_cast(float &d, const unsigned char &s) {d = s/float(0xff);}
-    static void channel_cast(double &d, const unsigned char &s) {d = s/double(0xff);}
-
-    static void channel_cast(unsigned char &d, const unsigned short &s) {d = ((s>>7)+1)>>1;}
-    static void channel_cast(unsigned short &d, const unsigned short &s) {d = s;}
-    static void channel_cast(unsigned int &d, const unsigned short &s) {unsigned int t=s; d=(t<<16)|t;}
-    static void channel_cast(half &d, const unsigned short &s) {d = s/float(0xffff);}
-    static void channel_cast(float &d, const unsigned short &s) {d = s/float(0xffff);}
-    static void channel_cast(double &d, const unsigned short &s) {d = s/double(0xffff);}
-
-    static void channel_cast(unsigned char &d, const unsigned int &s) {d = ((s>>23)+1)>>1;}
-    static void channel_cast(unsigned short &d, const unsigned int &s) {d = ((s>>15)+1)>>1;}
-    static void channel_cast(unsigned int &d, const unsigned int &s) {d = s;}
-    static void channel_cast(half &d, const unsigned int &s) {d = s/double(0xffffffff);}
-    static void channel_cast(float &d, const unsigned int &s) {d = s/double(0xffffffff);}
-    static void channel_cast(double &d, const unsigned int &s) {d = s/double(0xffffffff);}
-
-    static void channel_cast(unsigned char &d, const float &s) {d = (unsigned char)Clamp(0.0f,s*float(0xff),float(0xff));}
-    static void channel_cast(unsigned short &d, const float &s) {d = (unsigned short)Clamp(0.0f,s*float(0xffff),float(0xffff));}
-    static void channel_cast(unsigned int &d, const float &s) {d = (unsigned int)Clamp(0.0,s*double(0xffffffff),double(0xffffffff));}
-    static void channel_cast(half &d, const float &s) {d = half(s);}
-    static void channel_cast(float &d, const float &s) {d = s;}
-    static void channel_cast(double &d, const float &s) {d = double(s);}
-
-    static void channel_cast(unsigned char &d, const half &s) {d = (unsigned char)Clamp(0.0f,float(s)*float(0xff),float(0xff));}
-    static void channel_cast(unsigned short &d, const half &s) {d = (unsigned short)Clamp(0.0f,float(s)*float(0xffff),float(0xffff));}
-    static void channel_cast(unsigned int &d, const half &s) {d = (unsigned int)Clamp(0.0,s*double(0xffffffff),double(0xffffffff));}
-    static void channel_cast(half &d, const half &s) {d = s;}
-    static void channel_cast(float &d, const half &s) {d = float(s);}
-    static void channel_cast(double &d, const half &s) {d = double(s);}
-
-    static void channel_cast(unsigned char &d, const double &s) {d = (unsigned char)Clamp(0.0,s*double(0xff),double(0xff));}
-    static void channel_cast(unsigned short &d, const double &s) {d = (unsigned short)Clamp(0.0,s*double(0xffff),double(0xffff));}
-    static void channel_cast(unsigned int &d, const double &s) {d = (unsigned int)Clamp(0.0,s*double(0xffffffff),double(0xffffffff));}
-    static void channel_cast(half &d, const double &s) {d = half(s);}
-    static void channel_cast(float &d, const double &s) {d = float(s);}
-    static void channel_cast(double &d, const double &s) {d = s;}
-
-    // Return the maximum pixel value for this data type.
-    // It takes an unused input value since we can't key off return type in MSVC.
-    // These values are a la OpenGL.
-
-    static unsigned char channel_max(unsigned char) {return 0xff;}
-    static unsigned short channel_max(unsigned short) {return 0xffff;}
-    static unsigned int channel_max(unsigned int) {return 0xffffffff;}
-    static float channel_max(float) {return 1.0f;}
-    static double channel_max(double) {return 1.0;}
-
-    // These are Rec. 709 (HDTV)
-    // #define LUM_RF 0.212671
-    // #define LUM_GF 0.715160
-    // #define LUM_BF 0.072169
-
-    // These are NTSC
-    // #define LUM_RF 0.2904
-    // #define LUM_GF 0.6051
-    // #define LUM_BF 0.1045
-
+    // These are Rec. 709 (HDTV): 0.212671, 0.715160, 0.072169
+    // These are NTSC: 0.2904, 0.6051, 0.1045
     // These are Trinitron
 #define LUM_RF 0.2582
 #define LUM_GF 0.6566
 #define LUM_BF 0.0851
 
-    static unsigned char _doLum(const unsigned char r, const unsigned char g, const unsigned char b)
+    static unsigned char doLum(const unsigned char r, const unsigned char g, const unsigned char b)
     {
         unsigned short wr, wg, wb;
         channel_cast(wr, LUM_RF); channel_cast(wg, LUM_GF); channel_cast(wb, LUM_BF);
         return (unsigned char)((r*(unsigned int)(wr) + g*(unsigned int)(wg) + b*(unsigned int)(wb)) >> 16);
     }
-    static unsigned short _doLum(const unsigned short r, const unsigned short g, const unsigned short b)
+    static unsigned short doLum(const unsigned short r, const unsigned short g, const unsigned short b)
     {
         unsigned short wr, wg, wb;
         channel_cast(wr, LUM_RF); channel_cast(wg, LUM_GF); channel_cast(wb, LUM_BF);
         return (unsigned short)((r*(unsigned int)(wr) + g*(unsigned int)(wg) + b*(unsigned int)(wb)) >> 16);
     }
-    static unsigned int _doLum(const unsigned int r, const unsigned int g, const unsigned int b)
+    static unsigned int doLum(const unsigned int r, const unsigned int g, const unsigned int b)
     {
         unsigned short wr, wg, wb;
         channel_cast(wr, LUM_RF); channel_cast(wg, LUM_GF); channel_cast(wb, LUM_BF);
         return ((r>>17)*(unsigned int)(wr) + (g>>17)*(unsigned int)(wg) + (b>>17)*(unsigned int)(wb)) << 1;
     }
-    static float _doLum(const float r, const float g, const float b)
+    static float doLum(const float r, const float g, const float b)
     {
-        float wr=LUM_RF, wg=LUM_GF, wb=LUM_BF;
+        float wr=float(LUM_RF), wg=float(LUM_GF), wb=float(LUM_BF);
         return r*wr + g*wg + b*wb;
     }
-    static double _doLum(const double r, const double g, const double b)
+    static double doLum(const double r, const double g, const double b)
     {
         double wr=LUM_RF, wg=LUM_GF, wb=LUM_BF;
         return r*wr + g*wg + b*wb;
     }
 };
 
-template<class _ElType, int _Chan>
+template <> DMC_INLINE void basePixel::channel_cast(unsigned char &d, const unsigned short &s) {d = ((s>>7)+1)>>1;}
+template <> DMC_INLINE void basePixel::channel_cast(unsigned short &d, const unsigned char &s) {unsigned short t=s; d=(t<<8)|t;}
+
+template<class Elem_T, int Chan_>
 class tPixel : public basePixel
-// Subclassing this didn't work on SGI because it adds an extra element to the sizeof the pixel. Bleh!
 {
-    _ElType els[_Chan]; // This is the data of the pixel.
+    Elem_T els[Chan_]; // This is the data of the pixel.
 
 public:
-    // This is only used when passing the number of channels in this pixel
-    // as a template argument. Normally use chan().
-    enum {Chan = _Chan};
-    typedef _ElType ElType; // The type of an element of the pixel.
-    // The type to use for intermediate math results.
-    // Should be specialized for each kind.
-    // XXX How do I specialize this?
-    typedef double MathType;
+    typedef Elem_T ElType; // The type of an element of the pixel.
+    typedef typename element_traits<Elem_T>::MathType MathType; // The type to use for most intermediate math results
+    typedef typename element_traits<Elem_T>::FloatMathType FloatMathType; // The type to use for intermediate math results that must be float
+
+    typedef tPixel<typename element_traits<Elem_T>::MathType, Chan_> MathPixType; // The type to use for most intermediate pixel math
+    typedef tPixel<typename element_traits<Elem_T>::FloatMathType, Chan_> FloatMathPixType; // The type to use for intermediate pixel math that must be float
+
+    static const int Chan = Chan_;
+    static const bool is_integer = std::numeric_limits<Elem_T>::is_integer; // True if the elements are not floating point.
+    static const bool is_signed = std::numeric_limits<Elem_T>::is_signed; // True if the elements are signed (all except unsigned char, unsigned short, unsigned int).
 
     //////////////////////////////////////////////////////////////////////
     // Constructors
 
-    // Default constructor.
-    tPixel() {//cerr << "base def" << _Chan << endl;
+    // Need constructor from pointer to array of elements
+
+    tPixel() {}
+    // ~tPixel() {} // The existence of the destructor causes functions that return a pixel to not get inlined in MSVC 8. Huge performance problem.
+
+    // Construct from any value replicated across all channels
+    tPixel(const Elem_T e0)
+    {
+        for(int i=0; i<Chan_; i++) (*this)[i] = e0;
     }
 
-    // Initialize all channels to value s.
-    tPixel(const double &s)
+    // Construct from a list of elements.
+    tPixel(const Elem_T e0, const Elem_T e1, const Elem_T e2, const Elem_T e3 = std::numeric_limits<Elem_T>::max())
     {
-        //cerr << "base repl" << _Chan << endl;
-        for(int i=0; i<chan(); i++) els[i] = _ElType(s);
+        (*this)[0] = e0;
+        if(Chan_>1) (*this)[1] = e1;
+        if(Chan_>2) (*this)[2] = e2;
+        if(Chan_>3) (*this)[3] = e3;
     }
 
-    // Copy constructor.
-    tPixel(const tPixel<_ElType,_Chan> &p)
+    // Construct a tPixel from any other tPixel
+    // When src is 3 or 4 channels, we channel-wise copy, except when src=3, dst=4 we set alpha to 1.0.
+    // When src is 1 or 2 channels, we replicate channel 0, except for src=2, dst=2 we channel-wise copy.
+    template<class SrcEl_T, int SrcCh_>
+    tPixel(const tPixel<SrcEl_T, SrcCh_> &s)
     {
-        //cerr << "base cp" << _Chan << endl;
-        for(int i=0; i<chan(); i++) els[i] = p[i];
-    }
-
-    // Copy assignment.
-    tPixel<_ElType,_Chan> &operator=(const tPixel<_ElType,_Chan> &p)
-    {
-        //cerr << "op=" << _Chan << endl;
-        if(this != &p) {
-            for(int i=0; i<chan(); i++) els[i] = p[i];
+        // std::cerr << "tPixel Copy " << SrcCh_ << "->" << Chan_ << std::endl;
+        if(SrcCh_==1 || (SrcCh_==2 && Chan_!=2)) {
+            for(int i=0; i<Chan_; i++) channel_cast((*this)[i], s[0]); // Replicate channel 0
+        } else {
+            if(SrcCh_==3 && Chan_==4) {
+                for(int i=0; i<3; i++) channel_cast((*this)[i], s[i]);
+                (*this)[3] = element_traits<Elem_T>::one(); // Set alpha to 1.0.
+            } else {
+                for(int i=0; i<SrcCh_ && i<Chan_; i++) channel_cast((*this)[i], s[i]); // Channel-wise copy
+            }
         }
-        return *this;
-    }
-
-    // Destructor.
-    ~tPixel() {//cerr << "base ~" << _Chan << endl;
     }
 
     //////////////////////////////////////////////////////////////////////
     // Access functions
 
     // Return an element of this pixel.
-    _ElType &operator[](int p)
+    Elem_T &operator[](int p)
     {
-        ASSERT_D(p >= 0 && p < _Chan);
+        ASSERT_D(p >= 0 && p < Chan_);
         return els[p];
     }
 
     // Return a const element of this pixel.
-    const _ElType &operator[](int p) const
+    const Elem_T &operator[](int p) const
     {
-        ASSERT_D(p >= 0 && p < _Chan);
+        ASSERT_D(p >= 0 && p < Chan_);
         return els[p];
     }
 
-    operator _ElType() { ASSERT_R(0); }
-    operator _ElType() const { ASSERT_R(0); }
-#if 0
-    // cast operator to array of _ElType
-    operator _ElType*()
+    // Convert channel 0 to Elem_T.
+    // There are specializations for the one-channel tPixel classes.
+    operator Elem_T() const
     {
-        return (_ElType *)this;
+        ASSERT_DM(0, "Tried operator Elem_T() with more than one channel");
+        return 0;
     }
 
-    // cast operator to array of const _ElType
-    operator const _ElType*() const
-    {
-        return (_ElType *)this;
-    }
-#endif
+    // These are defined even for pixels with too few channels to work. Need error checking.
+    // Writable.
+    Elem_T &r() { return (*this)[0];}
+    Elem_T &g() { ASSERT_D(Chan_>1); return (*this)[1];}
+    Elem_T &b() { ASSERT_D(Chan_>2); return (*this)[2];}
+    Elem_T &a() { ASSERT_D(Chan_>3); return (*this)[3];}
+
+    // Read-only.
+    Elem_T r() const { return (*this)[0];}
+    Elem_T g() const { ASSERT_D(Chan_>1); return (*this)[1];}
+    Elem_T b() const { ASSERT_D(Chan_>2); return (*this)[2];}
+    Elem_T a() const { ASSERT_D(Chan_>3); return (*this)[3];}
 
     //////////////////////////////////////////////////////////////////////
     // Utility functions
 
-    // Return the number of channels in this pixel.
-    static int chan()
+    // Return the luminance of the r, g, b components
+    Elem_T luminance() const
     {
-        // static because it doesn't access this.
-        // That's why there's no const afterwards.
-        return _Chan;
-    }
-
-    // True if the elements are not floating point.
-    static bool is_integer()
-    {
-        // static because it doesn't access this.
-        // That's why there's no const afterwards.
-        return std::numeric_limits<_ElType>::is_integer;
-    }
-
-    // True if the elements are signed (all except unsigned char,unsigned short,unsigned int).
-    static bool is_signed()
-    {
-        // static because it doesn't access this.
-        // That's why there's no const afterwards.
-        return std::numeric_limits<_ElType>::is_signed;
+        ASSERT_D(Chan_ >= 3);
+        return doLum(r(), g(), b());
     }
 
     // Return the maximum channel value.
-    _ElType max_chan() const
+    Elem_T max_chan() const
     {
-        _ElType cmax = els[0];
-        for(int i=1; i<chan(); i++) cmax = Max(cmax, els[i]);
+        Elem_T cmax = els[0];
+        for(int i=1; i<Chan_; i++) cmax = (Elem_T) std::max(cmax, els[i]);
         return cmax;
     }
 
     // Return the minimum channel value.
-    _ElType min_chan() const
+    Elem_T min_chan() const
     {
-        _ElType cmin = els[0];
-        for(int i=1; i<chan(); i++) cmin = Min(cmin, els[i]);
+        Elem_T cmin = els[0];
+        for(int i=1; i<Chan_; i++) cmin = (Elem_T) std::min(cmin, els[i]);
         return cmin;
     }
 
     // Returns the sum of all the channels.
     // WARNING: This may not be what you want for alpha.
-    _ElType sum_chan() const
+    Elem_T sum_chan() const
     {
-        _ElType csum = 0;
-        for(int i=0; i<chan(); i++) csum += els[i];
+        Elem_T csum = 0;
+        for(int i=0; i<Chan_; i++) csum += els[i];
         return csum;
     }
 
@@ -271,289 +287,317 @@ public:
 
     // With a pixel, with assign
 
-    tPixel<_ElType,_Chan> &operator+=(const tPixel<_ElType,_Chan> &p)
+    tPixel<Elem_T, Chan_> &operator+=(const tPixel<Elem_T, Chan_> &p)
     {
-        for(int i=0; i<chan(); i++) els[i] += p[i];
+        for(int i=0; i<Chan_; i++) els[i] += p[i];
         return *this;
     }
-    tPixel<_ElType,_Chan> &operator-=(const tPixel<_ElType,_Chan> &p)
+    tPixel<Elem_T, Chan_> &operator-=(const tPixel<Elem_T, Chan_> &p)
     {
-        for(int i=0; i<chan(); i++) els[i] -= p[i];
+        for(int i=0; i<Chan_; i++) els[i] -= p[i];
         return *this;
     }
-    tPixel<_ElType,_Chan> &operator*=(const tPixel<_ElType,_Chan> &p)
+    tPixel<Elem_T, Chan_> &operator*=(const tPixel<Elem_T, Chan_> &p)
     {
-        for(int i=0; i<chan(); i++) els[i] *= p[i];
+        for(int i=0; i<Chan_; i++) mult_asgn(els[i], p[i]);
         return *this;
     }
-    tPixel<_ElType,_Chan> &operator/=(const tPixel<_ElType,_Chan> &p)
+    tPixel<Elem_T, Chan_> &operator/=(const tPixel<Elem_T, Chan_> &p)
     {
-        for(int i=0; i<chan(); i++) els[i] /= p[i];
+        for(int i=0; i<Chan_; i++) els[i] /= p[i];
         return *this;
     }
 
     // With a constant, with assign
     // Can't template the scalar because it tries to route pixels into it. Bummer.
 
-    tPixel<_ElType,_Chan> &operator+=(const _ElType s)
+    tPixel<Elem_T, Chan_> &operator+=(const Elem_T s)
     {
-        for(int i=0; i<chan(); i++) els[i] += s;
+        for(int i=0; i<Chan_; i++) els[i] += s;
         return *this;
     }
-    tPixel<_ElType,_Chan> &operator-=(const _ElType s)
+    tPixel<Elem_T, Chan_> &operator-=(const Elem_T s)
     {
-        for(int i=0; i<chan(); i++) els[i] -= s;
+        for(int i=0; i<Chan_; i++) els[i] -= s;
         return *this;
     }
-    tPixel<_ElType,_Chan> &operator*=(const _ElType s)
+    tPixel<Elem_T, Chan_> &operator*=(const Elem_T s)
     {
-        for(int i=0; i<chan(); i++) els[i] *= s;
+        for(int i=0; i<Chan_; i++) mult_asgn(els[i], s);
         return *this;
     }
-    tPixel<_ElType,_Chan> &operator/=(const _ElType s)
+    tPixel<Elem_T, Chan_> &operator/=(const Elem_T s)
     {
-        for(int i=0; i<chan(); i++) els[i] /= s;
+        for(int i=0; i<Chan_; i++) els[i] /= s;
         return *this;
     }
 };
 
+// Specializations to convert channel 0 to Elem_T.
+template<> DMC_INLINE tPixel<unsigned char, 1>::operator unsigned char() const { return els[0]; }
+template<> DMC_INLINE tPixel<unsigned short, 1>::operator unsigned short() const { return els[0]; }
+template<> DMC_INLINE tPixel<unsigned int, 1>::operator unsigned int() const { return els[0]; }
+template<> DMC_INLINE tPixel<half, 1>::operator half() const { return els[0]; }
+template<> DMC_INLINE tPixel<float, 1>::operator float() const { return els[0]; }
+template<> DMC_INLINE tPixel<double, 1>::operator double() const { return els[0]; }
+
 // Apply an arbitrary function to each channel.
-template<class _ElType, int _Chan, class _Pred>
-tPixel<_ElType, _Chan> func(const tPixel<_ElType, _Chan> &p, _Pred _fnc)
+template<class Elem_T, int Chan_, class Pred_F>
+DMC_INLINE tPixel<Elem_T, Chan_> func(const tPixel<Elem_T, Chan_> &p, Pred_F fnc)
 {
-    tPixel<_ElType,_Chan> r;
-    for(int i=0; i<_Chan; i++) r[i] = _fnc(p[i]);
+    tPixel<Elem_T, Chan_> r;
+    for(int i=0; i<Chan_; i++) r[i] = fnc(p[i]);
     return r;
 }
 
-// Unary minus.
-template<class _ElType, int _Chan>
-tPixel<_ElType,_Chan> operator-(const tPixel<_ElType,_Chan> &p)
+// Unary minus, channel-wise.
+template<class Elem_T, int Chan_>
+DMC_INLINE tPixel<Elem_T, Chan_> operator-(const tPixel<Elem_T, Chan_> &p)
 {
-    tPixel<_ElType,_Chan> r;
-    for(int i=0; i<_Chan; i++) r[i] = -p[i];
+    ASSERT_D(!(tPixel<Elem_T, Chan_>::is_signed));
+    tPixel<Elem_T, Chan_> r;
+    for(int i=0; i<Chan_; i++) r[i] = -p[i];
     return r;
 }
 
-// Less than.
-// Compares sum of the two pixels.
-template<class _ElType, int _Chan>
-bool operator<(const tPixel<_ElType,_Chan> &p1, const tPixel<_ElType,_Chan> &p2)
-{
-    _ElType s1 = p1.sum_chan();
-    _ElType s2 = p2.sum_chan();
-    return s1 < s2;
-}
-
-// Less than.
-// Compares sum of the two pixels.
-template<class _ElType, int _Chan>
-bool operator<=(const tPixel<_ElType,_Chan> &p1, const tPixel<_ElType,_Chan> &p2)
-{
-    _ElType s1 = p1.sum_chan();
-    _ElType s2 = p2.sum_chan();
-    return s1 <= s2;
-}
-
-// Less than. True if all components are less than a constant.
-template<class _ElType, int _Chan, class _InElType>
-bool operator<(const tPixel<_ElType,_Chan> &p, const _InElType &s)
-{
-    bool ls = true;
-    for(int i=0; i<_Chan; i++) ls = ls && (p[i] < _ElType(s));
-    return ls;
-}
-
-// Equal.
-// Doesn't use epsilon. WARNING: This is a different metric
-// than used by less_than, so it may screw up sorts.
-template<class _ElType, int _Chan>
-bool operator==(const tPixel<_ElType,_Chan> &p1, const tPixel<_ElType,_Chan> &p2)
+// Equal. Doesn't use epsilon.
+template<class Elem_T, int Chan_>
+DMC_INLINE bool operator==(const tPixel<Elem_T, Chan_> &p1, const tPixel<Elem_T, Chan_> &p2)
 {
     bool eq = true;
     // Don't terminate early so that optimization will work better.
-    for(int i=0; i<_Chan; i++) eq = eq && (p1[i] == p2[i]);
+    for(int i=0; i<Chan_; i++) eq = eq && (p1[i] == p2[i]);
     return eq;
 }
 
-// Not equal.
-// Doesn't use epsilon. WARNING: This is a different metric
-// than used by less_than, so it may screw up sorts.
-template<class _ElType, int _Chan>
-bool operator!=(const tPixel<_ElType,_Chan> &p1, const tPixel<_ElType,_Chan> &p2)
+// Not Equal. Doesn't use epsilon.
+template<class Elem_T, int Chan_>
+DMC_INLINE bool operator!=(const tPixel<Elem_T, Chan_> &p1, const tPixel<Elem_T, Chan_> &p2)
 {
     return !(p1 == p2);
 }
 
 // With two pixels
-template<class _ElType, int _Chan>
-tPixel<_ElType,_Chan> operator+(const tPixel<_ElType,_Chan> &p1, const tPixel<_ElType,_Chan> &p2)
+template<class Elem_T, int Chan_>
+DMC_INLINE tPixel<Elem_T, Chan_> operator+(const tPixel<Elem_T, Chan_> &p1, const tPixel<Elem_T, Chan_> &p2)
 {
-    tPixel<_ElType,_Chan> r = p1;
+    tPixel<Elem_T, Chan_> r = p1;
     return r += p2;
 }
-template<class _ElType, int _Chan>
-tPixel<_ElType,_Chan> operator-(const tPixel<_ElType,_Chan> &p1, const tPixel<_ElType,_Chan> &p2)
+template<class Elem_T, int Chan_>
+DMC_INLINE tPixel<Elem_T, Chan_> operator-(const tPixel<Elem_T, Chan_> &p1, const tPixel<Elem_T, Chan_> &p2)
 {
-    tPixel<_ElType,_Chan> r = p1;
+    tPixel<Elem_T, Chan_> r = p1;
     return r -= p2;
 }
-template<class _ElType, int _Chan>
-tPixel<_ElType,_Chan> operator*(const tPixel<_ElType,_Chan> &p1, const tPixel<_ElType,_Chan> &p2)
+template<class Elem_T, int Chan_>
+DMC_INLINE tPixel<Elem_T, Chan_> operator*(const tPixel<Elem_T, Chan_> &p1, const tPixel<Elem_T, Chan_> &p2)
 {
-    tPixel<_ElType,_Chan> r = p1;
+    tPixel<Elem_T, Chan_> r = p1;
     return r *= p2;
 }
-template<class _ElType, int _Chan>
-tPixel<_ElType,_Chan> operator/(const tPixel<_ElType,_Chan> &p1, const tPixel<_ElType,_Chan> &p2)
+template<>
+DMC_INLINE tPixel<float, 1> operator*(const tPixel<float, 1> &p1, const tPixel<float, 1> &p2)
 {
-    tPixel<_ElType,_Chan> r = p1;
+    tPixel<float, 1> r(p1[0] * p2[0]);
+    return r;
+}
+template<class Elem_T, int Chan_>
+DMC_INLINE tPixel<Elem_T, Chan_> operator/(const tPixel<Elem_T, Chan_> &p1, const tPixel<Elem_T, Chan_> &p2)
+{
+    tPixel<Elem_T, Chan_> r = p1;
     return r /= p2;
 }
 
 // With a left scalar
-template<class _ElType, int _Chan>
-tPixel<_ElType,_Chan> operator+(const _ElType &s, const tPixel<_ElType,_Chan> &p)
+template<class Elem_T, int Chan_>
+DMC_INLINE tPixel<Elem_T, Chan_> operator+(const Elem_T &s, const tPixel<Elem_T, Chan_> &p)
 {
-    tPixel<_ElType,_Chan> r = s;
+    tPixel<Elem_T, Chan_> r = s;
     return r += p;
 }
-template<class _ElType, int _Chan>
-tPixel<_ElType,_Chan> operator-(const _ElType &s, const tPixel<_ElType,_Chan> &p)
+template<class Elem_T, int Chan_>
+DMC_INLINE tPixel<Elem_T, Chan_> operator-(const Elem_T &s, const tPixel<Elem_T, Chan_> &p)
 {
-    tPixel<_ElType,_Chan> r = s;
+    tPixel<Elem_T, Chan_> r = s;
     return r -= p;
 }
-template<class _ElType, int _Chan>
-tPixel<_ElType,_Chan> operator*(const _ElType &s, const tPixel<_ElType,_Chan> &p)
+template<class Elem_T, int Chan_>
+DMC_INLINE tPixel<Elem_T, Chan_> operator*(const Elem_T &s, const tPixel<Elem_T, Chan_> &p)
 {
-    tPixel<_ElType,_Chan> r = s;
+    tPixel<Elem_T, Chan_> r = s;
     return r *= p;
 }
-template<class _ElType, int _Chan>
-tPixel<_ElType,_Chan> operator/(const _ElType &s, const tPixel<_ElType,_Chan> &p)
+template<class Elem_T, int Chan_>
+DMC_INLINE tPixel<Elem_T, Chan_> operator/(const Elem_T &s, const tPixel<Elem_T, Chan_> &p)
 {
-    tPixel<_ElType,_Chan> r = s;
+    tPixel<Elem_T, Chan_> r = s;
     return r /= p;
 }
 
 // With a right scalar
-template<class _ElType, int _Chan>
-tPixel<_ElType,_Chan> operator+(const tPixel<_ElType,_Chan> &p, const _ElType &s)
+template<class Elem_T, int Chan_>
+DMC_INLINE tPixel<Elem_T, Chan_> operator+(const tPixel<Elem_T, Chan_> &p, const Elem_T &s)
 {
-    tPixel<_ElType,_Chan> r = p;
+    tPixel<Elem_T, Chan_> r = p;
     return r += s;
 }
-template<class _ElType, int _Chan>
-tPixel<_ElType,_Chan> operator-(const tPixel<_ElType,_Chan> &p, const _ElType &s)
+template<class Elem_T, int Chan_>
+DMC_INLINE tPixel<Elem_T, Chan_> operator-(const tPixel<Elem_T, Chan_> &p, const Elem_T &s)
 {
-    tPixel<_ElType,_Chan> r = p;
+    tPixel<Elem_T, Chan_> r = p;
     return r -= s;
 }
-template<class _ElType, int _Chan>
-tPixel<_ElType,_Chan> operator*(const tPixel<_ElType,_Chan> &p, const _ElType &s)
+template<class Elem_T, int Chan_>
+DMC_INLINE tPixel<Elem_T, Chan_> operator*(const tPixel<Elem_T, Chan_> &p, const Elem_T &s)
 {
-    tPixel<_ElType,_Chan> r = p;
+    tPixel<Elem_T, Chan_> r = p;
     return r *= s;
 }
-template<class _ElType, int _Chan>
-tPixel<_ElType,_Chan> operator/(const tPixel<_ElType,_Chan> &p, const _ElType &s)
+template<class Elem_T, int Chan_>
+DMC_INLINE tPixel<Elem_T, Chan_> operator/(const tPixel<Elem_T, Chan_> &p, const Elem_T &s)
 {
-    tPixel<_ElType,_Chan> r = p;
+    tPixel<Elem_T, Chan_> r = p;
     return r /= s;
 }
 
 // Linearly interpolate between pixels p1 and p2.
 // If weight==0, returns p1. If weight==1, returns p2.
-// WARNING: This should get overloaded for unsigned _ElTypes.
-template<class _ElType, int _Chan>
-tPixel<_ElType,_Chan> Interpolate(const tPixel<_ElType,_Chan> &p1,
-                                  const tPixel<_ElType,_Chan> &p2,
-                                  _ElType weight)
+template<class Pixel_T>
+DMC_INLINE Pixel_T Interpolate(const Pixel_T &p1, const Pixel_T &p2, typename Pixel_T::FloatMathPixType weight)
 {
-    return p1 + (p2 - p1) * weight;
+    return static_cast<typename Pixel_T::FloatMathPixType>(p1) + 
+        (static_cast<typename Pixel_T::FloatMathPixType>(p2) -
+         static_cast<typename Pixel_T::FloatMathPixType>(p1)) * weight;
 }
 
 // Channel-wise max.
-template<class _ElType, int _Chan>
-tPixel<_ElType,_Chan> Max(const tPixel<_ElType,_Chan> &p1, const tPixel<_ElType,_Chan> &p2)
+template<class Elem_T, int Chan_>
+DMC_INLINE tPixel<Elem_T, Chan_> Max(const tPixel<Elem_T, Chan_> &p1, const tPixel<Elem_T, Chan_> &p2)
 {
-    tPixel<_ElType,_Chan> r;
-    for(int i=0; i<_Chan; i++) r[i] = Max(p1[i], p2[i]);
+    tPixel<Elem_T, Chan_> r;
+    for(int i=0; i<Chan_; i++) r[i] = std::max(p1[i], p2[i]);
     return r;
 }
 
 // Channel-wise min.
-template<class _ElType, int _Chan>
-tPixel<_ElType,_Chan> Min(const tPixel<_ElType,_Chan> &p1, const tPixel<_ElType,_Chan> &p2)
+template<class Elem_T, int Chan_>
+DMC_INLINE tPixel<Elem_T, Chan_> Min(const tPixel<Elem_T, Chan_> &p1, const tPixel<Elem_T, Chan_> &p2)
 {
-    tPixel<_ElType,_Chan> r;
-    for(int i=0; i<_Chan; i++) r[i] = Min(p1[i], p2[i]);
+    tPixel<Elem_T, Chan_> r;
+    for(int i=0; i<Chan_; i++) r[i] = std::min(p1[i], p2[i]);
     return r;
 }
 
 // Channel-wise absolute value.
-template<class _ElType, int _Chan>
-tPixel<_ElType,_Chan> Abs(const tPixel<_ElType,_Chan> &p)
+template<class Elem_T, int Chan_>
+DMC_INLINE tPixel<Elem_T, Chan_> Abs(const tPixel<Elem_T, Chan_> &p)
 {
-    tPixel<_ElType,_Chan> r;
-    for(int i=0; i<_Chan; i++) r[i] = Abs(p[i]);
+    tPixel<Elem_T, Chan_> r;
+    for(int i=0; i<Chan_; i++) r[i] = Abs(p[i]);
     return r;
 }
 
 // Component-wise multiply
-template<class _ElType, int _Chan>
-tPixel<_ElType,_Chan> CompMult(const tPixel<_ElType,_Chan> &p1, const tPixel<_ElType,_Chan> &p2)
+template<class Elem_T, int Chan_>
+DMC_INLINE tPixel<Elem_T, Chan_> CompMult(const tPixel<Elem_T, Chan_> &p1, const tPixel<Elem_T, Chan_> &p2)
 {
-    tPixel<_ElType,_Chan> r;
-    for(int i=0; i<_Chan; i++) r[i] = p1[i] * p2[i];
+    tPixel<Elem_T, Chan_> r;
+    for(int i=0; i<Chan_; i++) r[i] = p1[i] * p2[i];
     return r;
 }
 
 // Component-wise divide
-template<class _ElType, int _Chan>
-tPixel<_ElType,_Chan> CompDiv(const tPixel<_ElType,_Chan> &p1, const tPixel<_ElType,_Chan> &p2)
+template<class Elem_T, int Chan_>
+DMC_INLINE tPixel<Elem_T, Chan_> CompDiv(const tPixel<Elem_T, Chan_> &p1, const tPixel<Elem_T, Chan_> &p2)
 {
-    tPixel<_ElType,_Chan> r;
-    for(int i=0; i<_Chan; i++) r[i] = p1[i] / p2[i];
+    tPixel<Elem_T, Chan_> r;
+    for(int i=0; i<Chan_; i++) r[i] = p1[i] / p2[i];
     return r;
 }
 
 // Channel-wise clamp.
-template<class _ElType, int _Chan>
-tPixel<_ElType,_Chan> Clamp(const tPixel<_ElType,_Chan> &cmin, const tPixel<_ElType,_Chan> &d,
-                            const tPixel<_ElType,_Chan> &cmax)
+template<class Elem_T, int Chan_>
+DMC_INLINE tPixel<Elem_T, Chan_> Clamp(const tPixel<Elem_T, Chan_> &cmin, const tPixel<Elem_T, Chan_> &d, 
+                                       const tPixel<Elem_T, Chan_> &cmax)
 {
-    tPixel<_ElType,_Chan> r;
-    for(int i=0; i<_Chan; i++) r[i] = Clamp(cmin[i], d[i], cmax[i]);
+    tPixel<Elem_T, Chan_> r;
+    for(int i=0; i<Chan_; i++) r[i] = Clamp(cmin[i], d[i], cmax[i]);
     return r;
 }
 
+// Sum of squared channel differences.
+template<class Elem_T, int Chan_>
+DMC_INLINE typename tPixel<Elem_T, Chan_>::MathType DiffSqr(const tPixel<Elem_T, Chan_> &A, const tPixel<Elem_T, Chan_> &B)
+{
+    typename tPixel<Elem_T, Chan_>::MathPixType D = static_cast<typename tPixel<Elem_T, Chan_>::MathPixType>(A) - static_cast<typename tPixel<Elem_T, Chan_>::MathPixType>(B);
+    typename tPixel<Elem_T, Chan_>::MathType DifSum = 0;
+    for(int i=0; i<Chan_; i++) DifSum += Sqr(D[i]);
+    return DifSum;
+}
+
 // Print out the pixel.
-template<class _ElType, int _Chan>
-inline std::ostream &operator<<(std::ostream &out, const tPixel<_ElType,_Chan> &p)
+template<class Elem_T, int Chan_>
+DMC_INLINE std::ostream &operator<<(std::ostream &out, const tPixel<Elem_T, Chan_> &p)
 {
     out << '[';
-    for(int i=0; i<p.chan(); i++) {
-        if(std::numeric_limits<_ElType>::digits <= 8)
+    for(int i=0; i<Chan_; i++) {
+        if(std::numeric_limits<Elem_T>::digits <= 8)
             out << int(p[i]);
         else
             out << p[i];
-        out << ((i==p.chan()-1)?"]":", ");
+        out << ((i==Chan_-1)?"]":", ");
     }
     return out;
 }
 
 // Read in the pixel.
-template<class _ElType, int _Chan>
-inline std::istream& operator>>(std::istream& is, tPixel<_ElType,_Chan>& p)
+template<class Elem_T, int Chan_>
+DMC_INLINE std::istream& operator>>(std::istream& is, tPixel<Elem_T, Chan_>& p)
 {
     char st;
-    for(int i=0; i<_Chan; i++) {
+    for(int i=0; i<Chan_; i++) {
         is >> st >> p[i];
     }
     is >> st;
     return is;
 }
+
+typedef tPixel<unsigned char, 1> uc1Pixel;
+typedef tPixel<unsigned char, 2> uc2Pixel;
+typedef tPixel<unsigned char, 3> uc3Pixel;
+typedef tPixel<unsigned char, 4> uc4Pixel;
+
+typedef tPixel<unsigned short, 1> us1Pixel;
+typedef tPixel<unsigned short, 2> us2Pixel;
+typedef tPixel<unsigned short, 3> us3Pixel;
+typedef tPixel<unsigned short, 4> us4Pixel;
+
+typedef tPixel<short, 1> ss1Pixel;
+typedef tPixel<short, 2> ss2Pixel;
+typedef tPixel<short, 3> ss3Pixel;
+typedef tPixel<short, 4> ss4Pixel;
+
+typedef tPixel<unsigned int, 1> ui1Pixel;
+typedef tPixel<unsigned int, 2> ui2Pixel;
+typedef tPixel<unsigned int, 3> ui3Pixel;
+typedef tPixel<unsigned int, 4> ui4Pixel;
+
+#ifdef DMC_USE_HALF_FLOAT
+typedef tPixel<half, 1> h1Pixel;
+typedef tPixel<half, 2> h2Pixel;
+typedef tPixel<half, 3> h3Pixel;
+typedef tPixel<half, 4> h4Pixel;
+#endif
+
+typedef tPixel<float, 1> f1Pixel;
+typedef tPixel<float, 2> f2Pixel;
+typedef tPixel<float, 3> f3Pixel;
+typedef tPixel<float, 4> f4Pixel;
+
+typedef tPixel<double, 1> d1Pixel;
+typedef tPixel<double, 2> d2Pixel;
+typedef tPixel<double, 3> d3Pixel;
+typedef tPixel<double, 4> d4Pixel;
 
 #endif

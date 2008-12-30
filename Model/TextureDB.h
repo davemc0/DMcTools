@@ -3,10 +3,10 @@
 //
 // Copyright David K. McAllister, July 1999.
 
-#ifndef _texturedb_h
-#define _texturedb_h
+#ifndef dmc_texturedb_h
+#define dmc_texturedb_h
 
-#include <Image/ucImage.h>
+#include "Image/tImage.h"
 
 #include <vector>
 
@@ -15,7 +15,7 @@
 struct TexInfo
 {
     const char *TexFName;
-    ucImage *Im;
+    baseImage *Im;
     void *UserData0; // Used for storing pointer to SVB.
     void *UserData1; // Used for storing pointer to SVBtoImage.
     int TexID; // This is the OpenGL texture object ID.
@@ -26,7 +26,7 @@ struct TexInfo
     bool IsMIPMap; // What did we actually send down?
     bool IsLinear; // True if the image is linear light instead of gamma 2.2.
 
-    inline TexInfo(const char *n, ucImage *im, int t)
+    DMC_INLINE TexInfo(const char *n, baseImage *im, int t)
     {
         TexFName = n;
         Im = im;
@@ -41,7 +41,7 @@ struct TexInfo
             MultiTexIDs[i] = 0;
     }
 
-    inline TexInfo()
+    DMC_INLINE TexInfo()
     {
         TexFName = NULL; Im = NULL; TexID = -1;
         TextureTarget = 0;
@@ -60,7 +60,7 @@ struct TexInfo
     // Returns false on success.
     bool LoadToAppMemory(char *dir=NULL, bool prepend=false);
 
-    inline void ClearFromAppMemory()
+    DMC_INLINE void ClearFromAppMemory()
     {
         delete Im;
         Im = NULL;
@@ -75,7 +75,7 @@ public:
     std::vector<TexInfo *> TexList;
 
     // Returns -1 if not found.
-    inline TexInfo *FindByName(const char *name);
+    DMC_INLINE TexInfo *FindByName(const char *name);
 
     // Adds it if not found.
     TexInfo *FindByNameOrAdd(const char *name);

@@ -2,138 +2,114 @@
 // tImage.h - Generic templated image class suitable for graphics and stuff.
 //
 // Copyright David K. McAllister, June 2001.
+// Renovated in March 2007.
 
-// Have one file with named pixel types as derivatives: uc3Pixel, Color == f3Pixel, us3Pixel...
-// One generic image class.
-// All pixels must be generated with tPixel: tPixel<unsigned char, 1> is a one-channel image.
-// How to handle overflow of += operator, etc?
+// This image class creates an image with an arbitrary pixel type.
+// The pixel type is usually tPixel<channel type, NChan>.
+// The pixel class must support a few things like tPixel does to be used as a tImage.
 
-// Design goals:
-// * Have a ucImage that's as much like the current one as possible
-// * Allow app coding of image operations wo/ knowledge of num channels
-// * Allow loading and saving - return an image of the file kind, convert it to what I want.
-// * Allow images of RGBE.
-// * Allow operations on images to be generic and stored in one file in DMcTools
+// There is a baseImage class that supports very generic access to the real image class.
+// If you don't know what kind of image you'll be loading and want your code to work with the image
+// in its native format, call LoadtImage() and work with a baseImage *. 
+// Use virtual functions and dynamic_cast<> to operate on the image.
 
-// TO DO:
-// Make LoadXXX and SaveXXX route from ucImage to ImageLoadSave.
-// Do similar things for tImage. How to convert num channels?
-// Convert Quant to parameterized pixels: Will it use tImage?
-// Implement the Kodak usImage thing.
+// If your code is templated on the image type or works with only one image type, then call tImage.Load(),
+// and the loaded image will be converted to your tImage's type.
 
-// Approaches:
-/*
-Accepted:
-Non-parent class (ucImage) with Pix, wid, hgt, chan, Load, Save for uchar.
-ucImage has a cast to every tImage<ucNPixel> type keyed off of chan variable.
-Used for all unsigned char images only.
-Float and other images don't use this mechanism.
-tImage<> has a constructor from any kind of image.
-How to parameterize this constructor for tone mapping?
-- make f3Image a subclass and overload the constructor.
-What about converting to/from RGBE?
-- Make rgbeImage a subclass and overload the constructor.
-File of filter and other code, all templated: ImageAlgorithms.cpp
+// Copy constructor and assignment operator are templated on the argument type, creating a full cross-product of image
+// conversion functions. MSVC 2005 is pretty savvy about not doing slow conversions if the pixel types actually match.
 
- Rejected:
- Parent class (dmcImage) with Pix, wid, hgt
- Separate Load and Save for everything.
- Makes a tImage of the right kind and returns it as pointer to dmcImage
- Use dynamic cast to get the type you want.
- ucImage is a derived class of dmcImage
-*/
+// ImageAlgorithms.cpp has a lot of algorithms that operate on templated tImage types.
+// ImageLoadSave.cpp has most of the image loading/saving stuff. tLoadSave.cpp has the rest.
 
-/*
-This class is made both for compatibility with all my existing code,
-and for loading and saving unsigned char images.
-
- Non-parent class (ImageLoadSave) with Pix, wid, hgt, chan, Load, Save for uchar.
- ImageLoadSave has a cast to every tImage<ucNPixel> type keyed off of chan variable.
- Used for all unsigned char images only.
- Float and other images don't use this mechanism.
- tImage<> has a constructor from any kind of image.
- How to parameterize this constructor for tone mapping?
- - make f3Image a subclass and overload the constructor.
- What about converting to/from RGBE?
- - Make rgbeImage a subclass and overload the constructor.
- To do Load/Save/tImage(char *fname) for tImage,
- use specializations to load and convert.
-
-  Spiderman's Master Plan:
-  Keep ImageLoadSave exactly as it now is.
-  Use ImageLoadSave to Load and Save in tImage.
-
-   Alternative:
-   Make a thin ImageLoadSave class. Re-implement ImageLoadSave on top of it,
-   and use it for tImage.
-*/
+// To implement RGBE images I should make rgbePixel a subclass of tPixel<unsigned char, 4> and then specialize the constructor to f3Pixel.
+// Then change the RGBE image load/save to use that.
 
 // Naming convention: Container-related functions are all lower_case.
 // Image-related functions are UpperCase.
 
-#ifndef _tImage_h
-#define _tImage_h
+#ifndef dmc_tImage_h
+#define dmc_tImage_h
 
-#include <Image/Pixel.h>
-#include <Image/RGBE.h>
+#include "Image/tPixel.h"
+#include "Image/RGBE.h"
 
-// This class is used to give commonality to all images.
-// This lets them be passed around as a baseImage *.
-// The functions defined here basically allow you to do your own run-time type checking.
+#include <iostream>
+
+// baseImage is used to give commonality to all images. This lets them be passed around as a baseImage *.
+// The functions in the base class should be sufficient to allow all operations that don't depend on the image's datatype.
+// For example, calling OpenGL's glTexImage2D() should be doable with just the baseImage.
+// Other things it's been wanted for: accessing members to print their values, get the pixel data pointer for loading and saving.
 class baseImage
 {
 public:
-    // Maybe I shouldn't make these pure virtual so that images of built-in types work.
-
     //////////////////////////////////////////////////////////////////////
     // Info about a pixel
 
     // Number of channels in a pixel.
-    virtual int chan() const = 0;
+    virtual int chan_virtual() const = 0;
 
     // Size of one element of one pixel.
-    virtual int size_element() const = 0;
+    virtual int size_element_virtual() const = 0;
 
     // Size of one pixel.
-    virtual int size_pixel() const = 0;
+    virtual int size_pixel_virtual() const = 0;
 
-    // Tells whether the elements are floating point.
-    virtual bool is_integer() const = 0;
+    // Tells whether the elements are integer or floating point.
+    virtual bool is_integer_virtual() const = 0;
 
     // Tells whether the elements are signed (true for float types).
-    virtual bool is_signed() const = 0;
+    virtual bool is_signed_virtual() const = 0;
 
     //////////////////////////////////////////////////////////////////////
     // Info about the image
 
     // Width of the image.
-    virtual int w() const = 0;
+    virtual int w_virtual() const = 0;
 
     // Height of the image.
-    virtual int h() const = 0;
+    virtual int h_virtual() const = 0;
 
     // Number of pixels in the image.
-    virtual int size() const = 0;
+    virtual int size_virtual() const = 0;
 
     // Size of image data in elements.
-    virtual int size_els() const = 0;
+    virtual int size_els_virtual() const = 0;
 
     // Size of image data in bytes.
-    virtual int size_bytes() const = 0;
+    virtual int size_bytes_virtual() const = 0;
 
-    virtual ~baseImage() {}
+    virtual ~baseImage() {};
+
+    // A pointer to the pixel data, without knowing its kind
+    virtual void *pv_virtual(const int i=0) = 0;
+    virtual const void *pv_virtual(const int i=0) const = 0;
+
+    // A pointer to the pixel data, without knowing its kind
+    virtual const void *pv_virtual(const int x, const int y) const = 0;
+
+    // Set the Pix pointer to NULL so this can be deleted without deleting the raster
+    virtual void swapout_virtual() = 0;
+
+    // Load the file, convert its type to this one, and fill this image
+    virtual void Load(const char *fname) = 0;
+
+    // Save the image to a file
+    virtual void Save(const char *fname) const = 0;
+
+    // Make a Copy of the actual image and return a pointer to its baseImage.
+    virtual baseImage * Copy() const = 0;
 };
 
-// For loading an image into whatever kind of tImage is most appropriate.
-// Defined in ImageLoadSave.cpp.
-// XXX Broken: Points to image data, not image struct.
-// Also, how am I supposed to tell what kind it loaded, anyway?
+// Load an image file into whatever kind of tImage is most appropriate.
+// Returns a pointer to the baseImage. dynamic_cast will tell you what kind it really is.
+// Throws a DMcError on failure.
 baseImage *LoadtImage(const char *fname);
 
-template<class _PixType>
+template<class Pixel_T>
 class tImage : public baseImage
 {
-    _PixType *Pix; // To the actual pixels.
+    Pixel_T *Pix; // To the actual pixels.
     int wid, hgt;
 
 public:
@@ -141,27 +117,18 @@ public:
     // Constructors
 
     // Default constructor with optional dimensions.
-    // Optionally clear image to 0.
-    tImage(const int _wid = 0, const int _hgt = 0, const bool doFill = false)
+    // Doesn't initialize the pixels.
+    tImage(const int wid_ = 0, const int hgt_ = 0)
     {
-        SetSize(_wid, _hgt, doFill, false);
+        SetSize(wid_, hgt_, false, false);
     }
 
-    // Copy constructor.
-    // Converts images from other pixel types to this pixel type.
-    // Generates a full cross product of hard-wired image conversions.
-    template<class _PixTypeSrc>
-        tImage(const tImage<_PixTypeSrc> &SrcIm)
+    // Constructor with dimensions that clears image to fillVal.
+    // Initializes the pixels to fillVal.
+    tImage(const int wid_, const int hgt_, const Pixel_T &fillVal)
     {
-        // cerr << "copy\n";
-        if(SrcIm.size() > 0) {
-            SetSize(SrcIm.w(), SrcIm.h(), false, false);
-            for(int i=0; i<SrcIm.size(); i++)
-                (*this)[i] = static_cast<_PixType>(SrcIm[i]);
-        } else {
-            Pix = NULL;
-            wid = hgt = 0;
-        }
+        SetSize(wid_, hgt_, false, false);
+        fill(fillVal);
     }
 
     // Construct an image from a file.
@@ -172,127 +139,148 @@ public:
         Load(fname);
     }
 
-    // Construct an image from an existing raster of _PixType.
+    // Construct an image from an existing raster of Pixel_T.
     // This image becomes responsible for the delete [].
-    tImage(_PixType *p, const int _wid, const int _hgt)
+    tImage(Pixel_T *p, const int wid_, const int hgt_)
     {
         Pix = NULL;
-        SetImage(p, _wid, _hgt);
+        SetImage(p, wid_, hgt_);
     }
 
-#if 1
-    // Copy assignment.
-    tImage<_PixType> &operator=(const tImage<_PixType> &SrcIm)
-        //template<class _PixTypeSrc>
-        // tImage<_PixType> &operator=(const tImage<_PixTypeSrc> &SrcIm)
+private:
+    // The internals of copying, which are shared between copy constuctor, operator=, and Copy.
+    template<class SrcPixel_T>
+    void do_copy(const tImage<SrcPixel_T> &SrcIm)
     {
-        // cerr << "Assignment\n";
-        if((void*)this != (void*)&SrcIm) {
-            if(SrcIm.size() > 0) {
-                SetSize(SrcIm.w(), SrcIm.h(), false, false);
-                for(int i=0; i<SrcIm.size(); i++)
-                    (*this)[i] = static_cast<_PixType>(SrcIm[i]);
-            } else {
-                Pix = NULL;
-                wid = hgt = 0;
-            }
+        if(SrcIm.size() > 0) {
+            SetSize(SrcIm.w(), SrcIm.h(), false, false);
+            int sz = SrcIm.size();
+            for(int i=0; i<sz; i++)
+                (*this)[i] = static_cast<Pixel_T>(SrcIm[i]); // Doesn't call the tPixel copy constructor if Pixel_T == SrcPixel_T. Cool!
         } else {
-            // cerr << "Fuh assignment\n";
+            Pix = NULL;
+            wid = hgt = 0;
+        }
+    }
+
+public:
+    // Copy constructor.
+    // Converts images from other pixel types to this pixel type.
+    // Generates a full cross product of hard-wired image conversions.
+    template<class SrcPixel_T>
+    tImage(const tImage<SrcPixel_T> &SrcIm)
+    {
+        // std::cerr << "Copy constructor\n";
+        do_copy(SrcIm);
+    }
+
+    // Prevent member-wise copy if SrcPixel_T == Pixel_T.
+    tImage(const tImage<Pixel_T> &SrcIm)
+    {
+        // std::cerr << "Specific Copy constructor\n";
+        do_copy(SrcIm);
+    }
+
+    // Copy assignment.
+    // Converts images from other pixel types to this pixel type.
+    template<class SrcPixel_T>
+    tImage<Pixel_T> &operator=(const tImage<SrcPixel_T> &SrcIm)
+    {
+        if((void*)this != (void*)&SrcIm) {
+            // std::cerr << "Conversion Assignment\n";
+            do_copy(SrcIm);
+        } else {
+            // std::cerr << "Identical assignment\n";
         }
         return *this;
     }
-#endif
 
-    // Assign all pixels to value s.
-    tImage<_PixType> &operator=(const _PixType &s)
+    // Prevent member-wise assign if SrcPixel_T == Pixel_T.
+    tImage<Pixel_T> &operator=(const tImage<Pixel_T> &SrcIm)
     {
-        fill(s);
+        if((void*)this != (void*)&SrcIm) {
+            // std::cerr << "Conversion Assignment\n";
+            do_copy(SrcIm);
+        } else {
+            // std::cerr << "Identical assignment\n";
+        }
         return *this;
+    }
+
+    // Create a copy of this image and return it. This is a virtual function so that copies can be made when only the base class is known.
+    tImage<Pixel_T> *Copy() const
+    {
+        // std::cerr << "tImage Copy()\n";
+        tImage<Pixel_T> *Created = new tImage<Pixel_T>(*this);
+        return Created;
     }
 
     // Destroy an image.
     ~tImage()
     {
-        // cerr << "deleting tImage: " << this << ": " << Pix << endl;
+        // std::cerr << "deleting tImage: " << this << ": " << Pix << std::endl;
         if(Pix) delete [] Pix;
+        Pix = NULL;
+        // std::cerr << "done deleting tImage\n";
     }
+
+    // Set the Pix pointer to NULL so this can be deleted without deleting the raster
+    void swapout_virtual() { Pix = NULL; }
+    void swapout() { Pix = NULL; }
 
     //////////////////////////////////////////////////////////////////////
     // Info about a pixel
-    // These should all be static since they don't require an actual this;
-    // but merely a concrete type.
-    // However, they need to be const since they call other const functions.
-    // Also, they can't be static since they override pure virtual functions,
-    // and virtual functions can't be static.
-    // Decided to not make them static. They require a this pointer so that
-    // they can be used to determine type of a baseImage at run-time.
+    // These functions need to be const since they call other const functions.
+    // The static functions don't require an actual this, but merely a concrete type.
+    // The _virtual ones override pure virtual functions, and virtual functions can't be static.
+    // The _virtual ones require a this pointer so that they can be used to determine type of a baseImage at run-time.
+    // For each static function I also made a virtual function.
 
     // The type of the pixels in this image.
-    typedef _PixType PixType;
+    typedef Pixel_T PixType;
 
-    // Number of channels in a pixel.
-    int chan() const
-    {
-        // This requires that the pixel type support this function.
-        return _PixType::chan();
-    }
+    // Number of channels in a pixel. This requires that the pixel type support this type member.
+    static int chan() { return Pixel_T::Chan; }
+    int chan_virtual() const { return Pixel_T::Chan; }
 
     // Size of one element of one pixel.
-    int size_element() const
-    {
-        return sizeof(typename _PixType::ElType);
-    }
+    static int size_element() { return sizeof(typename Pixel_T::ElType); }
+    int size_element_virtual() const { return sizeof(typename Pixel_T::ElType); }
 
     // Size of one pixel.
-    int size_pixel() const
-    {
-        return sizeof(_PixType);
-    }
+    static int size_pixel() { return sizeof(Pixel_T); }
+    int size_pixel_virtual() const { return sizeof(Pixel_T); }
 
-    // Tells whether the elements are floating point.
-    bool is_integer() const
-    {
-        return _PixType::is_integer();
-    }
+    // Tells whether the elements are integer or floating point.
+    static bool is_integer() { return Pixel_T::is_integer; }
+    bool is_integer_virtual() const { return Pixel_T::is_integer; }
 
     // Tells whether the elements are signed (true for float types).
-    bool is_signed() const
-    {
-        return false; // XXX _PixType::is_signed();
-    }
+    static bool is_signed() { return Pixel_T::is_signed; }
+    bool is_signed_virtual() const { return Pixel_T::is_signed; }
 
     //////////////////////////////////////////////////////////////////////
     // Info about the image
 
     // Width of the image.
-    int w() const
-    {
-        return wid;
-    }
+    int w() const { return wid; }
+    int w_virtual() const { return wid; }
 
     // Height of the image.
-    int h() const
-    {
-        return hgt;
-    }
+    int h() const { return hgt; }
+    int h_virtual() const { return hgt; }
 
     // Number of pixels in the image.
-    int size() const
-    {
-        return w() * h();
-    }
+    int size() const { return wid * hgt; }
+    int size_virtual() const { return wid * hgt; }
 
     // Size of image data in elements.
-    int size_els() const
-    {
-        return size() * chan();
-    }
+    int size_els() const { return size() * chan(); }
+    int size_els_virtual() const { return size() * chan(); }
 
     // Size of image data in bytes.
-    int size_bytes() const
-    {
-        return size() * size_pixel();
-    }
+    int size_bytes() const { return size() * size_pixel(); }
+    int size_bytes_virtual() const { return size() * size_pixel(); }
 
     //////////////////////////////////////////////////////////////////////
     // Access functions
@@ -304,7 +292,7 @@ public:
     }
 
     // Returns const pixel x,y.
-    const _PixType & operator() (const int x, const int y) const
+    const Pixel_T & operator() (const int x, const int y) const
     {
         ASSERT_D(x>=0 && x<w());
         ASSERT_D(y>=0 && y<h());
@@ -312,7 +300,7 @@ public:
     }
 
     // Returns pixel x,y.
-    _PixType & operator() (const int x, const int y)
+    Pixel_T & operator() (const int x, const int y)
     {
         ASSERT_D(x>=0 && x<w());
         ASSERT_D(y>=0 && y<h());
@@ -320,52 +308,67 @@ public:
     }
 
     // Returns const pixel i.
-    const _PixType & operator[] (const int i) const
+    const Pixel_T & operator[] (const int i) const
     {
         ASSERT_D(i>=0 && i<size());
         return *pp(i);
     }
 
     // Returns pixel i.
-    _PixType & operator[] (const int i)
+    Pixel_T & operator[] (const int i)
     {
         ASSERT_D(i>=0 && i<size());
         return *pp(i);
     }
 
     // Returns a const pointer to this pixel.
-    const _PixType *pp(const int x, const int y) const
+    const Pixel_T *pp(const int x, const int y) const
     {
         ASSERT_D(x>=0 && x<w());
         ASSERT_D(y>=0 && y<h());
+        ASSERT_D(Pix != NULL);
         return pp(ind(x,y));
     }
 
     // Returns a pointer to this pixel.
-    _PixType *pp(const int x, const int y)
+    Pixel_T *pp(const int x, const int y)
     {
         ASSERT_D(x>=0 && x<w());
         ASSERT_D(y>=0 && y<h());
+        ASSERT_D(Pix != NULL);
         return pp(ind(x,y));
     }
 
     // Returns a const pointer to this pixel.
-    const _PixType *pp(const int i=0) const
-    {
-        ASSERT_D(i>=0 && i<size());
-        return &(Pix[i]);
-    }
-
-    // Returns a pointer to this pixel.
-    _PixType *pp(const int i=0)
+    const Pixel_T *pp(const int i=0) const
     {
         ASSERT_D(i>=0 && i<size());
         ASSERT_D(Pix != NULL);
         return &(Pix[i]);
     }
 
+    // Returns a pointer to this pixel.
+    Pixel_T *pp(const int i=0)
+    {
+        ASSERT_D(i>=0 && i<size());
+        ASSERT_D(Pix != NULL);
+        return &(Pix[i]);
+    }
+
+    // A const pointer to the pixel data, without knowing its kind
+    const void *pv(const int i=0) const { ASSERT_D(i>=0 && i<size()); return &(Pix[i]); }
+    const void *pv_virtual(const int i=0) const { ASSERT_D(i>=0 && i<size()); return &(Pix[i]); }
+
+    // A pointer to the pixel data, without knowing its kind
+    void *pv(const int i=0) { ASSERT_D(i>=0 && i<size()); return &(Pix[i]); }
+    void *pv_virtual(const int i=0) { ASSERT_D(i>=0 && i<size()); return &(Pix[i]); }
+
+    // A pointer to the pixel data, without knowing its kind
+    const void *pv(const int x, const int y) const { ASSERT_D(x>=0 && x<w() && y>=0 && y<h()); return pp(ind(x,y)); }
+    const void *pv_virtual(const int x, const int y) const { ASSERT_D(x>=0 && x<w() && y>=0 && y<h()); return pp(ind(x,y)); }
+
     // Paint pixel x,y if it has valid coords.
-    void Set(const _PixType &p, const int x, const int y)
+    void Set(const Pixel_T &p, const int x, const int y)
     {
         if(x>=0 && x<w() && y>=0 && y<h())
             *pp(ind(x,y)) = p;
@@ -375,61 +378,62 @@ public:
     // Utility functions
 
     // Both channel-wise extrema at once.
-    void GetMinMax(_PixType &cmin, _PixType &cmax) const
+    void GetMinMax(Pixel_T &cmin, Pixel_T &cmax) const
     {
         ASSERT_R(size() > 0);
         cmax = (*this)[0];
         cmin = (*this)[0];
-        for(int i=1; i<size(); i++) {
+        int sz = size();
+        for(int i=1; i<sz; i++) {
             cmax = Max(cmax, (*this)[i]);
             cmin = Min(cmin, (*this)[i]);
         }
     }
 
     // Max over all pixels for each channel.
-    _PixType max_chan() const
+    Pixel_T max_chan() const
     {
         ASSERT_R(size() > 0);
-        _PixType cmax = (*this)[0];
-        for(int i=1; i<size(); i++) cmax = Max(cmax, (*this)[i]);
+        Pixel_T cmax = (*this)[0];
+        int sz = size();
+        for(int i=1; i<sz; i++) cmax = Max(cmax, (*this)[i]);
         return cmax;
     }
 
     // Min over all pixels for each channel.
-    _PixType min_chan() const
+    Pixel_T min_chan() const
     {
         ASSERT_R(size() > 0);
-        _PixType cmin = (*this)[0];
-        for(int i=1; i<size(); i++) cmin = Min(cmin, (*this)[i]);
+        Pixel_T cmin = (*this)[0];
+        int sz = size();
+        for(int i=1; i<sz; i++) cmin = Min(cmin, (*this)[i]);
         return cmin;
     }
 
     // Returns the channel-wise sum of all the pixels.
-    // WARNING: This is likely to overflow for fixed point pixel types.
-    _PixType sum_chan() const
+    typename Pixel_T::MathPixType sum_chan() const
     {
         ASSERT_R(size() > 0);
-        _PixType csum = 0;
-        for(int i=0; i<size(); i++) csum += (*this)[i];
+        typename Pixel_T::MathPixType csum(0);
+        int sz = size();
+        for(int i=0; i<sz; i++) csum += (*this)[i];
         return csum;
     }
 
     // Returns the channel-wise average of all the pixels.
-    // WARNING: This is likely to overflow for fixed point pixel types.
-    _PixType mean_chan() const
+    Pixel_T mean_chan() const
     {
-        return sum_chan() / _PixType(size());
+        return sum_chan() / Pixel_T::MathPixType(size());
     }
 
     // Transfer contents of Img to this image and vice-versa.
-    // This is a fast way to assign an image that avoids the huge
-    // memory allocate and copy.
-    void swap(tImage<_PixType> &Img)
+    // This is a fast way to assign an image that avoids the huge memory allocate and copy.
+    void swap(tImage<Pixel_T> &Img)
     {
         // Squirrel away my old stuff.
         int myw = w();
         int myh = h();
-        _PixType *MyPix = Pix;
+        Pixel_T *MyPix = Pix;
 
         // Take on Img's stuff.
         SetImage(Img.pp(), Img.w(), Img.h());
@@ -439,41 +443,49 @@ public:
     }
 
     // Clear the image to the given color.
-    void fill(const _PixType p = _PixType(0))
+    void fill(const Pixel_T p = Pixel_T(0))
     {
-        for(int i = 0; i < size(); i++) (*this)[i] = p;
+        int sz = size();
+        for(int i = 0; i < sz; i++) (*this)[i] = p;
     }
 
     // Test whether the image is currently empty.
-    bool empty()
+    bool empty() const
     {
         if(size() < 1) {
-            ASSERT(Pix == NULL);
+            ASSERT_D(Pix == NULL);
             return true;
         } else {
-            ASSERT(Pix);
+            ASSERT_D(Pix);
             return false;
         }
     }
 
+    // Clear the image out.
+    void clear()
+    {
+        SetSize();
+    }
+
     // Change the size of this image.
     // Call with no args to wipe the image to empty.
-    void SetSize(const int _wid = 0, const int _hgt = 0,
-        const bool doFill = false, const bool doDel = true)
+    void SetSize(const int wid_ = 0, const int hgt_ = 0, const bool doFill = false, const bool doDel = true)
     {
-        // cerr << this << ": " << w() << "x" << h() << " -> " << _wid << "x" << _hgt << endl;
-        wid = _wid; hgt = _hgt;
+        // std::cerr << this << ": " << w() << "x" << h() << " -> " << wid_ << "x" << hgt_ << std::endl;
+        wid = wid_; hgt = hgt_;
         if(w() <= 0 || h() <= 0) wid = hgt = 0;
 
         if(Pix && doDel) delete [] Pix;
         Pix = NULL;
 
         if(size() > 0) {
-            Pix = new _PixType[size()];
+            // std::cerr << "Allocating\n";
+            Pix = new Pixel_T[size()];
             ASSERT_RM(Pix, "memory alloc failed");
-            // cerr << "Pix = " << Pix << endl;
+            // std::cerr << "Pix = " << Pix << std::endl;
             if(doFill) fill();
         }
+        ASSERT_D(size()==0 || Pix!=NULL);
     }
 
     // Hooks the given raster of pixels into this image object.
@@ -481,148 +493,18 @@ public:
     // WARNING: Doesn't delete [] its previous data (so that swap() works).
     // WARNING: Image data must really be this pixel type to be deleted.
     // Call with no args to detach the current raster without deleting it.
-    // This is how to leave a hijacked image intact.
-    void SetImage(_PixType *p = NULL, const int _wid = 0, const int _hgt = 0)
+    // This is how to leave a hijacked image intact. Or call swapout().
+    void SetImage(Pixel_T *p = NULL, const int wid_ = 0, const int hgt_ = 0)
     {
+        ASSERT_D(wid_>=0 && hgt_>=0);
         Pix = p;
-        wid = _wid;
-        hgt = _hgt;
+        wid = wid_;
+        hgt = hgt_;
 
         // Sanity check.
         if(Pix == NULL) wid = hgt = 0;
         if(size() <= 0) Pix = NULL;
-    }
-
-    // Flip this image vertically.
-    void VFlip()
-    {
-        for(int y=0; y<h()/2; y++) {
-            for(int x = 0; x < w(); x++) {
-                _PixType tmp = (*this)(x,y);
-                (*this)(x,y) = (*this)(x,hgt-y-1);
-                (*this)(x,hgt-y-1) = tmp;
-            }
-        }
-    }
-
-    // Copy channel number src_ch of image SrcIm to channel dest_ch of this image.
-    // Things work fine if SrcIm is *this.
-    // Have to template it on the incoming pixel type so that it can be a different number
-    // of channels than the output image.
-    // Channel numbers start with 0.
-    template<class _PixTypeSrc>
-        void CopyChan(const tImage<_PixTypeSrc> &SrcIm, const int src_ch, const int dest_ch)
-    {
-        ASSERT_R(w() == SrcIm.w() && h() == SrcIm.h());
-        ASSERT_R(src_ch < SrcIm.chan() && dest_ch < chan());
-
-        for(int i=0; i<size(); i++) (*this)[i][dest_ch] = SrcIm[i][src_ch];
-    }
-
-    // Copy a rectangle from SrcIm of size bwid x bhgt with upper-right
-    // corner srcx,srcy to upper-right corner dstx,dsty in *this.
-    // The two images may be different types.
-    // The images may be the same, but the result is undefined if the quads overlap.
-    template<class _PixTypeSrc>
-        void CopyChunk(const tImage<_PixTypeSrc> &SrcIm, const int srcx, const int srcy,
-        const int dstx, const int dsty, const int bwid, const int bhgt)
-    {
-        if(bwid <= 0 || bhgt <= 0 || size() <= 0 || SrcIm.size() <= 0)
-            return;
-
-        // Compute transformation from src to dst.
-        int stodx = dstx - srcx;
-        int stody = dsty - srcy;
-
-        // Clip box against src.
-        int bw = bwid;
-        if(bw+srcx >= SrcIm.w()) bw = SrcIm.w() - srcx;
-        int bh = bhgt;
-        if(bh+srcy >= SrcIm.h()) bh = SrcIm.h() - srcy;
-
-        int bsx = srcx;
-        if(bsx < 0) {bw += bsx; bsx = 0;}
-        int bsy = srcy;
-        if(bsy < 0) {bh += bsy; bsy = 0;}
-
-        // Transform box to dst space.
-        int bdx = bsx + stodx;
-        int bdy = bsy + stody;
-
-        // Clip b against dst.
-        if(bw+dstx >= w()) bw = w() - dstx;
-        if(bh+dsty >= h()) bh = h() - dsty;
-
-        if(bdx < 0) {bw += bdx; bdx = 0;}
-        if(bdy < 0) {bh += bdy; bdy = 0;}
-
-        if(bw <= 0 || bh <= 0)
-            return;
-
-        // Transform box back to src space.
-        bsx = bdx - stodx;
-        bsy = bdy - stody;
-
-        int srcxmax = bsx + bw;
-        int srcymax = bsy + bh;
-
-        for(int sy = bsy, dy = bdy; sy < srcymax; sy++, dy++)
-            for(int sx = bsx, dx = bdx; sx < srcxmax; sx++, dx++)
-                (*this)(dx, dy) = static_cast<_PixType>(SrcIm(sx, sy));
-    }
-
-    // Copy a rectangle from SrcIm of size bwid x bhgt with upper-right
-    // corner srcx,srcy to upper-right corner dstx,dsty in *this.
-    // The two images may be different types.
-    // Uses a color key to copy non-key pixels.
-    // The images may be the same, but the result is undefined if the quads overlap.
-    template<class _PixTypeSrc>
-        void KeyedBlit(const tImage<_PixTypeSrc> &SrcIm, const int srcx, const int srcy,
-        const int dstx, const int dsty, const int bwid, const int bhgt, _PixTypeSrc Key)
-    {
-        if(bwid <= 0 || bhgt <= 0 || size() <= 0 || SrcIm.size() <= 0)
-            return;
-
-        // Compute transformation from src to dst.
-        int stodx = dstx - srcx;
-        int stody = dsty - srcy;
-
-        // Clip box against src.
-        int bw = bwid;
-        if(bw+srcx >= SrcIm.w()) bw = SrcIm.w() - srcx;
-        int bh = bhgt;
-        if(bh+srcy >= SrcIm.h()) bh = SrcIm.h() - srcy;
-
-        int bsx = srcx;
-        if(bsx < 0) {bw += bsx; bsx = 0;}
-        int bsy = srcy;
-        if(bsy < 0) {bh += bsy; bsy = 0;}
-
-        // Transform box to dst space.
-        int bdx = bsx + stodx;
-        int bdy = bsy + stody;
-
-        // Clip b against dst.
-        if(bw+dstx >= w()) bw = w() - dstx;
-        if(bh+dsty >= h()) bh = h() - dsty;
-
-        if(bdx < 0) {bw += bdx; bdx = 0;}
-        if(bdy < 0) {bh += bdy; bdy = 0;}
-
-        if(bw <= 0 || bh <= 0)
-            return;
-
-        // Transform box back to src space.
-        bsx = bdx - stodx;
-        bsy = bdy - stody;
-
-        int srcxmax = bsx + bw;
-        int srcymax = bsy + bh;
-
-        for(int sy = bsy, dy = bdy; sy < srcymax; sy++, dy++)
-            for(int sx = bsx, dx = bdx; sx < srcxmax; sx++, dx++)
-                if(SrcIm(sx, sy) != Key)
-                    (*this)(dx, dy) = static_cast<_PixType>(SrcIm(sx, sy));
+        ASSERT_D(size()==0 || Pix!=NULL);
     }
 
     // Load an image from a file.
@@ -646,122 +528,122 @@ public:
 
     // With an image, with assign
 
-    tImage<_PixType> &operator+=(const tImage<_PixType> &p)
+    tImage<Pixel_T> &operator+=(const tImage<Pixel_T> &p)
     {
         ASSERT_R(size() == p.size());
-        for(int i=0; i<size(); i++) (*this)[i] += p[i];
+        int sz = size();
+        for(int i=0; i<sz; i++) (*this)[i] += p[i];
         return *this;
     }
-    tImage<_PixType> &operator-=(const tImage<_PixType> &p)
+    tImage<Pixel_T> &operator-=(const tImage<Pixel_T> &p)
     {
         ASSERT_R(size() == p.size());
-        for(int i=0; i<size(); i++) (*this)[i] -= p[i];
+        int sz = size();
+        for(int i=0; i<sz; i++) (*this)[i] -= p[i];
         return *this;
     }
-    tImage<_PixType> &operator*=(const tImage<_PixType> &p)
+    tImage<Pixel_T> &operator*=(const tImage<Pixel_T> &p)
     {
         ASSERT_R(size() == p.size());
-        for(int i=0; i<size(); i++) (*this)[i] *= p[i];
+        int sz = size();
+        for(int i=0; i<sz; i++) (*this)[i] *= p[i];
         return *this;
     }
-    tImage<_PixType> &operator/=(const tImage<_PixType> &p)
+    tImage<Pixel_T> &operator/=(const tImage<Pixel_T> &p)
     {
         ASSERT_R(size() == p.size());
-        for(int i=0; i<size(); i++) (*this)[i] /= p[i];
+        int sz = size();
+        for(int i=0; i<sz; i++) (*this)[i] /= p[i];
         return *this;
     }
 
     // With a constant pixel, with assign
 
-    tImage<_PixType> &operator+=(const _PixType &s)
+    tImage<Pixel_T> &operator+=(const Pixel_T &s)
     {
-        for(int i=0; i<size(); i++) (*this)[i] += s;
+        int sz = size();
+        for(int i=0; i<sz; i++) (*this)[i] += s;
         return *this;
     }
-    tImage<_PixType> &operator-=(const _PixType &s)
+    tImage<Pixel_T> &operator-=(const Pixel_T &s)
     {
-        for(int i=0; i<size(); i++) (*this)[i] -= s;
+        int sz = size();
+        for(int i=0; i<sz; i++) (*this)[i] -= s;
         return *this;
     }
-    tImage<_PixType> &operator*=(const _PixType &s)
+    tImage<Pixel_T> &operator*=(const Pixel_T &s)
     {
-        for(int i=0; i<size(); i++) (*this)[i] *= s;
+        int sz = size();
+        for(int i=0; i<sz; i++) (*this)[i] *= s;
         return *this;
     }
-    tImage<_PixType> &operator/=(const _PixType &s)
+    tImage<Pixel_T> &operator/=(const Pixel_T &s)
     {
-        for(int i=0; i<size(); i++) (*this)[i] /= s;
+        int sz = size();
+        for(int i=0; i<sz; i++) (*this)[i] /= s;
         return *this;
     }
+
 #if 1
     // With a constant pixel
-
-    tImage<_PixType> operator/(const _PixType &v)
+    tImage<Pixel_T> operator/(const Pixel_T &v)
     {
-        tImage<_PixType> r(w(), h());
-        for(int i=0; i<size(); i++) r[i] = (*this)[i] / v;
+        tImage<Pixel_T> r(w(), h());
+        int sz = size();
+        for(int i=0; i<sz; i++) r[i] = (*this)[i] / v;
         return r;
     }
 #endif
 };
 
-#if 0
-// Apply an arbitrary function to each pixel.
-template<class _PixType, class _Pred>
-tImage<_PixType> func(const tImage<_PixType> &p, _Pred _fnc)
-{
-    _PixType r;
-    for(int i=0; i<p.size(); i++) r[i] = _fnc(p[i]);
-    return r;
-}
-#endif
-
-#if 1
-// Apply an arbitrary function to each channel of each pixel.
-template<class _PixType, class _Pred>
-void ifunc(tImage<_PixType> &r, const tImage<_PixType> &p, _Pred _fnc)
+// Apply an arbitrary function to each channel of each pixel and put the result in image r.
+template<class Pixel_T, class Pred_T>
+DMC_INLINE void ifunc(tImage<Pixel_T> &r, const tImage<Pixel_T> &p, Pred_T fnc)
 {
     r.SetSize(p.w(), p.h());
 
-    for(int i=0; i<p.size(); i++)
-        for(int j=0; j<_PixType::chan(); j++) r[i][j] = _fnc(p[i][j]);
+    int sz = p.size();
+    for(int i=0; i<sz; i++)
+        for(int j=0; j<Pixel_T::chan(); j++) r[i][j] = fnc(p[i][j]);
 }
 
 // Apply an arbitrary function to each channel of each pixel.
 // Modifies the image in place.
-template<class _PixType, class _Pred>
-void func(tImage<_PixType> &p, _Pred _fnc)
+template<class Pixel_T, class Pred_T>
+DMC_INLINE void func(tImage<Pixel_T> &p, Pred_T fnc)
 {
-    for(int i=0; i<p.size(); i++)
-        for(int j=0; j<_PixType::chan(); j++) p[i][j] = _fnc(p[i][j]);
+    int sz = p.size();
+    for(int i=0; i<sz; i++)
+        for(int j=0; j<Pixel_T::chan(); j++) p[i][j] = fnc(p[i][j]);
 }
-#endif
 
 // Unary minus.
-// WARNING: This is probably bad for unsigned pixel types.
-template<class _PixType>
-tImage<_PixType> operator-(const tImage<_PixType> &p)
+template<class Pixel_T>
+DMC_INLINE tImage<Pixel_T> operator-(const tImage<Pixel_T> &p)
 {
-    tImage<_PixType> r(p.w(), p.h());
-    for(int i=0; i<p.size(); i++) r[i] = -p[i];
+    ASSERT_R(Pixel_T::is_signed); // WARNING: Doesn't work for unsigned pixel types.
+
+    tImage<Pixel_T> r(p.w(), p.h());
+    int sz = p.size();
+    for(int i=0; i<sz; i++) r[i] = -p[i];
     return r;
 }
 
-// Equal. Doesn't use epsilon.
-template<class _PixType>
-bool operator==(const tImage<_PixType> &p1, const tImage<_PixType> &p2)
+// Equal.
+template<class Pixel_T>
+DMC_INLINE bool operator==(const tImage<Pixel_T> &p1, const tImage<Pixel_T> &p2)
 {
-    if(p1.w() != p2.w() || p1.h() != p2.h())
-        return false;
-    for(int i=0; i<p1.size(); i++)
+    if(p1.w() != p2.w() || p1.h() != p2.h()) return false;
+    int sz = p1.size();
+    for(int i=0; i<sz; i++)
         if(p1[i] != p2[i])
             return false;
-        return true;
+    return true;
 }
 
-// Not equal. Doesn't use epsilon.
-template<class _PixType>
-bool operator!=(const tImage<_PixType> &p1, const tImage<_PixType> &p2)
+// Not equal.
+template<class Pixel_T>
+DMC_INLINE bool operator!=(const tImage<Pixel_T> &p1, const tImage<Pixel_T> &p2)
 {
     return !(p1 == p2);
 }
@@ -769,144 +651,179 @@ bool operator!=(const tImage<_PixType> &p1, const tImage<_PixType> &p2)
 // With two images
 
 // Didn't do the suggested local copy and += for optimization.
-// WARNING: These have a memory error on MSVC. Don't use them.
-template<class _PixType>
-tImage<_PixType> operator+(const tImage<_PixType> &p1, const tImage<_PixType> &p2)
+// WARNING: After you use one of these you will probably assign it using operator=,
+// which does a member-wise (unsafe) copy if src and dest pixel types match.
+template<class Pixel_T>
+DMC_INLINE tImage<Pixel_T> operator+(const tImage<Pixel_T> &p1, const tImage<Pixel_T> &p2)
 {
     ASSERT_R(p1.size() == p2.size());
-    tImage<_PixType> r(p1.w(), p1.h());
-    for(int i=0; i<p1.size(); i++) r[i] = p1[i] + p2[i];
+    tImage<Pixel_T> r(p1.w(), p1.h());
+    int sz = p1.size();
+    for(int i=0; i<sz; i++) r[i] = p1[i] + p2[i];
     return r;
 }
-template<class _PixType>
-tImage<_PixType> operator-(const tImage<_PixType> &p1, const tImage<_PixType> &p2)
+template<class Pixel_T>
+DMC_INLINE tImage<Pixel_T> operator-(const tImage<Pixel_T> &p1, const tImage<Pixel_T> &p2)
 {
     ASSERT_R(p1.size() == p2.size());
-    tImage<_PixType> r(p1.w(), p1.h());
-    for(int i=0; i<p1.size(); i++) r[i] = p1[i] - p2[i];
+    tImage<Pixel_T> r(p1.w(), p1.h());
+    int sz = p1.size();
+    for(int i=0; i<sz; i++) r[i] = p1[i] - p2[i];
     return r;
 }
-template<class _PixType>
-tImage<_PixType> operator*(const tImage<_PixType> &p1, const tImage<_PixType> &p2)
+template<class Pixel_T>
+DMC_INLINE tImage<Pixel_T> operator*(const tImage<Pixel_T> &p1, const tImage<Pixel_T> &p2)
 {
     ASSERT_R(p1.size() == p2.size());
-    tImage<_PixType> r(p1.w(), p1.h());
-    for(int i=0; i<p1.size(); i++) r[i] = p1[i] * p2[i];
+    tImage<Pixel_T> r(p1.w(), p1.h());
+    int sz = p1.size();
+    for(int i=0; i<sz; i++) r[i] = p1[i] * p2[i];
     return r;
 }
 // WARNING: Be careful for divide by zero.
-template<class _PixType>
-tImage<_PixType> operator/(const tImage<_PixType> &p1, const tImage<_PixType> &p2)
+template<class Pixel_T>
+DMC_INLINE tImage<Pixel_T> operator/(const tImage<Pixel_T> &p1, const tImage<Pixel_T> &p2)
 {
     ASSERT_R(p1.size() == p2.size());
-    tImage<_PixType> r(p1.w(), p1.h());
-    for(int i=0; i<p1.size(); i++) r[i] = p1[i] / p2[i];
+    tImage<Pixel_T> r(p1.w(), p1.h());
+    int sz = p1.size();
+    for(int i=0; i<sz; i++) r[i] = p1[i] / p2[i];
     return r;
 }
 
 // With a left scalar and a right image
 
-template<class _PixType>
-tImage<_PixType> operator+(const _PixType &v, const tImage<_PixType> &p)
+template<class Pixel_T>
+DMC_INLINE tImage<Pixel_T> operator+(const Pixel_T &v, const tImage<Pixel_T> &p)
 {
-    tImage<_PixType> r(p.w(), p.h());
-    for(int i=0; i<p.size(); i++) r[i] = v + p[i];
+    tImage<Pixel_T> r(p.w(), p.h());
+    int sz = p.size();
+    for(int i=0; i<sz; i++) r[i] = v + p[i];
     return r;
 }
-template<class _PixType>
-tImage<_PixType> operator-(const _PixType &v, const tImage<_PixType> &p)
+template<class Pixel_T>
+DMC_INLINE tImage<Pixel_T> operator-(const Pixel_T &v, const tImage<Pixel_T> &p)
 {
-    tImage<_PixType> r(p.w(), p.h());
-    for(int i=0; i<p.size(); i++) r[i] = v - p[i];
+    tImage<Pixel_T> r(p.w(), p.h());
+    int sz = p.size();
+    for(int i=0; i<sz; i++) r[i] = v - p[i];
     return r;
 }
-template<class _PixType>
-tImage<_PixType> operator*(const _PixType &v, const tImage<_PixType> &p)
+template<class Pixel_T>
+DMC_INLINE tImage<Pixel_T> operator*(const Pixel_T &v, const tImage<Pixel_T> &p)
 {
-    tImage<_PixType> r(p.w(), p.h());
-    for(int i=0; i<p.size(); i++) r[i] = v * p[i];
+    tImage<Pixel_T> r(p.w(), p.h());
+    int sz = p.size();
+    for(int i=0; i<sz; i++) r[i] = v * p[i];
     return r;
 }
-template<class _PixType>
-tImage<_PixType> operator/(const _PixType &v, const tImage<_PixType> &p)
+template<class Pixel_T>
+DMC_INLINE tImage<Pixel_T> operator/(const Pixel_T &v, const tImage<Pixel_T> &p)
 {
-    tImage<_PixType> r(p.w(), p.h());
-    for(int i=0; i<p.size(); i++) r[i] = v / p[i];
+    tImage<Pixel_T> r(p.w(), p.h());
+    int sz = p.size();
+    for(int i=0; i<sz; i++) r[i] = v / p[i];
     return r;
 }
 
 // With a right scalar and a left image
 
-template<class _PixType>
-tImage<_PixType> operator+(const tImage<_PixType> &p, const _PixType &v)
+template<class Pixel_T>
+DMC_INLINE tImage<Pixel_T> operator+(const tImage<Pixel_T> &p, const Pixel_T &v)
 {
-    tImage<_PixType> r(p.w(), p.h());
-    for(int i=0; i<p.size(); i++) r[i] = p[i] + v;
+    tImage<Pixel_T> r(p.w(), p.h());
+    int sz = p.size();
+    for(int i=0; i<sz; i++) r[i] = p[i] + v;
     return r;
 }
-template<class _PixType>
-tImage<_PixType> operator-(const tImage<_PixType> &p, const _PixType &v)
+template<class Pixel_T>
+DMC_INLINE tImage<Pixel_T> operator-(const tImage<Pixel_T> &p, const Pixel_T &v)
 {
-    tImage<_PixType> r(p.w(), p.h());
-    for(int i=0; i<p.size(); i++) r[i] = p[i] - v;
+    tImage<Pixel_T> r(p.w(), p.h());
+    int sz = p.size();
+    for(int i=0; i<sz; i++) r[i] = p[i] - v;
     return r;
 }
-template<class _PixType>
-tImage<_PixType> operator*(const tImage<_PixType> &p, const _PixType &v)
+template<class Pixel_T>
+DMC_INLINE tImage<Pixel_T> operator*(const tImage<Pixel_T> &p, const Pixel_T &v)
 {
-    tImage<_PixType> r(p.w(), p.h());
-    for(int i=0; i<p.size(); i++) r[i] = p[i] * v;
+    tImage<Pixel_T> r(p.w(), p.h());
+    int sz = p.size();
+    for(int i=0; i<sz; i++) r[i] = p[i] * v;
     return r;
 }
+
 #if 0
-template<class _PixType>
-tImage<_PixType> operator/(const tImage<_PixType> &p, const _PixType &v)
+// I can't remember why I commented this out. Maybe because I'm using a member version for some reason.
+template<class Pixel_T>
+DMC_INLINE tImage<Pixel_T> operator/(const tImage<Pixel_T> &p, const Pixel_T &v)
 {
-    tImage<_PixType> r(p.w(), p.h());
-    for(int i=0; i<p.size(); i++) r[i] = p[i] / v;
+    tImage<Pixel_T> r(p.w(), p.h());
+    int sz = p.size();
+    for(int i=0; i<sz; i++) r[i] = p[i] / v;
     return r;
 }
 #endif
-// Linearly interpolate between pixels p1 and p2.
-// If weight==0, returns p1. If weight==1, returns p2.
-// WARNING: This should get overloaded for unsigned _ElTypes.
-template<class _PixType>
-tImage<_PixType> Interpolate(const tImage<_PixType> &p1, const tImage<_PixType> &p2,
-                             _PixType weight)
+
+// Linearly interpolate between images p1 and p2.
+// I.e., if weight==0, returns p1. If weight==1, returns p2.
+template<class Pixel_T>
+DMC_INLINE tImage<Pixel_T> Interpolate(const tImage<Pixel_T> &p1, const tImage<Pixel_T> &p2,
+                             typename Pixel_T::FloatMathPixType weight)
 {
     ASSERT_R(p1.size() == p2.size());
-    tImage<_PixType> r(p1.w(), p1.h());
-    for(int i=0; i<p1.size(); i++) r[i] = p1[i] + (p2[i] - p1[i]) * weight;
+    tImage<Pixel_T> r(p1.w(), p1.h());
+    int sz = p1.size();
+    for(int i=0; i<p1.size(); i++) r[i] = Interpolate(p1[i], p2[i], weight);
     return r;
 }
 
 // Pixel-wise max.
-template<class _PixType>
-tImage<_PixType> Max(const tImage<_PixType> &p1, const tImage<_PixType> &p2)
+template<class Pixel_T>
+DMC_INLINE tImage<Pixel_T> Max(const tImage<Pixel_T> &p1, const tImage<Pixel_T> &p2)
 {
     ASSERT_R(p1.size() == p2.size());
-    tImage<_PixType> r(p1.w(), p1.h());
+    tImage<Pixel_T> r(p1.w(), p1.h());
+    int sz = p1.size();
     for(int i=0; i<p1.size(); i++) r[i] = Max(p1[i], p2[i]);
     return r;
 }
 
 // Pixel-wise min.
-template<class _PixType>
-tImage<_PixType> Min(const tImage<_PixType> &p1, const tImage<_PixType> &p2)
+template<class Pixel_T>
+DMC_INLINE tImage<Pixel_T> Min(const tImage<Pixel_T> &p1, const tImage<Pixel_T> &p2)
 {
     ASSERT_R(p1.size() == p2.size());
-    tImage<_PixType> r(p1.w(), p1.h());
+    tImage<Pixel_T> r(p1.w(), p1.h());
+    int sz = p1.size();
     for(int i=0; i<p1.size(); i++) r[i] = Min(p1[i], p2[i]);
     return r;
 }
 
 // Pixel-wise absolute value.
-template<class _PixType>
-tImage<_PixType> Abs(const tImage<_PixType> &p)
+template<class Pixel_T>
+DMC_INLINE tImage<Pixel_T> Abs(const tImage<Pixel_T> &p)
 {
-    tImage<_PixType> r(p.w(), p.h());
-    for(int i=0; i<p.size(); i++) r[i] = Abs(p[i]);
+    tImage<Pixel_T> r(p.w(), p.h());
+    int sz = p.size();
+    for(int i=0; i<sz; i++) r[i] = Abs(p[i]);
     return r;
+}
+
+// Flip this image vertically in place.
+// This really should be in ImageAlgorithms, but I used to use it a lot.
+template<class Pixel_T>
+DMC_INLINE void VFlip(tImage<Pixel_T> &p)
+{
+    const int wid = p.w(), hgt = p.h();
+
+    for(int y=0; y<hgt/2; y++) {
+        for(int x = 0; x < wid; x++) {
+            Pixel_T tmp = p(x,y);
+            p(x,y) = p(x,hgt-y-1);
+            p(x,hgt-y-1) = tmp;
+        }
+    }
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -922,10 +839,10 @@ typedef tImage<us2Pixel> us2Image;
 typedef tImage<us3Pixel> us3Image;
 typedef tImage<us4Pixel> us4Image;
 
-typedef tImage<s1Pixel> s1Image;
-typedef tImage<s2Pixel> s2Image;
-typedef tImage<s3Pixel> s3Image;
-typedef tImage<s4Pixel> s4Image;
+typedef tImage<ss1Pixel> ss1Image;
+typedef tImage<ss2Pixel> ss2Image;
+typedef tImage<ss3Pixel> ss3Image;
+typedef tImage<ss4Pixel> ss4Image;
 
 typedef tImage<ui1Pixel> ui1Image;
 typedef tImage<ui2Pixel> ui2Image;
@@ -947,45 +864,49 @@ typedef tImage<f4Pixel> f4Image;
 typedef ui1Image zImage;
 typedef tImage<rgbePixel> rgbeImage; // Overload this to get a constructor.
 
-template <class _ImgType> extern void tLoad(const char *fname, _ImgType *out);
-template <class _ImgType> extern void tSave(const char *fname, const _ImgType *img);
+template <class Image_T> extern void tLoad(const char *fname, Image_T *out);
+template <class Image_T> extern void tSave(const char *fname, const Image_T &img);
 
 // List here the image types for which tLoad is instantiated.
-// This avoids tLoad being wanted for types for which it doesn't exist.
-template<> DMC_INL void uc1Image::Load(const char *fname) {tLoad(fname, this);}
-template<> DMC_INL void uc2Image::Load(const char *fname) {tLoad(fname, this);}
-template<> DMC_INL void uc3Image::Load(const char *fname) {tLoad(fname, this);}
-template<> DMC_INL void uc4Image::Load(const char *fname) {tLoad(fname, this);}
-template<> DMC_INL void us1Image::Load(const char *fname) {tLoad(fname, this);}
-template<> DMC_INL void us2Image::Load(const char *fname) {tLoad(fname, this);}
-template<> DMC_INL void us3Image::Load(const char *fname) {tLoad(fname, this);}
-template<> DMC_INL void us4Image::Load(const char *fname) {tLoad(fname, this);}
-template<> DMC_INL void ui1Image::Load(const char *fname) {tLoad(fname, this);}
-//template<> DMC_INL void ui2Image::Load(const char *fname) {tLoad(fname, this);}
-//template<> DMC_INL void ui3Image::Load(const char *fname) {tLoad(fname, this);}
-//template<> DMC_INL void ui4Image::Load(const char *fname) {tLoad(fname, this);}
-template<> DMC_INL void f1Image::Load(const char *fname) {tLoad(fname, this);}
-//template<> DMC_INL void f2Image::Load(const char *fname) {tLoad(fname, this);}
-template<> DMC_INL void f3Image::Load(const char *fname) {tLoad(fname, this);}
-//template<> DMC_INL void f4Image::Load(const char *fname) {tLoad(fname, this);}
+// This avoids the templated tLoad being wanted for types for which it doesn't exist.
+template<> DMC_INLINE void uc1Image::Load(const char *fname) {tLoad(fname, this);}
+template<> DMC_INLINE void uc2Image::Load(const char *fname) {tLoad(fname, this);}
+template<> DMC_INLINE void uc3Image::Load(const char *fname) {tLoad(fname, this);}
+template<> DMC_INLINE void uc4Image::Load(const char *fname) {tLoad(fname, this);}
+template<> DMC_INLINE void us1Image::Load(const char *fname) {tLoad(fname, this);}
+template<> DMC_INLINE void us2Image::Load(const char *fname) {tLoad(fname, this);}
+template<> DMC_INLINE void us3Image::Load(const char *fname) {tLoad(fname, this);}
+template<> DMC_INLINE void us4Image::Load(const char *fname) {tLoad(fname, this);}
+template<> DMC_INLINE void ui1Image::Load(const char *fname) {tLoad(fname, this);}
+//template<> DMC_INLINE void ui2Image::Load(const char *fname) {tLoad(fname, this);}
+//template<> DMC_INLINE void ui3Image::Load(const char *fname) {tLoad(fname, this);}
+//template<> DMC_INLINE void ui4Image::Load(const char *fname) {tLoad(fname, this);}
+template<> DMC_INLINE void f1Image::Load(const char *fname) {tLoad(fname, this);}
+//template<> DMC_INLINE void f2Image::Load(const char *fname) {tLoad(fname, this);}
+template<> DMC_INLINE void f3Image::Load(const char *fname) {tLoad(fname, this);}
+//template<> DMC_INLINE void f4Image::Load(const char *fname) {tLoad(fname, this);}
 
 // List here the image types for which tSave is instantiated.
-// This avoids tSave being wanted for types for which it doesn't exist.
-template<> DMC_INL void uc1Image::Save(const char *fname) const {tSave(fname, this);}
-template<> DMC_INL void uc2Image::Save(const char *fname) const {tSave(fname, this);}
-template<> DMC_INL void uc3Image::Save(const char *fname) const {tSave(fname, this);}
-template<> DMC_INL void uc4Image::Save(const char *fname) const {tSave(fname, this);}
-template<> DMC_INL void us1Image::Save(const char *fname) const {tSave(fname, this);}
-template<> DMC_INL void us2Image::Save(const char *fname) const {tSave(fname, this);}
-template<> DMC_INL void us3Image::Save(const char *fname) const {tSave(fname, this);}
-template<> DMC_INL void us4Image::Save(const char *fname) const {tSave(fname, this);}
-template<> DMC_INL void ui1Image::Save(const char *fname) const {tSave(fname, this);}
-//template<> DMC_INL void ui2Image::Save(const char *fname) const {tSave(fname, this);}
-//template<> DMC_INL void ui3Image::Save(const char *fname) const {tSave(fname, this);}
-//template<> DMC_INL void ui4Image::Save(const char *fname) const {tSave(fname, this);}
-template<> DMC_INL void f1Image::Save(const char *fname) const {tSave(fname, this);}
-//template<> DMC_INL void f2Image::Save(const char *fname) const {tSave(fname, this);}
-template<> DMC_INL void f3Image::Save(const char *fname) const {tSave(fname, this);}
-//template<> DMC_INL void f4Image::Save(const char *fname) const {tSave(fname, this);}
+// This avoids the templated tSave being wanted for types for which it doesn't exist.
+template<> DMC_INLINE void uc1Image::Save(const char *fname) const {tSave(fname, *this);}
+template<> DMC_INLINE void uc2Image::Save(const char *fname) const {tSave(fname, *this);}
+template<> DMC_INLINE void uc3Image::Save(const char *fname) const {tSave(fname, *this);}
+template<> DMC_INLINE void uc4Image::Save(const char *fname) const {tSave(fname, *this);}
+template<> DMC_INLINE void us1Image::Save(const char *fname) const {tSave(fname, *this);}
+template<> DMC_INLINE void us2Image::Save(const char *fname) const {tSave(fname, *this);}
+template<> DMC_INLINE void us3Image::Save(const char *fname) const {tSave(fname, *this);}
+template<> DMC_INLINE void us4Image::Save(const char *fname) const {tSave(fname, *this);}
+template<> DMC_INLINE void ui1Image::Save(const char *fname) const {tSave(fname, *this);}
+//template<> DMC_INLINE void ui2Image::Save(const char *fname) const {tSave(fname, *this);}
+//template<> DMC_INLINE void ui3Image::Save(const char *fname) const {tSave(fname, *this);}
+//template<> DMC_INLINE void ui4Image::Save(const char *fname) const {tSave(fname, *this);}
+template<> DMC_INLINE void h1Image::Save(const char *fname) const {tSave(fname, *this);}
+//template<> DMC_INLINE void h2Image::Save(const char *fname) const {tSave(fname, *this);}
+template<> DMC_INLINE void h3Image::Save(const char *fname) const {tSave(fname, *this);}
+//template<> DMC_INLINE void h4Image::Save(const char *fname) const {tSave(fname, *this);}
+template<> DMC_INLINE void f1Image::Save(const char *fname) const {tSave(fname, *this);}
+//template<> DMC_INLINE void f2Image::Save(const char *fname) const {tSave(fname, *this);}
+template<> DMC_INLINE void f3Image::Save(const char *fname) const {tSave(fname, *this);}
+//template<> DMC_INLINE void f4Image::Save(const char *fname) const {tSave(fname, *this);}
 
 #endif

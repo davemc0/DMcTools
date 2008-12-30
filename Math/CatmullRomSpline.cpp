@@ -4,11 +4,11 @@
 // Changes Copyright David K. McAllister, Dec. 1997.
 // Originally written by Steven G. Parker, Mar. 1994.
 
-#include <Math/CatmullRomSpline.h>
-#include <Util/Assert.h>
+#include "Math/CatmullRomSpline.h"
+#include "Util/Assert.h"
 
 #ifdef DMC_MACHINE_win
-#include <Math/Vector.h>
+#include "Math/Vector.h"
 #endif
 
 using namespace std;

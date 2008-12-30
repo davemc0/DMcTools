@@ -3,10 +3,10 @@
 //
 // Copyright David K. McAllister, Mar. 1999.
 
-#ifndef _downsimplex_h
-#define _downsimplex_h
+#ifndef dmc_downsimplex_h
+#define dmc_downsimplex_h
 
-#include <Math/HVector.h>
+#include "Math/HVector.h"
 
 #define NMAX 1000
 

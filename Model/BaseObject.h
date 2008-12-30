@@ -1,15 +1,15 @@
 //////////////////////////////////////////////////////////////////////
-// BaseObject.h - Container class for all kinds of objects.
+// BaseObject.h - Container class for all kinds of 3D objects.
 //
 // Copyright David K. McAllister, Dec. 2001.
 
 #ifndef base_object_h
 #define base_object_h
 
-#include <Model/TextureDB.h>
-#include <Math/BBox.h>
-#include <Math/Matrix44.h>
-#include <Math/Vector.h>
+#include "Model/TextureDB.h"
+#include "Math/BBox.h"
+#include "Math/Matrix44.h"
+#include "Math/Vector.h"
 
 #include <vector>
 
@@ -29,7 +29,7 @@ struct BaseObject
     int DispLists[OBJ_ALL+1]; // So you can have a disp list for each set of attribs.
     Matrix44 Transform; // The current transformation.
     Matrix44 TexTransform; // The current texture transformation.
-    BBox Box;
+    BBox<Vector> Box;
     Vector dcolor; // The object-wide colors.
     double alpha;
     Vector scolor, ecolor, acolor;
@@ -52,7 +52,7 @@ struct BaseObject
     // elements exist. Other bits tell what elements are valid or used.
     unsigned int FaceType, VertexType, EdgeType;
 
-    inline BaseObject()
+    DMC_INLINE BaseObject()
     {
         // cerr << "Making BaseObject.\n";
         ObjectType = DMC_BASE_OBJECT;

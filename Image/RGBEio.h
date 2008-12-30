@@ -16,7 +16,7 @@
 #ifndef rgbe_io_h
 #define rgbe_io_h
 
-#include <stdio.h>
+#include <cstdio>
 
 #define RED 0
 #define GRN 1

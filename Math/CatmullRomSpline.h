@@ -1,11 +1,10 @@
 //////////////////////////////////////////////////////////////////////
 // CatmullRomSpline.h - Implements a Catmull-Rom interpolating spline.
 //
-// Changes Copyright David K. McAllister, Dec. 1997.
-// Originally written by Steven G. Parker, Mar. 1994.
+// Copyright David K. McAllister, 1997-2007.
 
-#ifndef _CatmullRomSpline_h
-#define _CatmullRomSpline_h
+#ifndef dmc_atmullRomSpline_h
+#define dmc_atmullRomSpline_h
 
 #include "toolconfig.h"
 

@@ -8,37 +8,37 @@
 
 // This class only works with KDBoxTree.
 
-#ifndef _kd_bvector_h
-#define _kd_bvector_h
+#ifndef dmc_kd_bvector_h
+#define dmc_kd_bvector_h
 
-#include <Math/Vector.h>
+#include "Math/Vector.h"
 
 class KDBVector : public Vector
 {
 public:
     // Might add things here like normal and coords in spherical map.
 
-    inline KDBVector() {}
+    KDBVector() {}
 
-    inline KDBVector(const Vector &V) : Vector(V) {}
+    KDBVector(const Vector &V) : Vector(V) {}
 
-    friend inline bool lessX(const KDBVector &a, const KDBVector &b)
+    static bool lessX(const KDBVector &a, const KDBVector &b)
     {
         return a.x < b.x;
     }
 
-    friend inline bool lessY(const KDBVector &a, const KDBVector &b)
+    static bool lessY(const KDBVector &a, const KDBVector &b)
     {
         return a.y < b.y;
     }
 
-    friend inline bool lessZ(const KDBVector &a, const KDBVector &b)
+    static bool lessZ(const KDBVector &a, const KDBVector &b)
     {
         return a.z < b.z;
     }
 
     // These three are for breaking ties in the KDTree.
-    friend inline bool lessFX(const KDBVector &a, const KDBVector &b)
+    static bool lessFX(const KDBVector &a, const KDBVector &b)
     {
         if(a.x < b.x) return true;
         else if(a.x > b.x) return false;
@@ -47,7 +47,7 @@ public:
         else return a.z < b.z;
     }
 
-    friend inline bool lessFY(const KDBVector &a, const KDBVector &b)
+    static bool lessFY(const KDBVector &a, const KDBVector &b)
     {
         if(a.y < b.y) return true;
         else if(a.y > b.y) return false;
@@ -56,7 +56,7 @@ public:
         else return a.x < b.x;
     }
 
-    friend inline bool lessFZ(const KDBVector &a, const KDBVector &b)
+    static bool lessFZ(const KDBVector &a, const KDBVector &b)
     {
         if(a.z < b.z) return true;
         else if(a.z > b.z) return false;
@@ -65,7 +65,7 @@ public:
         else return a.y < b.y;
     }
 
-    inline const Vector &vector() const
+    const Vector &vector() const
     {
       // return Vert;
       return *this;

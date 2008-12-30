@@ -3,13 +3,12 @@
 //
 // Copyright David K. McAllister, Mar. 1998.
 
-#ifndef _hvector_h
-#define _hvector_h
+#ifndef dmc_hvector_h
+#define dmc_hvector_h
 
-#include <Util/Assert.h>
-
-#include <Math/HMatrix.h>
-#include <Math/MiscMath.h>
+#include "Util/Assert.h"
+#include "Math/HMatrix.h"
+#include "Math/MiscMath.h"
 
 #include <string>
 
@@ -19,25 +18,22 @@ class HVector
     int r;
 public:
 
-    inline HVector()
+    DMC_INLINE HVector()
     {
         data = NULL;
         r = 0;
     }
 
-    inline HVector(const int _r)
+    DMC_INLINE HVector(const int r) : r(r)
     {
-        if(_r > 0)
-        {
-            data = new double[_r];
+        if(r > 0) {
+            data = new double[r];
             ASSERT_RM(data, "memory alloc failed");
-        }
-        else
+        } else
             data = NULL;
-        r = _r;
     }
 
-    inline HVector(const HVector &A)
+    DMC_INLINE HVector(const HVector &A)
     {
         if(A.data)
         {
@@ -53,27 +49,27 @@ public:
         }
     }
 
-    virtual inline ~HVector()
+    virtual DMC_INLINE ~HVector()
     {
         if(data)
             delete [] data;
     }
 
-    inline double & operator[](const int i)
+    DMC_INLINE double & operator[](const int i)
     {
         ASSERT_D(data != NULL);
 
         return data[i];
     }
 
-    inline const double & operator[](const int i) const
+    DMC_INLINE const double & operator[](const int i) const
     {
         ASSERT_D(data != NULL);
 
         return data[i];
     }
 
-    inline HVector & operator=(const HVector &A)
+    DMC_INLINE HVector & operator=(const HVector &A)
     {
         if(A.data && A.r)
         {
@@ -97,7 +93,7 @@ public:
 
     // Operators on doubles.
 
-    inline HVector operator*(const double d) const
+    DMC_INLINE HVector operator*(const double d) const
     {
         ASSERT_R(data != NULL);
 
@@ -109,7 +105,7 @@ public:
         return b;
     }
 
-    inline HVector & operator*=(const double d)
+    DMC_INLINE HVector & operator*=(const double d)
     {
         ASSERT_R(data != NULL);
 
@@ -119,7 +115,7 @@ public:
         return *this;
     }
 
-    inline HVector & operator/=(const double d)
+    DMC_INLINE HVector & operator/=(const double d)
     {
         ASSERT_R(data != NULL);
 
@@ -129,7 +125,7 @@ public:
         return *this;
     }
 
-    inline HVector & operator+=(const double d)
+    DMC_INLINE HVector & operator+=(const double d)
     {
         ASSERT_R(data != NULL);
 
@@ -139,7 +135,7 @@ public:
         return *this;
     }
 
-    inline HVector & operator-=(const double d)
+    DMC_INLINE HVector & operator-=(const double d)
     {
         ASSERT_R(data != NULL);
 
@@ -150,7 +146,7 @@ public:
     }
 
     // Add a constant to each element.
-    inline HVector operator+(const double d) const
+    DMC_INLINE HVector operator+(const double d) const
     {
         ASSERT_R(data != NULL);
 
@@ -164,7 +160,7 @@ public:
 
     // Operators on HVectors.
 
-    inline HVector operator+(const HVector &A) const
+    DMC_INLINE HVector operator+(const HVector &A) const
     {
         ASSERT_R(data != NULL);
         ASSERT_R(A.data != NULL);
@@ -178,7 +174,7 @@ public:
         return b;
     }
 
-    inline HVector & operator+=(const HVector &A)
+    DMC_INLINE HVector & operator+=(const HVector &A)
     {
         ASSERT_R(data != NULL);
         ASSERT_R(A.data != NULL);
@@ -190,7 +186,7 @@ public:
         return *this;
     }
 
-    inline HVector operator-(const HVector &A) const
+    DMC_INLINE HVector operator-(const HVector &A) const
     {
         ASSERT_R(data != NULL);
         ASSERT_R(A.data != NULL);
@@ -204,7 +200,7 @@ public:
         return b;
     }
 
-    friend inline double Dot(const HVector &A, const HVector &B)
+    friend DMC_INLINE double Dot(const HVector &A, const HVector &B)
     {
         ASSERT_R(A.data != NULL);
         ASSERT_R(B.data != NULL);
@@ -218,7 +214,7 @@ public:
     }
 
     // Swap the data in these two vectors.
-    inline void swap(const HVector &A)
+    DMC_INLINE void swap(const HVector &A)
     {
         ASSERT_R(data != NULL);
         ASSERT_R(A.data != NULL);
@@ -233,7 +229,7 @@ public:
 
     // Set it to a new size.
     // Warning: Doesn't preserve data on growth.
-    inline void size(int sz)
+    DMC_INLINE void size(int sz)
     {
         ASSERT_D(sz >= 0);
 
@@ -257,12 +253,12 @@ public:
             data = NULL;
     }
 
-    inline int size() const
+    DMC_INLINE int size() const
     {
         return r;
     }
 
-    inline HVector & zero()
+    DMC_INLINE HVector & zero()
     {
         ASSERT_R(data != NULL);
         ASSERT_R(r > 0);
@@ -273,7 +269,7 @@ public:
     }
 
     // Set all elements to the given value.
-    inline HVector & set(double val)
+    DMC_INLINE HVector & set(double val)
     {
         ASSERT_R(data != NULL);
         ASSERT_R(r > 0);
@@ -294,7 +290,7 @@ public:
     // with the given standard deviation.
     HVector & nrand(const double sigma = 1.0);
 
-    inline double length2() const
+    DMC_INLINE double length2() const
     {
         ASSERT_R(data != NULL && r > 0);
 
@@ -307,7 +303,7 @@ public:
         return l2;
     }
 
-    inline double length() const
+    DMC_INLINE double length() const
     {
         return Sqrt(length2());
     }

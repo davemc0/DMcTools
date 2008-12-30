@@ -3,7 +3,9 @@
 //
 // Copyright David K. McAllister, Mar. 1998.
 
-#include <Math/HVector.h>
+#include "Math/HVector.h"
+
+#include <string>
 
 using namespace std;
 
@@ -12,11 +14,10 @@ string HVector::print() const
     ASSERT_R(data != NULL);
 
     string s;
-    char ii[20];
+    char ii[32];
 
-    for(int i=0; i<r; i++)
-    {
-        s += gcvt(data[i], 15, ii);
+    for(int i=0; i<r; i++) {
+        s += gcvt(data[i], 8, ii);
         s += " ";
     }
 
@@ -61,8 +62,7 @@ HVector Mean(const HVector *VA, const int count)
     HVector Mu(dim);
     Mu.zero();
 
-    for(int i=0; i<count; i++)
-    {
+    for(int i=0; i<count; i++) {
         ASSERT_D(VA[i].size() == dim);
 
         Mu += VA[i];
@@ -82,8 +82,7 @@ Matrix OuterProd(const HVector &A, const HVector &B)
     Matrix C(A.r, A.r);
 
     for(int i=0; i<A.r; i++)
-        for(int j=0; j<A.r; j++)
-        {
+        for(int j=0; j<A.r; j++) {
             C(i, j) = A.data[i] * B.data[j];
         }
 
@@ -104,16 +103,13 @@ Matrix Covariance(const HVector *VA, const int count)
     ASSERT_RM(VL, "memory alloc failed");
 
     int i;
-    for(i=0; i<count; i++)
-    {
+    for(i=0; i<count; i++) {
         ASSERT_D(VA[i].size() == dim);
         VL[i] = VA[i] - Mu;
     }
 
-    for(i=0; i<dim; i++)
-    {
-        for(int j=0; j<dim; j++)
-        {
+    for(i=0; i<dim; i++) {
+        for(int j=0; j<dim; j++) {
             double t = 0;
             for(int k=0; k<count; k++)
                 t += VL[k][i] * VL[k][j];

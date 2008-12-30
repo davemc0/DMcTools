@@ -5,8 +5,8 @@
 
 // XXX It's not working right now.
 #if 0
-#include <Math/HermiteSpline.h>
-#include <Util/Assert.h>
+#include "Math/HermiteSpline.h"
+#include "Util/Assert.h"
 
 template<class T>
 HermiteSpline<T>::HermiteSpline()
@@ -24,7 +24,7 @@ template<class T>
 HermiteSpline<T>::HermiteSpline( const Array1<T>& data, const Array1<T>& tang )
 : d(data), p(tang), nset(data.size()), NumBasisSamples(0)
 {
-    ASSERT(data.size() == tang.size());
+    ASSERT_D(data.size() == tang.size());
 }
 
 template<class T>
@@ -37,8 +37,8 @@ template<class T>
 HermiteSpline<T>::HermiteSpline( const HermiteSpline<T>& s )
 : d(s.d), p(s.p), nset(s.nset), NumBasisSamples(0)
 {
-    ASSERT(d.size() == p.size());
-    ASSERT(d.size() == nset);
+    ASSERT_D(d.size() == p.size());
+    ASSERT_D(d.size() == nset);
 }
 
 template<class T>
@@ -55,7 +55,7 @@ void HermiteSpline<T>::setData( const Array1<T>& data, const Array1<T>& tang )
     d = data;
     p = tang;
     nset = data.size();
-    ASSERT(data.size() == tang.size());
+    ASSERT_D(data.size() == tang.size());
 }
 
 template<class T>
@@ -107,10 +107,10 @@ T HermiteSpline<T>::sample( double x ) const
     int iP1 = i+1;
     int k = int((x - double(i)) * double(NumBasisSamples));
 
-    ASSERT(nset >= 2);
-    ASSERT(iP1 < nset);
-    ASSERT(i >= 0);
-    ASSERT(NumBasisSamples > k);
+    ASSERT_D(nset >= 2);
+    ASSERT_D(iP1 < nset);
+    ASSERT_D(i >= 0);
+    ASSERT_D(NumBasisSamples > k);
 
     return (d[i] * h00[k] + d[iP1] * h10[k] + p[i] * h01[k] + p[iP1] * h11[k]);
 }
@@ -124,9 +124,9 @@ T HermiteSpline<T>::operator()( double t ) const
     double x = t - double(i);
 
     // cerr << "Howdy! i=" << i << " x=" << x << " t=" << t << endl;
-    ASSERT(nset >= 2);
-    ASSERT(iP1 < nset);
-    ASSERT(i >= 0);
+    ASSERT_D(nset >= 2);
+    ASSERT_D(iP1 < nset);
+    ASSERT_D(i >= 0);
     // cerr << "d.size() = " << d.size() << " p.size() = " << p.size() << endl;
 
     return (d[i] * ((2.0 * x + 1.0) * (x - 1.0) * (x - 1.0)) +
@@ -170,8 +170,8 @@ void HermiteSpline<T>::SampleBasisFuncs(int NumSamples)
 template<class T>
 void HermiteSpline<T>::CompleteSpline(bool GenEndTangents)
 {
-    ASSERT(nset == d.size());
-    ASSERT(nset >= 2);
+    ASSERT_D(nset == d.size());
+    ASSERT_D(nset >= 2);
 
     Array1<double> a(nset), c(nset), D(nset);
     Array1<T> b(nset);

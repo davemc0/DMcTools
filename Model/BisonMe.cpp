@@ -115,11 +115,11 @@
  */
 
 #include <ctype.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
-#include <Model/LoadVRML.h>
+#include "Model/LoadVRML.h"
 
 int yylex();
 
@@ -157,7 +157,7 @@ typedef union {
 #line 55 "BisonMe.y"
 
 /* Keywords.  All begin with TR_ */
-#include <stdio.h>
+#include <cstdio>
 
 #ifndef __cplusplus
 #ifndef __STDC__
@@ -2088,5 +2088,5 @@ yyerrhandle:
 #line 575 "BisonMe.y"
 
 /* get yylex() from FlexMe.cpp */
-#include <Model/FlexMe.cpp>
+#include "Model/FlexMe.cpp"
 

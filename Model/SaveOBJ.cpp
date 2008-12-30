@@ -3,10 +3,10 @@
 //
 // Copyright David K. McAllister, Aug. 1999.
 
-#include <Model/Model.h>
-#include <Model/Mesh.h>
+#include "Model/Model.h"
+#include "Model/Mesh.h"
 
-#include <stdio.h>
+#include <cstdio>
 
 using namespace std;
 

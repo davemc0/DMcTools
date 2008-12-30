@@ -3,8 +3,8 @@
 //
 // Copyright David K. McAllister, Jan. 2002.
 
-#include <Model/CameraDB.h>
-#include <Math/MiscMath.h>
+#include "Model/CameraDB.h"
+#include "Math/MiscMath.h"
 
 using namespace std;
 
@@ -88,7 +88,7 @@ void CameraInfo::ComputePerspective(double fovyRad, double aspect, double znear,
 // These are all world coords.
 void CameraInfo::SetOrtho(double Wid, double Hgt, double znear, double zfar)
 {
-    // ASSERT(znear>0 && zfar>0);
+    // ASSERT_D(znear>0 && zfar>0);
     Near = znear;
     Far = zfar;
 
@@ -127,7 +127,7 @@ void CameraInfo::ComputeCamPoints(f3Vector V[8])
 
 // Compute a plane from three points
 // Points are right-hand wound
-inline void PlaneFromPoints(float *ABCD, const f3Vector P0, const f3Vector P1, const f3Vector P2)
+DMC_INLINE void PlaneFromPoints(float *ABCD, const f3Vector P0, const f3Vector P1, const f3Vector P2)
 {
     f3Vector V1 = P1 - P0;
     f3Vector V2 = P2 - P0;

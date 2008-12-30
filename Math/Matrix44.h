@@ -3,10 +3,10 @@
 //
 // Copyright David K. McAllister, Aug. 1998.
 
-#ifndef _Matrix44_h
-#define _Matrix44_h
+#ifndef dmc_Matrix44_h
+#define dmc_Matrix44_h
 
-#include <Math/Vector.h>
+#include "Math/Vector.h"
 
 class Matrix44
 {
@@ -26,7 +26,7 @@ class Matrix44
     void pre_mulmat(double to[4][4], const double from[4][4]);
     void post_mulmat(double to[4][4], const double from[4][4]);
 
-    inline double det1(int c3, int c2, int c1)
+    double det1(int c3, int c2, int c1)
     {
         for(int i=0; i<4; i++) {
             if(i != c3 && i != c2 && i != c1)
@@ -37,7 +37,7 @@ class Matrix44
         return 0;
     }
 
-    inline double det2(int c3, int c2)
+    double det2(int c3, int c2)
     {
         double cof = 1, det = 0;
 
@@ -51,13 +51,12 @@ class Matrix44
         return det;
     }
 
-    inline double det3(int c)
+    double det3(int c)
     {
         double cof = 1, det = 0;
 
         for(int i=0; i<4; i++) {
-            if(i != c)
-            {
+            if(i != c) {
                 det += cof * mat[1][i] * det2(c, i);
                 cof = -cof;
             }
@@ -66,19 +65,21 @@ class Matrix44
         return det;
     }
 
-    inline void copy_mat(double *to, const double *from) const
+    void copy_mat(double to[4][4], const double from[4][4]) const
     {
-        for(int i=0; i<16; i++)
-            to[i] = from[i];
+        for(int i=0; i<4; i++) {
+            for(int j=0; j<4; j++)
+                to[i][j] = from[i][j];
+        }        
     }
 
-    inline void compute_inverse()
+    void compute_inverse()
     {
-        copy_mat((double *)imat, (double *)mat);
+        copy_mat(imat, mat);
         inverse_valid = build_inverse(imat);
     }
 
-    inline void switch_rows(double m[4][4], int r1, int r2) const
+    void switch_rows(double m[4][4], int r1, int r2) const
     {
         for(int i=0;i<4;i++){
             double tmp=m[r1][i];
@@ -86,14 +87,14 @@ class Matrix44
             m[r2][i]=tmp;
         }
     }
-    inline void sub_rows(double m[4][4], int r1, int r2, double mul) const
+    void sub_rows(double m[4][4], int r1, int r2, double mul) const
     {
         for(int i=0;i<4;i++)
             m[r1][i] -= m[r2][i]*mul;
     }
 
 public:
-    inline Matrix44()
+    Matrix44()
     {
         singularity_thresh = 0;
         LoadIdentity();
@@ -102,7 +103,7 @@ public:
     // Create a matrix with the given incoming values.
     // IsTranspose is true if the incoming values are the
     // transpose of the matrix we want to create. From OpenGL, etc.
-    inline Matrix44(double *in, bool IsTranspose = false)
+    Matrix44(double *in, bool IsTranspose = false)
     {
         singularity_thresh = 0;
         if(IsTranspose)
@@ -110,22 +111,22 @@ public:
         else
             Set(in);
     }
-    inline Matrix44(const Matrix44& copy)
+    Matrix44(const Matrix44& copy)
     {
-        copy_mat((double *)mat, (double *)copy.mat);
-        copy_mat((double *)imat, (double *)copy.imat);
+        copy_mat(mat, copy.mat);
+        copy_mat(imat, copy.imat);
         singularity_thresh = copy.singularity_thresh;
         inverse_valid = copy.inverse_valid;
         is_identity = copy.is_identity;
     }
 
-    inline ~Matrix44() {}
+    ~Matrix44() {}
 
     // Copies the given matrix onto me.
-    inline Matrix44& operator=(const Matrix44& copy)
+    Matrix44& operator=(const Matrix44& copy)
     {
-        copy_mat((double *)mat, (double *)copy.mat);
-        copy_mat((double *)imat, (double *)copy.imat);
+        copy_mat(mat, copy.mat);
+        copy_mat(imat, copy.imat);
         singularity_thresh = copy.singularity_thresh;
         inverse_valid = copy.inverse_valid;
         is_identity = copy.is_identity;
@@ -133,7 +134,7 @@ public:
     }
 
     // Returns this * right.
-    inline Matrix44 operator*(const Matrix44& right) const
+    Matrix44 operator*(const Matrix44& right) const
     {
         Matrix44 m(*this);
         m.PostTrans(right);
@@ -141,7 +142,7 @@ public:
     }
 
     // Returns the inverse of this matrix.
-    inline Matrix44 Inverse()
+    Matrix44 Inverse()
     {
         if(!inverse_valid)
             compute_inverse();
@@ -152,7 +153,7 @@ public:
     }
 
     // PostTrans: this = this * incoming
-    inline Matrix44 &operator*=(const Matrix44& right)
+    Matrix44 &operator*=(const Matrix44& right)
     {
         PostTrans(right);
         return *this;
@@ -170,12 +171,12 @@ public:
     Vector UnProject(const Vector& p);
 
     // Returns this * right. Includes the homogeneous divide. Uses p.w = 1.
-    inline Vector operator*(const Vector& right) const
+    Vector operator*(const Vector& right) const
     {
         return Project(right);
     }
 
-    inline void LoadIdentity()
+    void LoadIdentity()
     {
         build_identity(mat);
         build_identity(imat);
@@ -197,12 +198,12 @@ public:
 
     void PostTrans(const Matrix44&); // this = this * incoming.
     void PreTrans(const Matrix44&); // this = incoming * this.
-    inline void Transform(const Matrix44& right) {PostTrans(right);}
+    void Transform(const Matrix44& right) {PostTrans(right);}
 
     // this = this * Scale, etc.
     void Scale(const Vector&);
     // Scales x, y, and z uniformly.
-    inline void Scale(const double s) {Scale(Vector(s,s,s));}
+    void Scale(const double s) {Scale(Vector(s,s,s));}
     void Rotate(const double angRad, const Vector& axis);
     void Translate(const Vector&);
 
@@ -223,7 +224,7 @@ public:
 
     // For all the following, set inv to true to get/set the inverse.
     // Since it may need to compute the inverse, these are not const.
-    inline void Get(double *out, bool inv=false)
+    void Get(double *out, bool inv=false)
     {
         double *p = out;
         double *m = (double *)mat;
@@ -237,7 +238,7 @@ public:
 
     // GL stores its matrices column-major.
     // Need to take the transpose.
-    inline void GetTranspose(double *out) const
+    void GetTranspose(double *out) const
     {
         double* p = out;
         for(int i=0; i<4; i++)
@@ -245,7 +246,7 @@ public:
                 *p++ = mat[j][i];
     }
 
-    inline void Getf(float *out, bool inv=false)
+    void Getf(float *out, bool inv=false)
     {
         float *p = out;
         double *m = (double *)mat;
@@ -308,24 +309,24 @@ public:
             is_identity = false;
     }
 
-    std::string print() const;
-    std::string printInv() const;
+    std::string string() const; // Return a string for this matrix
+    std::string string_inv() const; // Return a string for this matrix inverse
     bool CheckNaN() const; // Make sure there are no NaNs.
 
     // Touch a single element of the matrix.
-    inline double &operator()(const int r, const int c)
+    double &operator()(const int r, const int c)
     {
         return mat[r][c];
     }
 
     // Set this to false when you touch a single element of the matrix.
-    inline bool & InverseValid()
+    bool & InverseValid()
     {
         return inverse_valid;
     }
 
     // Set this to false when you touch a single element of the matrix.
-    inline bool & IsIdentity()
+    bool & IsIdentity()
     {
         return is_identity;
     }
@@ -333,27 +334,27 @@ public:
     // Set the singularity threshold.
     // When inverting a matrix, there must ba an element of each
     // column with a value at least this large.
-    inline void SetSingularityThreshold(const double _sing)
+    void SetSingularityThreshold(const double sing)
     {
-        singularity_thresh = _sing;
+        singularity_thresh = sing;
     }
 };
 
-inline Matrix44 MScale(const Vector &V) {Matrix44 M; M.Scale(V); return M;}
-inline Matrix44 MScale(const double s) {Matrix44 M; M.Scale(Vector(s,s,s)); return M;}
-inline Matrix44 MRotate(const double angRad, const Vector& axis) {Matrix44 M; M.Rotate(angRad, axis); return M;}
-inline Matrix44 MTranslate(const Vector &V) {Matrix44 M; M.Translate(V); return M;}
-inline Matrix44 MFrustum(double l, double r, double b, double t, double zn, double zf) {Matrix44 M; M.Frustum(l, r, b, t, zn, zf); return M;}
-inline Matrix44 MPerspective(double fovyRad, double aspect, double znear, double zfar) {Matrix44 M; M.Perspective(fovyRad, aspect, znear, zfar); return M;}
-inline Matrix44 MLookAt(const Vector& eye, const Vector& lookat, const Vector& up) {Matrix44 M; M.LookAt(eye, lookat, up); return M;}
+DMC_INLINE Matrix44 MScale(const Vector &V) {Matrix44 M; M.Scale(V); return M;}
+DMC_INLINE Matrix44 MScale(const double s) {Matrix44 M; M.Scale(Vector(s,s,s)); return M;}
+DMC_INLINE Matrix44 MRotate(const double angRad, const Vector& axis) {Matrix44 M; M.Rotate(angRad, axis); return M;}
+DMC_INLINE Matrix44 MTranslate(const Vector &V) {Matrix44 M; M.Translate(V); return M;}
+DMC_INLINE Matrix44 MFrustum(double l, double r, double b, double t, double zn, double zf) {Matrix44 M; M.Frustum(l, r, b, t, zn, zf); return M;}
+DMC_INLINE Matrix44 MPerspective(double fovyRad, double aspect, double znear, double zfar) {Matrix44 M; M.Perspective(fovyRad, aspect, znear, zfar); return M;}
+DMC_INLINE Matrix44 MLookAt(const Vector& eye, const Vector& lookat, const Vector& up) {Matrix44 M; M.LookAt(eye, lookat, up); return M;}
 
-inline std::ostream& operator<<(std::ostream& os, const Matrix44& m)
+DMC_INLINE std::ostream& operator<<(std::ostream& os, const Matrix44& m)
 {
-    os << m.print();
+    os << m.string();
     return os;
 }
 
-inline std::istream& operator>>(std::istream& is, Matrix44& m)
+DMC_INLINE std::istream& operator>>(std::istream& is, Matrix44& m)
 {
     char st;
     double mat[4][4];

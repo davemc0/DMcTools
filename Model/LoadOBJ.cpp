@@ -4,11 +4,11 @@
 // Changes Copyright David K. McAllister, Aug. 1999.
 // Partly based on code written by Peter-Pike Sloan, 1997.
 
-#include <Model/Model.h>
-#include <Model/TriObject.h>
+#include "Model/Model.h"
+#include "Model/TriObject.h"
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 
 using namespace std;
 
@@ -20,7 +20,7 @@ struct MatInfo
     Vector D, S, A, E;
     bool DColorValid, SColorValid, AColorValid, EColorValid, ShininessValid;
 
-    inline MatInfo()
+    DMC_INLINE MatInfo()
     {
         Name = NULL; TexPtr = NULL; // There is no texture with this material.
         DColorValid = SColorValid = AColorValid = EColorValid = ShininessValid = false;
@@ -33,7 +33,7 @@ public:
     vector<MatInfo> MatList;
 
     // Inserts if not found.
-    inline int FindByName(const char *name)
+    DMC_INLINE int FindByName(const char *name)
     {
         for(int mind=0; mind<(int)MatList.size(); mind++)
         {
@@ -44,7 +44,7 @@ public:
         return -1;
     }
 
-    inline void Dump()
+    DMC_INLINE void Dump()
     {
         for(int i=0; i<(int)MatList.size(); i++)
             cerr << i << ": " << MatList[i].D << " " << MatList[i].Name << endl;
@@ -53,7 +53,7 @@ public:
 
 static MaterialDB Mats;
 
-inline Vector Get2D(char* buf)
+DMC_INLINE Vector Get2D(char* buf)
 {
     double x, y;
     if (2 != sscanf(buf,"%lf %lf",&x,&y))
@@ -64,7 +64,7 @@ inline Vector Get2D(char* buf)
     return Vector(x, y, 0);
 }
 
-inline Vector Get3D(char* buf)
+DMC_INLINE Vector Get3D(char* buf)
 {
     double x, y, z;
 
@@ -132,7 +132,7 @@ void LoadMTL(const char *fname)
     fclose(f);
 }
 
-inline bool GetFace(char *OBuf, vector<Vector> &tverts, vector<Vector> &tnormals,
+DMC_INLINE bool GetFace(char *OBuf, vector<Vector> &tverts, vector<Vector> &tnormals,
                     vector<Vector> &ttexcoords, vector<Vector> &verts, vector<Vector> &normals,
                     vector<Vector> &texcoords)
 {

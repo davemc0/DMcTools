@@ -3,7 +3,7 @@
 //
 // Modified by David K. McAllister, Aug. 2000.
 
-#include <Image/ImageLoadSave.h>
+#include "Image/ImageLoadSave.h"
 
 #include <fstream>
 using namespace std;
@@ -347,7 +347,8 @@ void ImageLoadSave::LoadTGA(const char *fname, bool R5G6B5)
     if((header->Desc & TGA_DESC_ORG_MASK) != TGA_ORG_TOP_LEFT &&
         (header->Desc & TGA_DESC_ORG_MASK) != TGA_ORG_BOTTOM_LEFT) {
         delete [] fdata;
-        throw DMcError("Not top/bottom left origin: image desc " + string((char *)header->Desc));
+        stringstream er; er << "Not top/bottom left origin: image desc " << header->Desc;
+        throw DMcError(er.str());
     }
 
     wid = ((header->Width_hi) << 8) | header->Width_lo;
@@ -450,7 +451,7 @@ void ImageLoadSave::LoadTGA(const char *fname, bool R5G6B5)
 ////////////////////////////////////////////////////////////////
 // Save Targa
 
-inline bool colors_equal(const unsigned char *a, const unsigned char *b, const int chan)
+DMC_INLINE bool colors_equal(const unsigned char *a, const unsigned char *b, const int chan)
 {
     bool same = true;
     for(int i=0; i<chan; i++)
@@ -468,7 +469,7 @@ inline bool colors_equal(const unsigned char *a, const unsigned char *b, const i
 // Thus: AAAAAAAB returns 0 with count = 7
 // ABCDEFGG returns 1 with count = 6
 // Never scan more than 128 ahead.
-inline bool match(const unsigned char *src, int &count, const int chan)
+DMC_INLINE bool match(const unsigned char *src, int &count, const int chan)
 {
     const unsigned char *prev_color;
     count = 0;

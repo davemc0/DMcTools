@@ -37,7 +37,7 @@ export
 # defaults
 
 ifeq (,$(CC))
-CC = gcc
+CC = error_must_define_cc_in_caller
 endif
 
 ifeq (,$(SHARED_LIB_GEN))
@@ -56,7 +56,10 @@ endif
 	install_lib install_shared_lib install_exe install_headers
 
 %.o: 	%.c Makefile.deps
-	$(CC) -c $(CFLAGS) $<
+	$(CC) -c $(CFLAGS) $< -o $@
+
+%.o: 	%.cpp Makefile.deps
+	$(CC) -c $(CFLAGS) $< -o $@
 
 $(LIB): $(LIBOBJS)
 	ar rc $@ $(LIBOBJS)
@@ -74,7 +77,7 @@ Makefile.deps Depend depend :
 	makedepend -fMakefile.deps -- $(CFLAGS) -- $(SRCS)
 
 Clean clean:
-	rm -f *.o $(ALL) $(TRASH) Makefile.deps *.a *~ *.bak #*# tags TAGS core
+	rm -f *.o $(ALL) $(LIBOBJS) $(TRASH) Makefile.deps *.a *~ *.bak #*# tags TAGS core
 
 #########################################################
 # Install

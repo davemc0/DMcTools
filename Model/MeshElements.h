@@ -9,7 +9,7 @@
 #ifndef mesh_elements_h
 #define mesh_elements_h
 
-#include <Math/Vector.h>
+#include "Math/Vector.h"
 
 #include <vector>
 
@@ -25,12 +25,12 @@ struct Vertex
     std::vector<Edge *> Edges;
     std::vector<Face *> Faces;
 
-    inline Vertex()
+    DMC_INLINE Vertex()
     {
         next = prev = NULL;
     }
 
-    inline ~Vertex()
+    DMC_INLINE ~Vertex()
     {
         // WARNING: If this is the list head, you need to fix it yourself!
         if(next)
@@ -45,7 +45,7 @@ struct Vertex
     }
 
     // Remove myself from this list of vertices.
-    inline void ListRemove(std::vector<Vertex *> &Ll)
+    DMC_INLINE void ListRemove(std::vector<Vertex *> &Ll)
     {
         for(unsigned int i=0; i<Ll.size(); )
             if(this == Ll[i]) {
@@ -63,7 +63,7 @@ struct Edge
     std::vector<Face *> Faces; // Should be 1 or 2 if manifold.
     Vertex *v0, *v1;
 
-    inline ~Edge()
+    DMC_INLINE ~Edge()
     {
         // WARNING: If this is the list head, you need to fix it yourself!
         if(next)
@@ -79,7 +79,7 @@ struct Edge
     }
 
     // Remove myself from this list of edges.
-    inline void ListRemove(std::vector<Edge *> &Ll)
+    DMC_INLINE void ListRemove(std::vector<Edge *> &Ll)
     {
         for(int i=0; i<(int)Ll.size(); )
             if(this == Ll[i]) {
@@ -97,7 +97,7 @@ struct Face
     Vertex *v0, *v1, *v2;
     Edge *e0, *e1, *e2;
 
-    inline ~Face()
+    DMC_INLINE ~Face()
     {
         // WARNING: If this is the list head, you need to fix it yourself!
         if(next)
@@ -113,7 +113,7 @@ struct Face
     }
 
     // Remove myself from this list of faces.
-    inline void ListRemove(std::vector<Face *> &Ll)
+    DMC_INLINE void ListRemove(std::vector<Face *> &Ll)
     {
         for(int i=0; i<(int)Ll.size(); )
             if(this == Ll[i]) {

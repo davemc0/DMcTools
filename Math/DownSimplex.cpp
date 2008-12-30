@@ -1,15 +1,15 @@
 //////////////////////////////////////////////////////////////////////
 // DownSimplex.cpp - Optimize the vector using Downhill Simplex.
 //
-// Changes Copyright David K. McAllister, Mar. 1999.
+// Copyright David K. McAllister, Mar. 1999.
 // Code is based on Numerical Recipes, ch. 10.
 
 #define TINY 1.0e-10
 
-#include <Math/DownSimplex.h>
+#include "Math/DownSimplex.h"
 
 // Sum each dimension's coordinates.
-static inline HVector ComputePSum(HVector *p, int ndim)
+static DMC_INLINE HVector ComputePSum(HVector *p, int ndim)
 {
     HVector psum(ndim);
     psum.zero();
@@ -25,7 +25,7 @@ static inline HVector ComputePSum(HVector *p, int ndim)
 
 // Tries one point based on the simplex and if it's better,
 // then replaces the worst point in the simplex with it.
-static inline double TrySimplex(HVector *p, HVector &y, HVector &psum, int ndim,
+static DMC_INLINE double TrySimplex(HVector *p, HVector &y, HVector &psum, int ndim,
                                 double(*funk)(const HVector &, void *), void *UserData,
                                 int ihi, double fac)
 {

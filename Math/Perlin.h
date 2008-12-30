@@ -3,10 +3,10 @@
 //
 // Copyright David K. McAllister, July 1999.
 
-#ifndef _perlin_h
-#define _perlin_h
+#ifndef dmc_perlin_h
+#define dmc_perlin_h
 
-#include <Math/Vector.h>
+#include "Math/Vector.h"
 
 #define MAX_OCTAVES 16
 
@@ -25,7 +25,7 @@ class Perlin
     void FillRandSeeds();
 
     // XXX Test random using histogram
-    inline void BuckIt(double t)
+    DMC_INLINE void BuckIt(double t)
     {
         t *= 80.0;
         t += 10.0;
@@ -35,7 +35,7 @@ class Perlin
     }
 
     // These ones return a random double on -1.0 -> 1.0 based on the seed x,y,z.
-    inline double RandNoise(int x, int i)
+    DMC_INLINE double RandNoise(int x, int i)
     {
         x = (x << 13) ^ x;
         // -1 to 1
@@ -44,12 +44,12 @@ class Perlin
         return double((x * (x*x* Pr[1][i] + Pr[2][i]) + Pr[3][i]) & 0x7fffffff) / 2147483647.0;
     }
 
-    inline double RandNoise(int x, int y, int i)
+    DMC_INLINE double RandNoise(int x, int y, int i)
     {
         return RandNoise(y * Pr[0][i] + x, i);
     }
 
-    inline double RandNoise(int x, int y, int z, int i)
+    DMC_INLINE double RandNoise(int x, int y, int z, int i)
     {
         double t = RandNoise(z * Pr[1][i] + y * Pr[0][i] + x, i);
         // printf("%d %d %d %f\n", x, y, z, t); // XXX
@@ -58,7 +58,7 @@ class Perlin
     }
 
     // Smoothly interpolates between a and b.
-    inline double Interp(double a, double b, double t)
+    DMC_INLINE double Interp(double a, double b, double t)
     {
         double f = t*t*(3-2*t);
 
@@ -70,7 +70,7 @@ public:
     Perlin(double persist, int Oct);
 
 #if 0
-    inline ~Perlin() // XXX
+    DMC_INLINE ~Perlin() // XXX
     {
         for(int i=0; i < 100; i++)
             printf("%f %d\n", (double(i)-10.0)/80.0, Histogram[i]);
@@ -83,7 +83,7 @@ public:
     double Noise(double x);
     double Noise(double x, double y);
     double Noise(double x, double y, double z);
-    inline double Noise(const Vector &V) {return Noise(V.x, V.y, V.z);}
+    DMC_INLINE double Noise(const Vector &V) {return Noise(V.x, V.y, V.z);}
 
     // This should really be private, but sometimes I want to call it directly.
     // X and Y should be in 0.0 -> pretty big.

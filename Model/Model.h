@@ -3,11 +3,11 @@
 //
 // Copyright David K. McAllister, July 1999.
 
-#ifndef _model_h
-#define _model_h
+#ifndef dmc_model_h
+#define dmc_model_h
 
-#include <Model/TextureDB.h>
-#include <Model/BaseObject.h>
+#include "Model/TextureDB.h"
+#include "Model/BaseObject.h"
 
 #include <vector>
 
@@ -15,16 +15,16 @@ class Model
 {
 public:
     static TextureDB TexDB; // There is one global texture database. Sorry.
-    BBox Box;
+    BBox<Vector> Box;
 
     // Pointers actually to subclasses of BaseObject.
     std::vector<BaseObject *> Objs;
     int ObjID;
 
-    inline Model() {ObjID = -1;}
+    DMC_INLINE Model() {ObjID = -1;}
 
     // Indicate what PER VERTEX attribs to require and what to allow.
-    inline Model(const char *fname, const unsigned int RequiredAttribs = OBJ_ALL,
+    DMC_INLINE Model(const char *fname, const unsigned int RequiredAttribs = OBJ_ALL,
         const unsigned int AcceptedAttribs = OBJ_ALL)
     {
         // Make sure they accept what they require.
@@ -34,11 +34,11 @@ public:
         Load(fname, RequiredAttribs, AcceptedAttribs);
     }
 
-    inline ~Model()
+    DMC_INLINE ~Model()
     {
         // Delete the objects pointed to by the array.
-        for(unsigned int i=0; i<Objs.size(); i++) {
-            delete Objs[i]; // XXX Do we need to detect and cast the type?
+        for(size_t i=0; i<Objs.size(); i++) {
+            delete Objs[i];
         }
     }
 

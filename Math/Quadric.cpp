@@ -4,7 +4,7 @@
 // Changes Copyright David K. McAllister, Aug. 1999.
 // Originally written by Peter-Pike Sloan, 1997.
 
-#include <Math/Quadric.h>
+#include "Math/Quadric.h"
 
 bool Quadric3::FindMin(Vector& p, double SingularityThresh) const
 {

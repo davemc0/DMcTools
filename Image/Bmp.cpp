@@ -6,14 +6,10 @@
 // Also, don't worry about the unused variable warnings generated
 // during compile.
 
-#include <Image/ImageLoadSave.h>
+#include "Image/ImageLoadSave.h"
 
 #include <iostream>
 using namespace std;
-
-#ifdef DMC_MACHINE_sgi
-#pragma set woff 1552
-#endif
 
 typedef unsigned char byte;
 
@@ -28,13 +24,13 @@ typedef unsigned char byte;
 #define FERROR(fp) (ferror(fp) || feof(fp))
 
 /*******************************************/
-static inline void bmpError(const char *fname, const char *st)
+static DMC_INLINE void bmpError(const char *fname, const char *st)
 {
     throw DMcError("BMP error: '" + string(fname) + "': " + st);
 }
 
 /*******************************************/
-static inline unsigned int getshort(FILE *fp)
+static DMC_INLINE unsigned int getshort(FILE *fp)
 {
     int c, c1;
     c = getc(fp); c1 = getc(fp);
@@ -42,7 +38,7 @@ static inline unsigned int getshort(FILE *fp)
 }
 
 /*******************************************/
-static inline unsigned int getint(FILE *fp)
+static DMC_INLINE unsigned int getint(FILE *fp)
 {
     int c, c1, c2, c3;
     c = getc(fp); c1 = getc(fp); c2 = getc(fp); c3 = getc(fp);
@@ -53,7 +49,7 @@ static inline unsigned int getint(FILE *fp)
 }
 
 /*******************************************/
-static inline void putshort(FILE *fp, int i)
+static DMC_INLINE void putshort(FILE *fp, int i)
 {
     int c, c1;
 
@@ -62,7 +58,7 @@ static inline void putshort(FILE *fp, int i)
 }
 
 /*******************************************/
-static inline void putint(FILE *fp, int i)
+static DMC_INLINE void putint(FILE *fp, int i)
 {
     int c, c1, c2, c3;
     c = ((unsigned int ) i) & 0xff;

@@ -3,9 +3,8 @@
 //
 // Copyright David K. McAllister, July 1999.
 
-#include <Model/TextureDB.h>
-#include <Util/Utils.h>
-#include <Image/tImage.h>
+#include "Model/TextureDB.h"
+#include "Util/Utils.h"
 
 using namespace std;
 
@@ -43,22 +42,18 @@ bool TexInfo::LoadToAppMemory(char *dir, bool prepend)
     cerr << "Loading " << fname << endl;
 
     if(ishdr) {
-        Im = new ucImage;
         f3Image HDR(fname);
         if(HDR.size() > 0) {
             HDR *= f3Pixel(ExposureScale);
-            uc3Image NewIm = HDR;
-            ASSERT_RM(Im, "memory alloc failed");
-            Im->Set(NewIm.w(), NewIm.h(), 3);
-            memcpy(Im->Pix, NewIm.pp(), Im->dsize);
+            Im = new uc3Image(HDR);
+            ASSERT_RM(Im, "new uc3Image failed");
             IsLinear = true;
         }
     } else {
-        Im = new ucImage(fname);
-        ASSERT_RM(Im, "memory alloc failed");
+        Im = LoadtImage(fname);
     }
 
-    if(Im->size > 0) {
+    if(Im->pv_virtual()) {
         // cerr << "Succeeded.\n";
         return false;
     } else {

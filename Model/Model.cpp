@@ -3,11 +3,11 @@
 //
 // Copyright David K. McAllister, July 1999.
 
-#include <Model/Model.h>
-#include <Model/Mesh.h>
-#include <Model/RenderObject.h>
-#include <Model/LightDB.h>
-#include <Model/CameraDB.h>
+#include "Model/Model.h"
+#include "Model/Mesh.h"
+#include "Model/RenderObject.h"
+#include "Model/LightDB.h"
+#include "Model/CameraDB.h"
 
 using namespace std;
 
@@ -41,9 +41,9 @@ bool Model::Save(const char *fname)
     else if(!strcmp(extp, "obj"))
         status = SaveOBJ(fname);
     else if(!strcmp(extp, "tri"))
-        status = SaveTRI(fname);
+        status = true; // SaveTRI(fname);
     else if(!strcmp(extp, "ply"))
-        status = SavePLY(fname);
+        status = true; // SavePLY(fname);
     else {
         cerr << "Can't grok filename " << fname << endl;
         status = true;
@@ -80,9 +80,9 @@ bool Model::Load(const char *fname, const unsigned int RequiredAttribs,
     else if(!strcmp(extp, "obj"))
         status = LoadOBJ(fname, RequiredAttribs, AcceptedAttribs);
     else if(!strcmp(extp, "tri"))
-        status = LoadTRI(fname, RequiredAttribs, AcceptedAttribs);
+        status = true; // LoadTRI(fname, RequiredAttribs, AcceptedAttribs);
     else if(!strcmp(extp, "ply"))
-        status = LoadPLY(fname, RequiredAttribs, AcceptedAttribs);
+        status = true; // LoadPLY(fname, RequiredAttribs, AcceptedAttribs);
     else {
         cerr << "Can't grok filename " << fname << endl;
         status = true;

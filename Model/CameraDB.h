@@ -3,11 +3,11 @@
 //
 // Copyright David K. McAllister, July 1999.
 
-#ifndef _Cameradb_h
-#define _Cameradb_h
+#ifndef dmc_cameradb_h
+#define dmc_cameradb_h
 
-#include <Math/Matrix44.h>
-#include <Util/Utils.h>
+#include "Math/Matrix44.h"
+#include "Util/Utils.h"
 
 #include <vector>
 
@@ -18,7 +18,7 @@ class CameraInfo
 public:
 #define DMC_CAM_ORTHO 0
 #define DMC_CAM_PERSP 1
-    char *CameraName;
+    const char *CameraName;
     int CameraID; // This is the OpenGL Camera object ID.
     int CameraType; // 0 = Orthographic, 1 = Perspective.
 
@@ -35,7 +35,7 @@ public:
 
     bool ProjectionValid, ViewValid; // Tells whether the camera data is valid.
 
-    inline CameraInfo()
+    DMC_INLINE CameraInfo()
     {
         CameraName = "NoName";
         CameraID = -1;
@@ -81,7 +81,7 @@ public:
     void WriteToFile(FILE *fp, int FrameNum);
     int ReadFromFile(FILE *fp, int &FrameNum);  // RETURNS "1" IF SUCCESSFUL, "0" IF EOF
 
-    inline void Dump()
+    DMC_INLINE void Dump()
     {
         std::cerr << CameraName<<" "<<CameraID<<" "<<CameraType<<" "<<Position<<" "<<Orientation
                   <<" "<<OrientationTh<<" "<<FocalDistance<<" "<<HeightValue<<std::endl;
@@ -94,7 +94,7 @@ public:
     std::vector<CameraInfo *> CameraList;
 
     // Returns -1 if not found.
-    inline CameraInfo *FindByName(const char *name)
+    DMC_INLINE CameraInfo *FindByName(const char *name)
     {
         ASSERT_R(name);
         for(int tind=0; tind<(int)CameraList.size(); tind++) {
@@ -105,7 +105,7 @@ public:
         return NULL;
     }
 
-    inline CameraInfo *Add(char *name=NULL)
+    DMC_INLINE CameraInfo *Add(const char *name=NULL)
     {
         CameraInfo *x = new CameraInfo();
         x->CameraName = name;
@@ -116,7 +116,7 @@ public:
     }
 
     // Adds it if not found.
-    inline CameraInfo *FindByNameOrAdd(const char *name)
+    DMC_INLINE CameraInfo *FindByNameOrAdd(const char *name)
     {
         ASSERT_R(name);
         CameraInfo *x = FindByName(name);
@@ -127,7 +127,7 @@ public:
         return x;
     }
 
-    inline void Dump()
+    DMC_INLINE void Dump()
     {
         for(int i=0; i<(int)CameraList.size(); i++) {
             std::cerr << i << ": ";

@@ -9,17 +9,13 @@
 // Also, don't worry about the unused variable warnings generated
 // during compile.
 
-#include <Image/Quant.h>
-#include <Image/ImageLoadSave.h>
+#include "Image/Quant.h"
+#include "Image/ImageLoadSave.h"
 
-#include <memory.h>
-#include <stdio.h>
+#include <memory>
+#include <cstdio>
 
 using namespace std;
-
-#ifdef DMC_MACHINE_sgi
-#pragma set woff 1552
-#endif
 
 typedef unsigned char byte;
 
@@ -31,8 +27,8 @@ typedef unsigned char byte;
 #define INTERLACEMASK 0x40
 #define COLORMAPMASK 0x80
 
-static char *id87 = "GIF87a";
-static char *id89 = "GIF89a";
+static const char *id87 = "GIF87a";
+static const char *id89 = "GIF89a";
 
 static int EGApalette[16][3] = {
     {0,0,0}, {0,0,128}, {0,128,0}, {0,128,128},
@@ -98,7 +94,7 @@ struct GIFInfo {
     int OutCode[4097];
 
     //////////////////////////////
-    inline void gifWarning(const char *st)
+    DMC_INLINE void gifWarning(const char *st)
     {
 #ifdef DMC_DEBUG
         cerr << fname << ": " << st << endl;
@@ -106,7 +102,7 @@ struct GIFInfo {
     }
 
     //////////////////////////////
-    inline int gifError(const char *st)
+    DMC_INLINE int gifError(const char *st)
     {
         if(RawGIF != NULL) delete [] RawGIF;
         if(Raster != NULL) delete [] Raster;
@@ -121,7 +117,7 @@ struct GIFInfo {
     }
 
     //////////////////////////////
-    inline int readCode()
+    DMC_INLINE int readCode()
     {
         int RawCode, ByteOffset;
 
@@ -136,7 +132,7 @@ struct GIFInfo {
     }
 
     //////////////////////////////
-    inline void doInterlace(int Index)
+    DMC_INLINE void doInterlace(int Index)
     {
         static byte *ptr = NULL;
         static int oldYC = -1;
@@ -757,14 +753,14 @@ struct GIFWriter
 
     //////////////////////////////////////////////////////////////////////
     // Set up the 'byte output' routine
-    inline void char_init()
+    DMC_INLINE void char_init()
     {
         a_count = 0;
     }
 
     //////////////////////////////////////////////////////////////////////
     // Flush the packet to disk, and reset the accumulator
-    inline void flush_char()
+    DMC_INLINE void flush_char()
     {
         if(a_count > 0) {
             fputc(a_count, fp);
@@ -776,7 +772,7 @@ struct GIFWriter
     //////////////////////////////////////////////////////////////////////
     // Add a character to the end of the current packet, and if it is 254
     // characters, flush the packet to disk.
-    inline void char_out(int c)
+    DMC_INLINE void char_out(int c)
     {
         accum[a_count++] = c;
         if(a_count >= 254)
@@ -1050,7 +1046,7 @@ nomatch:
     }
 
     //////////////////////////////
-    inline void putword(int w, FILE *fp)
+    DMC_INLINE void putword(int w, FILE *fp)
     {
         /* writes a 16-bit integer in GIF order (LSB first) */
         fputc(w & 0xff, fp);
@@ -1059,7 +1055,7 @@ nomatch:
 
     //////////////////////////////////////////////////////////////////////
     void WriteGIF(const char *fname, int wid, int hgt, byte *Pix, int MaxColorsWanted = 256,
-        bool GrayScale = false, char *comment = NULL)
+        bool GrayScale = false, const char *comment = NULL)
     {
         int size = wid*hgt;
 
@@ -1067,18 +1063,16 @@ nomatch:
             throw DMcError("WriteGIF() failed: can't write GIF image file " + string(fname));
 
         int ColorMapSize, InitCodeSize, BitsPerPixel;
-        pixel *cmap;
 
         // Fill in the 8-bit image and the color map somehow.
-        Quantizer Qnt;
-        byte *pic8 = Qnt.Quant(Pix, size, MaxColorsWanted, GrayScale);
-        int NumColors = Qnt.NumColors;
-        cmap = Qnt.cmap;
+        Quantizer<uc3Pixel, unsigned char> Qnt((uc3Pixel *)Pix, size, GrayScale);
+        Qnt.SetParams(MaxColorsWanted);
+        byte *pic8 = Qnt.GetIndexImage(); // I must now delete pic8.
+        size_t NumColors = Qnt.GetColorMap().size();
 
         // Compute 'BitsPerPixel'.
-        for(BitsPerPixel=1; BitsPerPixel<8; BitsPerPixel++)
-        {
-            if((1<<BitsPerPixel) >= NumColors)
+        for(BitsPerPixel=1; BitsPerPixel<8; BitsPerPixel++) {
+            if(size_t(1<<BitsPerPixel) >= NumColors)
                 break;
         }
 
@@ -1108,15 +1102,21 @@ nomatch:
         fputc(0, fp); /* future expansion byte */
 
         // Write the colormap.
-        // XXX Replace with fwrite. fwrite((void *)cmap, ColorMapSize, 3, fp);
-        for(i=0; i<ColorMapSize; i++) {
-            fputc(cmap[i].r, fp);
-            fputc(cmap[i].g, fp);
-            fputc(cmap[i].b, fp);
+        i=0;
+        for(i=0; i<BitsPerPixel && i<ColorMapSize; i++) {
+            fputc(Qnt.GetColorMap()[i].r(), fp);
+            fputc(Qnt.GetColorMap()[i].g(), fp);
+            fputc(Qnt.GetColorMap()[i].b(), fp);
+        }
+
+        for(; i<ColorMapSize; i++) {
+            fputc(0, fp);
+            fputc(0, fp);
+            fputc(0, fp);
         }
 
         if(comment && strlen(comment) > (size_t) 0) { /* write comment blocks */
-            char *sp;
+            const char *sp;
             int i, blen;
 
             fputc(0x21, fp); /* EXTENSION block */

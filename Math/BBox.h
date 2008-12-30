@@ -3,24 +3,25 @@
 //
 // Copyright David K. McAllister, Aug. 1998.
 
-#ifndef _bbox_h
-#define _bbox_h
+#ifndef dmc_bbox_h
+#define dmc_bbox_h
 
-#include <Math/Vector.h>
+#include "Math/Vector.h"
 
+template<class Vector_T>
 class BBox
 {
-    Vector Ctr;
-    double Rad;
+    Vector_T Ctr;
+    typename Vector_T::ElType Rad;
     bool valid;
     bool sphere_valid;
 
-    inline void validate_sphere()
+    DMC_INLINE void validate_sphere()
     {
         if(sphere_valid)
             return;
 
-        Vector Span = (MaxV - MinV) * 0.5;
+        Vector_T Span = (MaxV - MinV) * 0.5;
 
         Ctr = MinV + Span;
         Rad = Span.length();
@@ -28,33 +29,34 @@ class BBox
     }
 
 public:
-    Vector MinV, MaxV;
+    Vector_T MinV, MaxV;
 
-    inline BBox() {valid = false;}
-    inline BBox(const Vector &_min, const Vector &_max)
-        :  valid(true), sphere_valid(false), MinV(_min), MaxV(_max)
+    DMC_INLINE BBox() {valid = false;}
+    DMC_INLINE BBox(const Vector_T &MinV, const Vector_T &MaxV)
+        :  valid(true), sphere_valid(false), MinV(MinV), MaxV(MaxV)
     {}
 
-    inline void Reset() {valid = false;}
-    inline double MaxDim() const
+    DMC_INLINE void Reset() {valid = false;}
+    DMC_INLINE typename Vector_T::ElType MaxDim() const
     {
-        return Max(MaxV.x - MinV.x, MaxV.y - MinV.y, MaxV.z - MinV.z);
+        Vector_T D = MaxV - MinV;
+        return Max(D.x, D.y, D.z);
     }
 
-    inline Vector Center()
+    DMC_INLINE Vector_T Center()
     {
         validate_sphere();
         return Ctr;
     }
 
-    inline double Radius()
+    DMC_INLINE typename Vector_T::ElType Radius()
     {
         validate_sphere();
         return Rad;
     }
 
     // Returns true if the point is in the box.
-    inline bool Inside(const Vector &P) const
+    DMC_INLINE bool Inside(const Vector_T &P) const
     {
         return !((P.x < MinV.x || P.y < MinV.y || P.z < MinV.z ||
             P.x > MaxV.x || P.y > MaxV.y || P.z > MaxV.z));
@@ -62,27 +64,19 @@ public:
 
     // Returns true if any of the sphere-box is in the box.
     // XXX For speed we will return true if the P+-r box intersects the bbox.
-    inline bool SphereIntersect(const Vector &P, const double r) const
+    DMC_INLINE bool SphereIntersect(const Vector_T &P, const typename Vector_T::ElType r) const
     {
         ASSERT_D(r >= 0.0);
         return (!(P.x+r < MinV.x || P.y+r < MinV.y || P.z+r < MinV.z ||
             P.x-r > MaxV.x || P.y-r > MaxV.y || P.z-r > MaxV.z));
     }
 
-    inline BBox& operator+=(const Vector &v)
+    DMC_INLINE BBox& operator+=(const Vector_T &v)
     {
-        if(valid)
-        {
-            MinV.x = Min(MinV.x, v.x);
-            MinV.y = Min(MinV.y, v.y);
-            MinV.z = Min(MinV.z, v.z);
-
-            MaxV.x = Max(MaxV.x, v.x);
-            MaxV.y = Max(MaxV.y, v.y);
-            MaxV.z = Max(MaxV.z, v.z);
-        }
-        else
-        {
+        if(valid) {
+            MinV = Min(MinV, v);
+            MaxV = Max(MaxV, v);
+        } else {
             valid = true;
             MinV = v;
             MaxV = v;
@@ -93,20 +87,12 @@ public:
         return *this;
     }
 
-    inline BBox& operator+=(const BBox &b)
+    DMC_INLINE BBox& operator+=(const BBox &b)
     {
-        if(valid)
-        {
-            MinV.x = Min(MinV.x, b.MinV.x);
-            MinV.y = Min(MinV.y, b.MinV.y);
-            MinV.z = Min(MinV.z, b.MinV.z);
-
-            MaxV.x = Max(MaxV.x, b.MaxV.x);
-            MaxV.y = Max(MaxV.y, b.MaxV.y);
-            MaxV.z = Max(MaxV.z, b.MaxV.z);
-        }
-        else
-        {
+        if(valid) {
+            MinV = Min(MinV, b.MinV);
+            MaxV = Max(MaxV, b.MaxV);
+        } else {
             valid = true;
             MinV = b.MinV;
             MaxV = b.MaxV;
@@ -117,16 +103,18 @@ public:
         return *this;
     }
 
-    inline bool is_valid() const {return valid;}
+    DMC_INLINE bool is_valid() const {return valid;}
 };
 
-inline std::ostream& operator<<(std::ostream& os, const BBox& b)
+template<class Vector_T>
+DMC_INLINE std::ostream& operator<<(std::ostream& os, const BBox<Vector_T>& b)
 {
-    os << b.MinV.print() << b.MaxV.print();
+    os << b.MinV.string() << b.MaxV.string();
     return os;
 }
 
-inline std::istream& operator>>(std::istream& is, BBox& b)
+template<class Vector_T>
+DMC_INLINE std::istream& operator>>(std::istream& is, BBox<Vector_T>& b)
 {
     is >> b.MinV >> b.MaxV;
     return is;

@@ -4,8 +4,10 @@
 // Copyright David K. McAllister, Mar. 1998.
 
 #include "toolconfig.h"
-#include <Util/Timer.h>
-#include <Math/MiscMath.h>
+#include "Util/Timer.h"
+#include "Math/MiscMath.h"
+
+#include <algorithm>
 
 #ifdef DMC_MACHINE_win
 #include <windows.h>
@@ -16,7 +18,7 @@
 #endif
 #endif
 
-#if defined(DMC_MACHINE_sgi) || defined(DMC_MACHINE_hp) || defined(DMC_MACHINE_gcc)
+#if defined(DMC_MACHINE_gcc)
 #include <sys/times.h>
 #include <limits.h>
 #include <unistd.h>
@@ -78,7 +80,7 @@ double Timer::GetCurTime()
     return dtime;
 }
 
-#elif defined(DMC_MACHINE_sgi) || defined(DMC_MACHINE_hp) ||  defined(DMC_MACHINE_gcc)
+#elif defined(DMC_MACHINE_gcc)
 
 double Timer::GetCurTime()
 {
@@ -99,14 +101,9 @@ Timer::Timer()
     LARGE_INTEGER freq, tim0q, tim1q;
     DWORD hi0, lo0, hi1, lo1;
     QueryPerformanceFrequency(&freq);
-//#define DMC_LAPTOP
-#ifdef DMC_LAPTOP
-    freqHigh = freq.x.HighPart;
-    freqLow = freq.x.LowPart;
-#else
+
     freqHigh = freq.HighPart;
     freqLow = freq.LowPart;
-#endif
 
     QueryPerformanceCounter( &tim0q );
     GetPentiumCounter(hi0, lo0);
@@ -116,15 +113,9 @@ Timer::Timer()
 
     high_bias = hi0;
 
-#ifdef DMC_LAPTOP
-    double QRefTicks = (double(tim1q.x.HighPart - tim0q.x.HighPart) * 4294967296.0) +
-        double(tim1q.x.LowPart) - double(tim0q.x.LowPart); // High probably 0.
-    double QTicksPerSec = double(freq.x.HighPart) * 4294967296.0 + double(freq.x.LowPart);
-#else
     double QRefTicks = (double(tim1q.HighPart - tim0q.HighPart) * 4294967296.0) +
         double(tim1q.LowPart) - double(tim0q.LowPart); // High probably 0.
     double QTicksPerSec = double(freq.HighPart) * 4294967296.0 + double(freq.LowPart);
-#endif
 
     // double RefSecs = QRefTicks / QTicksPerSec;
     double PRefTicks = double(hi1 - hi0) * 4294967296.0 + double(lo1) - double(lo0);
@@ -181,9 +172,9 @@ double Timer::Reset()
     return El;
 }
 
-StatTimer::StatTimer(int _MaxEvents)
+StatTimer::StatTimer(int MaxEvents_)
 {
-    MaxEvents = _MaxEvents;
+    MaxEvents = MaxEvents_;
     EventTimes = new float[MaxEvents];
     NumEvents = 0;
     IsGoing = false;
@@ -241,7 +232,7 @@ float StatTimer::GetMax(int N)
 
     float AccT = 0;
     for(int i=0; i<NN; i++)
-        AccT = Max(AccT, EventTimes[i]);
+        AccT = std::max(AccT, EventTimes[i]);
 
     return AccT;
 }
@@ -252,7 +243,7 @@ float StatTimer::GetMin(int N)
 
     float AccT = DMC_MAXFLOAT;
     for(int i=0; i<NN; i++)
-        AccT = Min(AccT, EventTimes[i]);
+        AccT = std::min(AccT, EventTimes[i]);
 
     return AccT;
 }

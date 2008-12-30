@@ -5,8 +5,8 @@
 // Originally written by Steven G. Parker, Feb. 1994.
 // I don't think the matrix invert is by Steve. It had a bug.
 
-#include <Math/Matrix44.h>
-#include <Math/Vector.h>
+#include "Math/Matrix44.h"
+#include "Math/Vector.h"
 
 //////////////////////////////////////////////////////////
 // Private member functions.
@@ -164,7 +164,7 @@ void Matrix44::post_mulmat(double to[4][4], const double from[4][4])
         }
     }
 
-    copy_mat((double *)to, (double *)newmat);
+    copy_mat(to, newmat);
 }
 
 void Matrix44::pre_mulmat(double to[4][4], const double from[4][4])
@@ -182,19 +182,18 @@ void Matrix44::pre_mulmat(double to[4][4], const double from[4][4])
         }
     }
 
-    copy_mat((double *)to, (double *)newmat);
+    copy_mat(to, newmat);
 }
 
 //////////////////////////////////////////////////////////
 // Public member functions.
 
-std::string Matrix44::print() const
+std::string Matrix44::string() const
 {
+    const int PRDIG = 8;
     char xx[40];
-
     std::string st;
-    for(int i=0; i<4; i++)
-    {
+    for(int i=0; i<4; i++) {
         st += std::string("[");
         st += gcvt(mat[i][0], PRDIG, xx) + std::string(", ");
         st += gcvt(mat[i][1], PRDIG, xx) + std::string(", ");
@@ -205,10 +204,10 @@ std::string Matrix44::print() const
     return st;
 }
 
-std::string Matrix44::printInv() const
+std::string Matrix44::string_inv() const
 {
+    const int PRDIG = 8;
     char xx[40];
-
     std::string st;
     for(int i=0; i<4; i++)
     {
@@ -234,8 +233,8 @@ void Matrix44::PostTrans(const Matrix44& T)
     if(is_identity)
     {
         // Copying is faster than matrix multiply.
-        copy_mat((double *)mat, (double *)T.mat);
-        copy_mat((double *)imat, (double *)T.imat);
+        copy_mat(mat, T.mat);
+        copy_mat(imat, T.imat);
         is_identity = false;
         inverse_valid = T.inverse_valid;
         return;
@@ -253,8 +252,8 @@ void Matrix44::PreTrans(const Matrix44& T)
     if(is_identity)
     {
         // Copying is faster than matrix multiply.
-        copy_mat((double *)mat, (double *)T.mat);
-        copy_mat((double *)imat, (double *)T.imat);
+        copy_mat(mat, T.mat);
+        copy_mat(imat, T.imat);
         is_identity = false;
         inverse_valid = T.inverse_valid;
         return;
@@ -348,7 +347,7 @@ void Matrix44::Scale(const Vector& v)
     double m[4][4];
     build_scale(m, v);
     if(is_identity)
-        copy_mat((double *)mat, (double *)m);
+        copy_mat(mat, m);
     else
         post_mulmat(mat, m);
 
@@ -356,7 +355,7 @@ void Matrix44::Scale(const Vector& v)
     m[1][1] = 1. / m[1][1];
     m[2][2] = 1. / m[2][2];
     if(is_identity)
-        copy_mat((double *)imat, (double *)m);
+        copy_mat(imat, m);
     else
         pre_mulmat(imat, m);
     is_identity = false;
@@ -370,13 +369,13 @@ void Matrix44::Rotate(double angle, const Vector& axis)
     double m[4][4];
     build_rotate(m, angle, axis);
     if(is_identity)
-        copy_mat((double *)mat, (double *)m);
+        copy_mat(mat, m);
     else
         post_mulmat(mat, m);
 
     build_transpose(m);
     if(is_identity)
-        copy_mat((double *)imat, (double *)m);
+        copy_mat(imat, m);
     else
         pre_mulmat(imat, m);
     is_identity = false;
@@ -387,7 +386,7 @@ void Matrix44::Translate(const Vector& v)
     double m[4][4];
     build_translate(m, v);
     if(is_identity)
-        copy_mat((double *)mat, (double *)m);
+        copy_mat(mat, m);
     else
         post_mulmat(mat, m);
 
@@ -396,7 +395,7 @@ void Matrix44::Translate(const Vector& v)
     m[2][3] = -m[2][3];
 
     if(is_identity)
-        copy_mat((double *)imat, (double *)m);
+        copy_mat(imat, m);
     else
         pre_mulmat(imat, m);
     is_identity = false;
@@ -410,13 +409,13 @@ bool Matrix44::Invert()
 
         // Just swap it with its inverse.
         double temp[4][4];
-        copy_mat((double *)temp, (double *)mat);
-        copy_mat((double *)mat, (double *)imat);
-        copy_mat((double *)imat, (double *)temp);
+        copy_mat(temp, mat);
+        copy_mat(mat, imat);
+        copy_mat(imat, temp);
         return true;
     } else {
         // Copy mat to imat, then invert old mat.
-        copy_mat((double *)imat, (double *)mat);
+        copy_mat(imat, mat);
         inverse_valid = true;
         if(is_identity) return true;
 
@@ -460,7 +459,7 @@ void Matrix44::Frustum(double l, double r, double b, double t, double n, double 
     m[3][3] = 0;
 
     if(is_identity)
-        copy_mat((double *)mat, (double *)m);
+        copy_mat(mat, m);
     else
         post_mulmat(mat, m);
 
@@ -485,7 +484,7 @@ void Matrix44::Frustum(double l, double r, double b, double t, double n, double 
     m[3][3] = (f+n)/(2.0*f*n);
 
     if(is_identity) {
-        copy_mat((double *)imat, (double *)m);
+        copy_mat(imat, m);
         inverse_valid = true;
     } else {
         if(inverse_valid) pre_mulmat(imat, m);
@@ -520,7 +519,7 @@ void Matrix44::Ortho(double l, double r, double b, double t, double n, double f)
     m[3][3] = 1;
 
     if(is_identity)
-        copy_mat((double *)mat, (double *)m);
+        copy_mat(mat, m);
     else
         post_mulmat(mat, m);
 
@@ -576,14 +575,14 @@ void Matrix44::LookAt(const Vector& eye, const Vector& lookat, const Vector& up)
     m[3][3] = 1;
 
     if(is_identity)
-        copy_mat((double *)mat, (double *)m);
+        copy_mat(mat, m);
     else
         post_mulmat(mat, m);
 
     build_transpose(m);
 
     if(is_identity)
-        copy_mat((double *)imat, (double *)m);
+        copy_mat(imat, m);
     else
         pre_mulmat(imat, m);
 

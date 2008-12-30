@@ -13,8 +13,8 @@
 // Note that although the time is stored as a double, the clock is not very
 // accurate. It has maybe 1 ms granularity or worse.
 
-#ifndef _timer_h
-#define _timer_h
+#ifndef dmc_timer_h
+#define dmc_timer_h
 
 class Timer
 {

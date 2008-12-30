@@ -6,8 +6,8 @@
 #ifndef AElements_h
 #define AElements_h
 
-#include <Model/MeshElements.h>
-#include <Model/BaseObject.h>
+#include "Model/MeshElements.h"
+#include "Model/BaseObject.h"
 
 // This should be true if the space exists for the attributes.
 // (that is, for anything derived from AElement).
@@ -20,7 +20,7 @@ struct AVertex : public Vertex
     Vector Tex;
     Vector Tan;
 
-    inline ~AVertex()
+    DMC_INLINE ~AVertex()
     {
 #ifdef DMC_MESH_DEBUG
     //cerr << "~AVertex\n";
@@ -28,7 +28,7 @@ struct AVertex : public Vertex
     }
 };
 
-inline bool VertexDataSame(const AVertex *V0, const AVertex *V1, const unsigned int VertData)
+DMC_INLINE bool VertexDataSame(const AVertex *V0, const AVertex *V1, const unsigned int VertData)
 {
     bool IsSame = V0->V == V1->V;
 
@@ -52,7 +52,7 @@ inline bool VertexDataSame(const AVertex *V0, const AVertex *V1, const unsigned 
 
 struct AEdge : public Edge
 {
-    inline ~AEdge()
+    DMC_INLINE ~AEdge()
     {
 #ifdef DMC_MESH_DEBUG
     //cerr << "~AEdge\n";
@@ -67,7 +67,7 @@ struct AFace : public Face
     Vector Tex;
     Vector Tan;
 
-    inline ~AFace()
+    DMC_INLINE ~AFace()
     {
 #ifdef DMC_MESH_DEBUG
         //cerr << "~AFace\n";

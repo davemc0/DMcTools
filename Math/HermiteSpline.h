@@ -5,20 +5,10 @@
 
 // XXX It's not working right now.
 #if 0
-#ifndef _HermiteSpline_h
-#define _HermiteSpline_h
+#ifndef dmc_hermiteSpline_h
+#define dmc_hermiteSpline_h
 
-#ifdef DMC_MACHINE_sgi
-#include <vector.h>
-#endif
-
-#ifdef DMC_MACHINE_hp
 #include <vector>
-#endif
-
-#ifdef DMC_MACHINE_win
-#include <vector>
-#endif
 
 template<class T>
 class HermiteSpline
@@ -63,7 +53,7 @@ public:
     // This provides no way to access the tangent.
     T& operator[]( const int );
 
-    inline int size() const
+    DMC_INLINE int size() const
     {
         return d.size();
     }

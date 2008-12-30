@@ -4,40 +4,21 @@
 // Copyright David K. McAllister, 1998.
 
 #include "toolconfig.h"
-#include <Util/Utils.h>
+#include "Util/Utils.h"
 
 #ifdef DMC_MACHINE_win
 #include <time.h>
 #endif
 
-#ifdef DMC_MACHINE_sgi
-#include <time.h>
-#include <unistd.h>
-#endif
-
-#ifdef DMC_MACHINE_hp
-#include <time.h>
-#include <unistd.h>
-#endif
-
 #ifdef DMC_MACHINE_win
 void SRand()
 {
-    srand(time(0));
+    srand((unsigned int) time(NULL));
 }
-#endif
-
-#ifdef DMC_MACHINE_sgi
+#else
 void SRand()
 {
-    srand48(time(0) * getpid());
-}
-#endif
-
-#ifdef DMC_MACHINE_hp
-void SRand()
-{
-    srand48(time(0) * getpid());
+    srand48(time(NULL) * getpid());
 }
 #endif
 
@@ -57,7 +38,7 @@ char *GetFilePath(const char *inpath)
     return outpath;
 }
 
-// Return just the fname.xxx portion of a path.
+// Return just the fname.abc portion of a path.
 char *GetFileName(const char *inpath)
 {
     char *outpath = strdup(inpath);
@@ -132,7 +113,7 @@ char *GetFileBaseName(const char *inpath)
     return gogo;
 }
 
-// Return just the fname.xxx portion of a path.
+// Return just the xxx portion of path/fname.xxx.
 char *GetFileExtension(const char *inpath)
 {
     char *outpath = strdup(inpath);
