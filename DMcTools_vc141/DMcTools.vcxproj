@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Half\eLut.h" />
+    <ClInclude Include="..\Half\half.h" />
+    <ClInclude Include="..\Half\halfFunction.h" />
+    <ClInclude Include="..\Half\halfLimits.h" />
+    <ClInclude Include="..\Half\toFloat.h" />
+    <ClInclude Include="..\Image\ColorMap.h" />
+    <ClInclude Include="..\Image\ImageAlgorithms.h" />
+    <ClInclude Include="..\Image\ImageLoadSave.h" />
+    <ClInclude Include="..\Image\jhead.h" />
+    <ClInclude Include="..\Image\PullPush.h" />
+    <ClInclude Include="..\Image\Quant.h" />
+    <ClInclude Include="..\Image\RGBE.h" />
+    <ClInclude Include="..\Image\RGBEio.h" />
+    <ClInclude Include="..\Image\tImage.h" />
+    <ClInclude Include="..\Image\tPixel.h" />
+    <ClInclude Include="..\Math\AABB.h" />
+    <ClInclude Include="..\Math\Auint.h" />
+    <ClInclude Include="..\Math\BBox.h" />
+    <ClInclude Include="..\Math\CatmullRomSpline.h" />
+    <ClInclude Include="..\Math\DownSimplex.h" />
+    <ClInclude Include="..\Math\Halton.h" />
+    <ClInclude Include="..\Math\HermiteSpline.h" />
+    <ClInclude Include="..\Math\HMatrix.h" />
+    <ClInclude Include="..\Math\HVector.h" />
+    <ClInclude Include="..\Math\KDBoxTree.h" />
+    <ClInclude Include="..\Math\KDBVector.h" />
+    <ClInclude Include="..\Math\KDItemTree.h" />
+    <ClInclude Include="..\Math\KDIVector.h" />
+    <ClInclude Include="..\Math\Mappings.h" />
+    <ClInclude Include="..\Math\Matrix44.h" />
+    <ClInclude Include="..\Math\MiscMath.h" />
+    <ClInclude Include="..\Math\Perlin.h" />
+    <ClInclude Include="..\Math\Quadric.h" />
+    <ClInclude Include="..\Math\Random.h" />
+    <ClInclude Include="..\Math\Vector.h" />
+    <ClInclude Include="..\Math\VectorField.h" />
+    <ClInclude Include="..\Model\AElements.h" />
+    <ClInclude Include="..\Model\BaseObject.h" />
+    <ClInclude Include="..\Model\BisonMe.h" />
+    <ClInclude Include="..\Model\CameraDB.h" />
+    <ClInclude Include="..\Model\KDVertex.h" />
+    <ClInclude Include="..\Model\LightDB.h" />
+    <ClInclude Include="..\Model\LoadVRML.h" />
+    <ClInclude Include="..\Model\Mesh.h" />
+    <ClInclude Include="..\Model\MeshElements.h" />
+    <ClInclude Include="..\Model\Model.h" />
+    <ClInclude Include="..\Model\RenderObject.h" />
+    <ClInclude Include="..\Model\SaveVRML.h" />
+    <ClInclude Include="..\Model\TextureDB.h" />
+    <ClInclude Include="..\Model\TriObject.h" />
+    <ClInclude Include="..\toolconfig.h" />
+    <ClInclude Include="..\Util\Assert.h" />
+    <ClInclude Include="..\Util\Timer.h" />
+    <ClInclude Include="..\Util\Utils.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\Half\half.cpp" />
+    <ClCompile Include="..\Image\Bmp.cpp" />
+    <ClCompile Include="..\Image\ColorMap.cpp" />
+    <ClCompile Include="..\Image\Filter.cpp" />
+    <ClCompile Include="..\Image\Gif.cpp" />
+    <ClCompile Include="..\Image\ImageAlgorithms.cpp" />
+    <ClCompile Include="..\Image\ImageLoadSave.cpp" />
+    <ClCompile Include="..\Image\ImageSampling.cpp" />
+    <ClCompile Include="..\Image\Quant.cpp" />
+    <ClCompile Include="..\Image\RGBEio.cpp" />
+    <ClCompile Include="..\Image\Targa.cpp" />
+    <ClCompile Include="..\Image\tLoadSave.cpp" />
+    <ClCompile Include="..\Image\VCD.cpp" />
+    <ClCompile Include="..\Math\DownSimplex.cpp" />
+    <ClCompile Include="..\Math\HVector.cpp" />
+    <ClCompile Include="..\Math\Matrix44.cpp" />
+    <ClCompile Include="..\Math\Perlin.cpp" />
+    <ClCompile Include="..\Math\PerlinImproved.cpp" />
+    <ClCompile Include="..\Math\Quadric.cpp" />
+    <ClCompile Include="..\Model\BisonMe.cpp" />
+    <ClCompile Include="..\Model\Camera.cpp" />
+    <ClCompile Include="..\Model\LoadOBJ.cpp" />
+    <ClCompile Include="..\Model\LoadVRML.cpp" />
+    <ClCompile Include="..\Model\Mesh.cpp" />
+    <ClCompile Include="..\Model\Model.cpp" />
+    <ClCompile Include="..\Model\RenderObject.cpp" />
+    <ClCompile Include="..\Model\SaveOBJ.cpp" />
+    <ClCompile Include="..\Model\SaveVRML.cpp" />
+    <ClCompile Include="..\Model\TextureDB.cpp" />
+    <ClCompile Include="..\Model\TriObject.cpp" />
+    <ClCompile Include="..\Util\Timer.cpp" />
+    <ClCompile Include="..\Util\Utils.cpp" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>15.0</VCProjectVersion>
+    <ProjectGuid>{AF46BC57-F306-4D3C-B879-6A9250D6C426}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>DMcTools</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>.;..;../..;../Half;../../Goodies/include_vc$(PlatformToolsetVersion)</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <Lib>
+      <AdditionalDependencies>tiffd.lib;turbojpeg-static.lib;libpng16_staticd.lib;zlibstaticd.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>../../Goodies/$(Configuration)_vc$(PlatformToolsetVersion)</AdditionalLibraryDirectories>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>.;..;../..;../Half;../../Goodies/include_vc$(PlatformToolsetVersion)</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <Lib>
+      <AdditionalDependencies>tiff.lib;turbojpeg-static.lib;libpng16_static.lib;zlibstatic.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>../../Goodies/$(Configuration)_vc$(PlatformToolsetVersion)</AdditionalLibraryDirectories>
+    </Lib>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
