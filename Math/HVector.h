@@ -23,6 +23,11 @@ public:
     DMC_DECL const typename Elem_T& operator[](const size_t i) const { return V[i]; }
     DMC_DECL typename Elem_T& operator[](const size_t i) { return V[i]; }
 
+    DMC_DECL auto begin() const { return V.begin(); }
+    DMC_DECL auto begin() { return V.begin(); }
+    DMC_DECL auto end() const { return V.end(); }
+    DMC_DECL auto end() { return V.end(); }
+
     DMC_DECL HVector<Elem_T> operator*(const Elem_T d) const
     {
         HVector<Elem_T> b(size());

@@ -569,7 +569,7 @@ void s_SpecularColors(vector<f3Vector> *V)
 void s_Transparencies(vector<f3Vector::ElType> *V)
 {
     // YYObject &S =
-    Stack.back();
+    YYObject& S = Stack.back();
 }
 
 void s_CoordIndices(vector<int> *V)
