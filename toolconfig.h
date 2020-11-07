@@ -6,7 +6,7 @@
 #pragma once
 
 #define DMC_USE_JPEG
-#define DMC_USE_TIFF
+//#define DMC_USE_TIFF
 #define DMC_USE_PNG
 //#define DMC_USE_MAT
 

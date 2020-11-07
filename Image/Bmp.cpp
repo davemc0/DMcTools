@@ -9,7 +9,6 @@
 #include "Image/ImageLoadSave.h"
 
 #include <iostream>
-using namespace std;
 
 typedef unsigned char byte;
 
@@ -26,7 +25,7 @@ typedef unsigned char byte;
 /*******************************************/
 static DMC_DECL void bmpError(const char *fname, const char *st)
 {
-    throw DMcError("BMP error: '" + string(fname) + "': " + st);
+    throw DMcError("BMP error: '" + std::string(fname) + "': " + st);
 }
 
 /*******************************************/
@@ -389,15 +388,15 @@ void ImageLoadSave::LoadBMP(const char *fname)
     /* error checking */
     if((biBitCount!=1 && biBitCount!=4 && biBitCount!=8 && biBitCount!=24 && biBitCount!=32) ||
         biPlanes!=1 || biCompression>BI_RLE4) {
-            stringstream er; er << "Bogus BMP File '" << fname << "': bitCount=" << biBitCount << " Planes=" << biPlanes << " Compression=" << biCompression;
+            std::stringstream er; er << "Bogus BMP File '" << fname << "': bitCount=" << biBitCount << " Planes=" << biPlanes << " Compression=" << biCompression;
             throw DMcError(er.str());
     }
 
     if(((biBitCount==1 || biBitCount==24) && biCompression != BI_RGB) ||
         (biBitCount==4 && biCompression==BI_RLE8) ||
         (biBitCount==8 && biCompression==BI_RLE4)) {
-            stringstream er; er << "Bogus BMP File '" << fname << "': bitCount=" << biBitCount << " Compression=" << biCompression;
-            throw DMcError(er.str());
+        std::stringstream er; er << "Bogus BMP File '" << fname << "': bitCount=" << biBitCount << " Compression=" << biCompression;
+        throw DMcError(er.str());
     }
 
     bPad = 0;

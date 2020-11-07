@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include "Util/Assert.h"
 #include "Image/tImage.h"
+#include "Util/Assert.h"
 
 const int BMP_ = 0x00706d62; // "bmp\0", etc.
 const int GIF_ = 0x00666967;
@@ -26,14 +26,13 @@ const int TGA_ = 0x00616774;
 const int TIF_ = 0x00666974;
 
 // Return an int whose bytes equal the characters of the extension string
-extern int GetExtensionVal(const char *fname);
+extern int GetExtensionVal(const char* fname);
 
-class ImageLoadSave
-{
+class ImageLoadSave {
 public:
-    baseImage *baseImg; // This is actually a pointer to the tImage struct of a type matching the image file.
-	saveParams SP;
-    unsigned char *Pix;
+    baseImage* baseImg; // This is actually a pointer to the tImage struct of a type matching the image file.
+    saveParams SP;
+    unsigned char* Pix;
     int wid, hgt, chan;
     bool is_uint, is_float, is_ushort;
 
@@ -54,16 +53,15 @@ public:
         // If an error gets thrown while loading, this destructor gets called and baseImg is not NULL.
         // If an error gets thrown while saving, this destructor gets called and baseImg is NULL, so destroys nothing.
         // The saver doesn't own any of the data it points to.
-        if(baseImg)
-            delete baseImg;
+        if (baseImg) delete baseImg;
     }
 
-    int size() const {return wid * hgt;}
-    int size_bytes() const {return size() * chan * ((is_uint || is_float) ? 4 : is_ushort ? 2 : 1);}
+    int size() const { return wid * hgt; }
+    int size_bytes() const { return size() * chan * ((is_uint || is_float) ? 4 : is_ushort ? 2 : 1); }
 
     // Hooks the given raster image into this image object.
-    void SetImage(unsigned char *p, const int w, const int h, const int ch,
-        const bool is_uint_ = false, const bool is_ushort_ = false, const bool is_float_ = false)
+    void SetImage(unsigned char* p, const int w, const int h, const int ch, const bool is_uint_ = false, const bool is_ushort_ = false,
+                  const bool is_float_ = false)
     {
         Pix = p;
         wid = w;
@@ -75,31 +73,31 @@ public:
     }
 
     // All of these throw a DMcError on error.
-    void Load(const char *fname);
-    void Save(const char *fname) const;
+    void Load(const char* fname);
+    void Save(const char* fname) const;
 
 private:
-    void LoadBMP(const char *fname);                                                                                    
-    void LoadGIF(const char *fname, bool WantPaletteInds = false); // If true, returns one channel image. No palette.   
-    void LoadJPEG(const char *fname);                                                                                   
-    void LoadMAT(const char *fname);                                                                                    
-    void LoadPNG(const char *fname);                                                                                    
-    void LoadPPM(const char *fname);                                                                                    
-    void LoadRGB(const char *fname);                                                                                    
-    void LoadRGBE(const char* fname);                                                                                   
-    void LoadRas(const char *fname);                                                                                    
-    void LoadTGA(const char *fname, bool R5G6B5 = false); // If true, interprets incoming 16 bits as R5G6B5 instead of X1R5G5B5.                                                                                                               
-    void LoadTIFF(const char *fname);                                                                                   
-    void SaveBMP(const char *fname) const;                                                                              
-    void SaveGIF(const char *fname, int MaxColorsWanted = 256) const;                                                   
-    void SaveJPEG(const char *fname) const;                                                                             
-    void SaveMAT(const char *fname) const;                                                                              
-    void SavePNG(const char *fname) const;                                                                              
-    void SavePPM(const char *fname) const;                                                                              
-    void SaveRGBE(const char *fname) const;                                                                             
-    void SaveTGA(const char *fname) const;                                                                              
-    void SaveTIFF(const char *fname) const;                                                                             
+    void LoadBMP(const char* fname);
+    void LoadGIF(const char* fname, bool WantPaletteInds = false); // If true, returns one channel image. No palette.
+    void LoadJPEG(const char* fname);
+    void LoadMAT(const char* fname);
+    void LoadPNG(const char* fname);
+    void LoadPPM(const char* fname);
+    void LoadRGB(const char* fname);
+    void LoadRGBE(const char* fname);
+    void LoadRas(const char* fname);
+    void LoadTGA(const char* fname, bool R5G6B5 = false); // If true, interprets incoming 16 bits as R5G6B5 instead of X1R5G5B5.
+    void LoadTIFF(const char* fname);
+    void SaveBMP(const char* fname) const;
+    void SaveGIF(const char* fname, int MaxColorsWanted = 256) const;
+    void SaveJPEG(const char* fname) const;
+    void SaveMAT(const char* fname) const;
+    void SavePNG(const char* fname) const;
+    void SavePPM(const char* fname) const;
+    void SaveRGBE(const char* fname) const;
+    void SaveTGA(const char* fname) const;
+    void SaveTIFF(const char* fname) const;
 
     // Called by Load*(). It creates a tImage that matches the is_* and chan args. Stores the pointer to the tImage in baseImg.
-    unsigned char *ImageAlloc();
+    unsigned char* ImageAlloc();
 };

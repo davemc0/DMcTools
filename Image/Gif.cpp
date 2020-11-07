@@ -15,8 +15,6 @@
 #include <memory>
 #include <cstdio>
 
-using namespace std;
-
 typedef unsigned char byte;
 
 #define NEXTBYTE (*dataptr++)
@@ -213,7 +211,7 @@ struct GIFInfo {
                 g[i] = NEXTBYTE;
                 b[i] = NEXTBYTE;
                 GrayColormap = GrayColormap && (r[i] == g[i] && r[i] == b[i]);
-                cerr << i << endl;
+                std::cerr << i << std::endl;
             }
 
             if (WantPaletteInds) {
@@ -553,7 +551,7 @@ struct GIFInfo {
                             for (j = 0; j < sbsize; j++, sp++, ptr1++) *sp = *ptr1;
                         } while (sbsize);
                         *sp = '\0';
-                        cerr << "GIF Comment: " << cmt << endl;
+                        std::cerr << "GIF Comment: " << cmt << std::endl;
                     }
                 }
                 else if (fn == 0x01) { // PlainText Extension
@@ -717,7 +715,7 @@ void ImageLoadSave::LoadGIF(const char *fname, bool WantPaletteInds)
     if (ret == 0) {
         wid = hgt = chan = 0;
         Pix = NULL;
-        throw DMcError("LoadGIF() failed: can't read GIF image file " + string(fname));
+        throw DMcError("LoadGIF() failed: can't read GIF image file " + std::string(fname));
     }
 
     wid = pi.Width;
@@ -1062,8 +1060,7 @@ struct GIFWriter
     {
         int size = wid * hgt;
 
-        if ((fp = fopen(fname, "wb")) == 0)
-            throw DMcError("WriteGIF() failed: can't write GIF image file " + string(fname));
+        if ((fp = fopen(fname, "wb")) == 0) throw DMcError("WriteGIF() failed: can't write GIF image file " + std::string(fname));
 
         int ColorMapSize, InitCodeSize, BitsPerPixel;
 
@@ -1169,7 +1166,8 @@ void ImageLoadSave::SaveGIF(const char *fname, int MaxColorsWanted) const
     }
 
     if (chan != 1 && chan != 3) {
-        stringstream er; er << "Can't save a " << chan << " channel image as a GIF.";
+        std::stringstream er;
+        er << "Can't save a " << chan << " channel image as a GIF.";
         throw DMcError(er.str());
     }
 

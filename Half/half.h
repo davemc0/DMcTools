@@ -89,6 +89,8 @@
 
 #include <iostream>
 
+#pragma warning(disable : 5033) // 'register' is no longer a supported storage class
+
 class half
 {
   public:

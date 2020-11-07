@@ -3,6 +3,8 @@
  by  GNU Bison version 1.25
   */
 
+#pragma warning(disable : 5033) // 'register' is no longer a supported storage class
+
 #define YYBISON 1  /* Identify Bison output.  */
 
 #define T_ERROR 258
