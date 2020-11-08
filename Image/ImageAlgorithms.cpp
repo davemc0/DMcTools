@@ -181,6 +181,7 @@ void CopyChan(tImage<DstPixel_T> &DstIm, const int dst_ch, const tImage<SrcPixel
 
 template void CopyChan(f1Image &DstIm, const int dst_ch, const f3Image &SrcIm, const int src_ch);
 
+// TODO: Make the per-pixel operation be generic by passing in a lambda
 template<class DstPixel_T, class SrcPixel_T>
 void CopyRect(tImage<DstPixel_T> &DstIm, const tImage<SrcPixel_T> &SrcIm, const int srcx, const int srcy,
     const int dstx, const int dsty, const int bwid, const int bhgt, const int mode, SrcPixel_T Key, float alpha)
@@ -240,7 +241,7 @@ void CopyRect(tImage<DstPixel_T> &DstIm, const tImage<SrcPixel_T> &SrcIm, const 
                 typename DstPixel_T::FloatMathType srcalpha(srcpix[3]);
                 typename DstPixel_T::FloatMathPixType mp(srcpix * dstpix);
                 DstIm(dx, dy) = LinearInterp(dstpix, mp, srcalpha);
-            } else if (mode == 4) { // 50/50 blend of each channel. Could pass in the blend factor in the key.
+            } else if (mode == 4) { // alpha blend of each channel
                 typename DstPixel_T::FloatMathPixType srcpix(SrcIm(sx, sy));
                 typename DstPixel_T::FloatMathType srcalpha(srcpix[3]);
                 DstIm(dx, dy) = LinearInterp(DstIm(dx, dy), SrcIm(sx, sy), alpha);
@@ -251,6 +252,7 @@ void CopyRect(tImage<DstPixel_T> &DstIm, const tImage<SrcPixel_T> &SrcIm, const 
 
 template void CopyRect(f1Image   &DstIm, const f1Image   &SrcIm, const int srcx, const int srcy, const int dstx, const int dsty, const int bwid, const int bhgt, const int mode, f1Image  ::PixType, const float alpha);
 template void CopyRect(f3Image   &DstIm, const f3Image   &SrcIm, const int srcx, const int srcy, const int dstx, const int dsty, const int bwid, const int bhgt, const int mode, f3Image  ::PixType, const float alpha);
+template void CopyRect(f4Image   &DstIm, const f4Image   &SrcIm, const int srcx, const int srcy, const int dstx, const int dsty, const int bwid, const int bhgt, const int mode, f4Image  ::PixType, const float alpha);
 template void CopyRect(uc1Image  &DstIm, const uc1Image  &SrcIm, const int srcx, const int srcy, const int dstx, const int dsty, const int bwid, const int bhgt, const int mode, uc1Image ::PixType, const float alpha);
 template void CopyRect(uc3Image  &DstIm, const uc3Image  &SrcIm, const int srcx, const int srcy, const int dstx, const int dsty, const int bwid, const int bhgt, const int mode, uc3Image ::PixType, const float alpha);
 template void CopyRect(uc4Image  &DstIm, const uc4Image  &SrcIm, const int srcx, const int srcy, const int dstx, const int dsty, const int bwid, const int bhgt, const int mode, uc4Image ::PixType, const float alpha);
