@@ -427,8 +427,8 @@ void Quantizer<Pixel_T, Index_T>::MedianCut(std::vector<CountedPixel<Pixel_T> > 
 template<class Pixel_T, class Index_T>
 void Quantizer<Pixel_T, Index_T>::DumpCMap()
 {
-    cerr << "CMap[" << CMap.size() << "]\n";
-    for (int i = 0; i < CMap.size(); i++) cerr << CMap[i] << endl;
+    std::cerr << "CMap[" << CMap.size() << "]\n";
+    for (int i = 0; i < CMap.size(); i++) std::cerr << CMap[i] << std::endl;
 }
 
 //////////////////////////////////////////////////////////////////////
