@@ -4,6 +4,7 @@
 // Copyright David K. McAllister, July 1999.
 
 #include "Math/Perlin.h"
+
 #include "Math/Random.h"
 #include "Util/Utils.h"
 
@@ -16,36 +17,31 @@ int Perlin::Histogram[100];
 
 bool Perlin::IsPrime(int n)
 {
-    if(!(n & 1))
-        return false;
+    if (!(n & 1)) return false;
 
-    for(int i=3; i*i <= n; i+=2)
-        if(!(n % i))
-            return false;
+    for (int i = 3; i * i <= n; i += 2)
+        if (!(n % i)) return false;
 
-        return true;
+    return true;
 }
 
 int Perlin::FindRandPrime(int i0, int i1)
 {
-    while(1)
-    {
+    while (1) {
         // Get an odd random number in the range.
         int i = (LRand() % ((i1 - i0) / 2)) * 2 + 1;
         i = (i0 & (~1)) + i;
 
         // Find the next largest prime.
-        for( ; i < i1; i+= 2)
-            if(IsPrime(i))
-                return i;
+        for (; i < i1; i += 2)
+            if (IsPrime(i)) return i;
     }
 }
 
 void Perlin::ComputeMax()
 {
     MaxVal = 0;
-    for(int i = 0; i < NOct; i++)
-    {
+    for (int i = 0; i < NOct; i++) {
         Ampl[i] = pow(Persist, double(i));
         MaxVal += Ampl[i];
     }
@@ -65,14 +61,12 @@ void Perlin::SetPersistance(double persist)
 
 void Perlin::FillRandSeeds()
 {
-    if(RandFilled)
-        return;
+    if (RandFilled) return;
 
     RandFilled = true;
 
     SRand();
-    for(int i=0; i<MAX_OCTAVES; i++)
-    {
+    for (int i = 0; i < MAX_OCTAVES; i++) {
         Pr[0][i] = FindRandPrime(200, 1000);
         Pr[1][i] = FindRandPrime(10000, 20000);
         Pr[2][i] = FindRandPrime(500000, 1000000);
@@ -108,7 +102,7 @@ double Perlin::InterpolatedNoise(double x, int Oct)
     double xf = x - xi;
 
     double v0 = RandNoise(xi, Oct);
-    double v1 = RandNoise(xi+1, Oct);
+    double v1 = RandNoise(xi + 1, Oct);
 
     double v = Interp(v0, v1, xf);
 
@@ -124,9 +118,9 @@ double Perlin::InterpolatedNoise(double x, double y, int Oct)
     double yf = y - yi;
 
     double v00 = RandNoise(xi, yi, Oct);
-    double v01 = RandNoise(xi, yi+1, Oct);
-    double v10 = RandNoise(xi+1, yi, Oct);
-    double v11 = RandNoise(xi+1, yi+1, Oct);
+    double v01 = RandNoise(xi, yi + 1, Oct);
+    double v10 = RandNoise(xi + 1, yi, Oct);
+    double v11 = RandNoise(xi + 1, yi + 1, Oct);
 
     double v0 = Interp(v00, v01, yf);
     double v1 = Interp(v10, v11, yf);
@@ -139,9 +133,9 @@ double Perlin::InterpolatedNoise(double x, double y, int Oct)
 double Perlin::InterpolatedNoise(double x, double y, double z, int Oct)
 {
 #if 1
-    double xf = x+14639.0;
-    double yf = y+6547.0;
-    double zf = z+7123.0;
+    double xf = x + 14639.0;
+    double yf = y + 6547.0;
+    double zf = z + 7123.0;
     int xi = int(xf);
     int yi = int(yf);
     int zi = int(zf);
@@ -158,13 +152,13 @@ double Perlin::InterpolatedNoise(double x, double y, double z, int Oct)
 #endif
 
     double v000 = RandNoise(xi, yi, zi, Oct);
-    double v001 = RandNoise(xi, yi, zi+1, Oct);
-    double v010 = RandNoise(xi, yi+1, zi, Oct);
-    double v011 = RandNoise(xi, yi+1, zi+1, Oct);
-    double v100 = RandNoise(xi+1, yi, zi, Oct);
-    double v101 = RandNoise(xi+1, yi, zi+1, Oct);
-    double v110 = RandNoise(xi+1, yi+1, zi, Oct);
-    double v111 = RandNoise(xi+1, yi+1, zi+1, Oct);
+    double v001 = RandNoise(xi, yi, zi + 1, Oct);
+    double v010 = RandNoise(xi, yi + 1, zi, Oct);
+    double v011 = RandNoise(xi, yi + 1, zi + 1, Oct);
+    double v100 = RandNoise(xi + 1, yi, zi, Oct);
+    double v101 = RandNoise(xi + 1, yi, zi + 1, Oct);
+    double v110 = RandNoise(xi + 1, yi + 1, zi, Oct);
+    double v111 = RandNoise(xi + 1, yi + 1, zi + 1, Oct);
 
     double v00 = Interp(v000, v001, zf);
     double v01 = Interp(v010, v011, zf);
@@ -184,8 +178,7 @@ double Perlin::Noise(double x)
 {
     double sum = 0.0;
 
-    for(int i = 0; i < NOct; i++)
-    {
+    for (int i = 0; i < NOct; i++) {
         double freq = 1 << i;
         sum += InterpolatedNoise(x * freq, i) * Ampl[i];
     }
@@ -198,8 +191,7 @@ double Perlin::Noise(double x, double y)
 {
     double sum = 0.0;
 
-    for(int i = 0; i < NOct; i++)
-    {
+    for (int i = 0; i < NOct; i++) {
         double freq = 1 << i;
         sum += InterpolatedNoise(x * freq, y * freq, i) * Ampl[i];
     }
@@ -212,8 +204,7 @@ double Perlin::Noise(double x, double y, double z)
 {
     double sum = 0.0;
 
-    for(int i = 0; i < NOct; i++)
-    {
+    for (int i = 0; i < NOct; i++) {
         double freq = 1 << i;
         sum += InterpolatedNoise(x * freq, y * freq, z * freq, i) * Ampl[i];
     }

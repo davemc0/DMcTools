@@ -30,15 +30,14 @@
 #define L_QUAD_STRIP 0x0008
 #define L_POLYGON 0x0009
 
-struct TriObject : public BaseObject
-{
+struct TriObject : public BaseObject {
     int PrimType; // GL_TRIANGLE_STRIP, etc.
 
     std::vector<f3Vector> verts;
-    std::vector<f3Vector> normals; // Must have a length of 0, 1, or verts.size().
-    std::vector<f3Vector> tangents; // Must have a length of 0, 1, or verts.size().
-    std::vector<f3Vector> texcoords; // Must have a length of 0, 1, or verts.size().
-    std::vector<f3Vector> dcolors; // Must have a length of 0, 1, or verts.size().
+    std::vector<f3Vector> normals;        // Must have a length of 0, 1, or verts.size().
+    std::vector<f3Vector> tangents;       // Must have a length of 0, 1, or verts.size().
+    std::vector<f3Vector> texcoords;      // Must have a length of 0, 1, or verts.size().
+    std::vector<f3Vector> dcolors;        // Must have a length of 0, 1, or verts.size().
     std::vector<f3Vector::ElType> alphas; // Must have a length of 0 or dcolors.size().
 
     DMC_DECL TriObject()
@@ -53,9 +52,9 @@ struct TriObject : public BaseObject
     virtual void Dump() const;
 
     // Sets the OBJ_WHATEVER flag.
-    virtual void GenColors() {ASSERT_R(0);}
+    virtual void GenColors() { ASSERT_R(0); }
     virtual void GenNormals();
-    virtual void GenTexCoords() {ASSERT_R(0);}
+    virtual void GenTexCoords() { ASSERT_R(0); }
     virtual void GenTangents();
 
     // Clears the OBJ_WHATEVER flag.
@@ -85,12 +84,18 @@ struct TriObject : public BaseObject
 
     // Transform all vertices by this matrix.
     // Also rebuilds the BBox.
-    virtual void ApplyTransform(Matrix44<typename f3Vector::ElType> &Mat);
+    virtual void ApplyTransform(Matrix44<typename f3Vector::ElType>& Mat);
 
     // Transform all texcoords by this matrix.
-    virtual void ApplyTextureTransform(Matrix44<typename f3Vector::ElType> &Mat);
+    virtual void ApplyTextureTransform(Matrix44<typename f3Vector::ElType>& Mat);
 
-    virtual size_t FaceCount() const { if(PrimType == L_TRIANGLES) return verts.size() / 3u; else return -1; }
+    virtual size_t FaceCount() const
+    {
+        if (PrimType == L_TRIANGLES)
+            return verts.size() / 3u;
+        else
+            return -1;
+    }
 
     virtual size_t VertexCount() const { return verts.size(); }
 

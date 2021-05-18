@@ -14,39 +14,33 @@
 struct Edge;
 struct Face;
 
-struct Vertex
-{
+struct Vertex {
     f3Vector V;
 
     Vertex *next, *prev;
 
-    std::vector<Edge *> Edges;
-    std::vector<Face *> Faces;
+    std::vector<Edge*> Edges;
+    std::vector<Face*> Faces;
 
-    DMC_DECL Vertex()
-    {
-        next = prev = NULL;
-    }
+    DMC_DECL Vertex() { next = prev = NULL; }
 
     DMC_DECL ~Vertex()
     {
         // WARNING: If this is the list head, you need to fix it yourself!
-        if(next)
-            next->prev = prev;
-        if(prev)
-            prev->next = next;
+        if (next) next->prev = prev;
+        if (prev) prev->next = next;
 
 #ifdef DMC_MESH_DEBUG
         next = prev = NULL;
-        //INFO("~Vertex");
+        // INFO("~Vertex");
 #endif
     }
 
     // Remove myself from this list of vertices.
-    DMC_DECL void ListRemove(std::vector<Vertex *> &Ll)
+    DMC_DECL void ListRemove(std::vector<Vertex*>& Ll)
     {
-        for(unsigned int i=0; i<Ll.size(); )
-            if(this == Ll[i]) {
+        for (unsigned int i = 0; i < Ll.size();)
+            if (this == Ll[i]) {
                 Ll[i] = Ll.back();
                 Ll.pop_back();
             } else
@@ -54,33 +48,30 @@ struct Vertex
     }
 };
 
-struct Edge
-{
+struct Edge {
     Edge *next, *prev; // For the linked list of all edges.
 
-    std::vector<Face *> Faces; // Should be 1 or 2 if manifold.
+    std::vector<Face*> Faces; // Should be 1 or 2 if manifold.
     Vertex *v0, *v1;
 
     DMC_DECL ~Edge()
     {
         // WARNING: If this is the list head, you need to fix it yourself!
-        if(next)
-            next->prev = prev;
-        if(prev)
-            prev->next = next;
+        if (next) next->prev = prev;
+        if (prev) prev->next = next;
 
 #ifdef DMC_MESH_DEBUG
         v0 = NULL;
         next = prev = NULL;
-        //INFO("~Edge");
+        // INFO("~Edge");
 #endif
     }
 
     // Remove myself from this list of edges.
-    DMC_DECL void ListRemove(std::vector<Edge *> &Ll)
+    DMC_DECL void ListRemove(std::vector<Edge*>& Ll)
     {
-        for(int i=0; i<(int)Ll.size(); )
-            if(this == Ll[i]) {
+        for (int i = 0; i < (int)Ll.size();)
+            if (this == Ll[i]) {
                 Ll[i] = Ll.back();
                 Ll.pop_back();
             } else
@@ -88,8 +79,7 @@ struct Edge
     }
 };
 
-struct Face
-{
+struct Face {
     Face *next, *prev;
 
     Vertex *v0, *v1, *v2;
@@ -98,23 +88,21 @@ struct Face
     DMC_DECL ~Face()
     {
         // WARNING: If this is the list head, you need to fix it yourself!
-        if(next)
-            next->prev = prev;
-        if(prev)
-            prev->next = next;
+        if (next) next->prev = prev;
+        if (prev) prev->next = next;
 
 #ifdef DMC_MESH_DEBUG
         v0 = NULL;
         next = prev = NULL;
-        //INFO("~Face\n");
+        // INFO("~Face\n");
 #endif
     }
 
     // Remove myself from this list of faces.
-    DMC_DECL void ListRemove(std::vector<Face *> &Ll)
+    DMC_DECL void ListRemove(std::vector<Face*>& Ll)
     {
-        for(int i=0; i<(int)Ll.size(); )
-            if(this == Ll[i]) {
+        for (int i = 0; i < (int)Ll.size();)
+            if (this == Ll[i]) {
                 Ll[i] = Ll.back();
                 Ll.pop_back();
             } else
@@ -123,6 +111,6 @@ struct Face
 };
 
 // Factories for making a new one of these.
-extern Vertex *VertexFactory();
-extern Edge *EdgeFactory();
-extern Face *FaceFactory();
+extern Vertex* VertexFactory();
+extern Edge* EdgeFactory();
+extern Face* FaceFactory();

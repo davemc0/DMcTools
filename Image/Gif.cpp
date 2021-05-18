@@ -9,11 +9,11 @@
 // Also, don't worry about the unused variable warnings generated
 // during compile.
 
-#include "Image/Quant.h"
 #include "Image/ImageLoadSave.h"
+#include "Image/Quant.h"
 
-#include <memory>
 #include <cstdio>
+#include <memory>
 
 typedef unsigned char byte;
 
@@ -25,64 +25,61 @@ typedef unsigned char byte;
 #define INTERLACEMASK 0x40
 #define COLORMAPMASK 0x80
 
-static const char *id87 = "GIF87a";
-static const char *id89 = "GIF89a";
+static const char* id87 = "GIF87a";
+static const char* id89 = "GIF89a";
 
-static int EGApalette[16][3] = {
-    {0,0,0}, {0,0,128}, {0,128,0}, {0,128,128},
-    {128,0,0}, {128,0,128}, {128,128,0}, {200,200,200},
-    {100,100,100}, {100,100,255}, {100,255,100}, {100,255,255},
-    {255,100,100}, {255,100,255}, {255,255,100}, {255,255,255}
-};
+static int EGApalette[16][3] = {{0, 0, 0},       {0, 0, 128},     {0, 128, 0},     {0, 128, 128},   {128, 0, 0},     {128, 0, 128},
+                                {128, 128, 0},   {200, 200, 200}, {100, 100, 100}, {100, 100, 255}, {100, 255, 100}, {100, 255, 255},
+                                {255, 100, 100}, {255, 100, 255}, {255, 255, 100}, {255, 255, 255}};
 
 /* Fetch the next code from the raster data stream. The codes can be
-* any length from 3 to 12 bits, packed into 8-bit bytes, so we have to
-* maintain our location in the Raster array as a BIT Offset. We compute
-* the byte Offset into the raster array by dividing this by 8, pick up
-* three bytes, compute the bit Offset into our 24-bit chunk, shift to
-* bring the desired code to the bottom, then mask it off and return it.
-*/
+ * any length from 3 to 12 bits, packed into 8-bit bytes, so we have to
+ * maintain our location in the Raster array as a BIT Offset. We compute
+ * the byte Offset into the raster array by dividing this by 8, pick up
+ * three bytes, compute the bit Offset into our 24-bit chunk, shift to
+ * bring the desired code to the bottom, then mask it off and return it.
+ */
 
 /*****************************/
 
 // info structure filled in by ReadGIF()
 struct GIFInfo {
-    unsigned char *pic; // image data
+    unsigned char* pic; // image data
     int chan;
     unsigned char r[256], g[256], b[256]; // colormap
 
-    int BitOffset, // Bit Offset of next code
-        XC, YC, // Output X and Y coords of current pixel
-        Pass, // Used by output routine if interlaced pic
-        OutCount, // Decompressor output 'stack count'
+    int BitOffset,       // Bit Offset of next code
+        XC, YC,          // Output X and Y coords of current pixel
+        Pass,            // Used by output routine if interlaced pic
+        OutCount,        // Decompressor output 'stack count'
         LeftOfs, TopOfs, // image offset
         Width, Height,
-        BitsPerPixel, // Bits per pixel, read from GIF header
-        ColorMapSize, // number of colors
-        Background, // background color
-        CodeSize, // Code size, read from GIF header
-        InitCodeSize, // Starting code size, used during Clear
-        Code, // Value returned by ReadCode
-        MaxCode, // limiting value for current code size
-        ClearCode, // GIF clear code
-        EOFCode, // GIF end-of-information code
+        BitsPerPixel,             // Bits per pixel, read from GIF header
+        ColorMapSize,             // number of colors
+        Background,               // background color
+        CodeSize,                 // Code size, read from GIF header
+        InitCodeSize,             // Starting code size, used during Clear
+        Code,                     // Value returned by ReadCode
+        MaxCode,                  // limiting value for current code size
+        ClearCode,                // GIF clear code
+        EOFCode,                  // GIF end-of-information code
         CurCode, OldCode, InCode, // Decompressor variables
-        FirstFree, // First free code, generated per GIF spec
-        FreeCode, // Decompressor, next free slot in hash table
-        FinChar, // Decompressor variable
-        BitMask, // AND mask for data size
-        ReadMask, // Code AND mask for current code size
-        Misc, // miscellaneous bits (interlace, local cmap)
-        filesize; // Length of the input file.
+        FirstFree,                // First free code, generated per GIF spec
+        FreeCode,                 // Decompressor, next free slot in hash table
+        FinChar,                  // Decompressor variable
+        BitMask,                  // AND mask for data size
+        ReadMask,                 // Code AND mask for current code size
+        Misc,                     // miscellaneous bits (interlace, local cmap)
+        filesize;                 // Length of the input file.
 
-    const char *fname;
+    const char* fname;
 
     bool Interlace, HasColormap, GrayColormap, WantPaletteInds;
 
-    byte *RawGIF; // The heap array to hold it, raw
-    byte *Raster; // The raster data stream, unblocked
-    byte *pic8;
-    byte *dataptr;
+    byte* RawGIF; // The heap array to hold it, raw
+    byte* Raster; // The raster data stream, unblocked
+    byte* pic8;
+    byte* dataptr;
 
     // The hash table used by the decompressor
     int Prefix[4096];
@@ -92,7 +89,7 @@ struct GIFInfo {
     int OutCode[4097];
 
     //////////////////////////////
-    DMC_DECL void gifWarning(const char *st)
+    DMC_DECL void gifWarning(const char* st)
     {
 #ifdef DMC_DEBUG
         cerr << fname << ": " << st << endl;
@@ -100,7 +97,7 @@ struct GIFInfo {
     }
 
     //////////////////////////////
-    DMC_DECL int gifError(const char *st)
+    DMC_DECL int gifError(const char* st)
     {
         if (RawGIF != NULL) delete[] RawGIF;
         if (Raster != NULL) delete[] Raster;
@@ -109,7 +106,7 @@ struct GIFInfo {
 
         if (pic8 && pic8 != pic) delete[] pic8;
 
-        pic = (byte *)NULL;
+        pic = (byte*)NULL;
 
         throw DMcError(st);
     }
@@ -121,26 +118,27 @@ struct GIFInfo {
 
         ByteOffset = BitOffset / 8;
         RawCode = Raster[ByteOffset] + (Raster[ByteOffset + 1] << 8);
-        if (CodeSize >= 8)
-            RawCode += (((int)Raster[ByteOffset + 2]) << 16);
+        if (CodeSize >= 8) RawCode += (((int)Raster[ByteOffset + 2]) << 16);
         RawCode >>= (BitOffset % 8);
         BitOffset += CodeSize;
 
-        return(RawCode & ReadMask);
+        return (RawCode & ReadMask);
     }
 
     //////////////////////////////
     DMC_DECL void doInterlace(int Index)
     {
-        static byte *ptr = NULL;
+        static byte* ptr = NULL;
         static int oldYC = -1;
 
-        if (oldYC != YC) { ptr = pic8 + YC * Width * chan; oldYC = YC; }
+        if (oldYC != YC) {
+            ptr = pic8 + YC * Width * chan;
+            oldYC = YC;
+        }
 
         if (YC < Height) {
             *ptr++ = r[Index];
-            if (!GrayColormap)
-            {
+            if (!GrayColormap) {
                 *ptr++ = g[Index];
                 *ptr++ = b[Index];
             }
@@ -149,35 +147,41 @@ struct GIFInfo {
         // Update the X-coordinate, and if it overflows, update the Y-coordinate
 
         if (++XC == Width) {
-
             /* deal with the interlace as described in the GIF
-            * spec. Put the decoded scan line out to the screen if we haven't gone
-            * past the bottom of it
-            */
+             * spec. Put the decoded scan line out to the screen if we haven't gone
+             * past the bottom of it
+             */
 
             XC = 0;
 
             switch (Pass) {
             case 0:
                 YC += 8;
-                if (YC >= Height) { Pass++; YC = 4; }
+                if (YC >= Height) {
+                    Pass++;
+                    YC = 4;
+                }
                 break;
 
             case 1:
                 YC += 8;
-                if (YC >= Height) { Pass++; YC = 2; }
+                if (YC >= Height) {
+                    Pass++;
+                    YC = 2;
+                }
                 break;
 
             case 2:
                 YC += 4;
-                if (YC >= Height) { Pass++; YC = 1; }
+                if (YC >= Height) {
+                    Pass++;
+                    YC = 1;
+                }
                 break;
 
-            case 3:
-                YC += 2; break;
+            case 3: YC += 2; break;
 
-            default:
-                break;
+            default: break;
             }
         }
     }
@@ -217,7 +221,7 @@ struct GIFInfo {
             if (WantPaletteInds) {
                 GrayColormap = true;
                 for (i = 0; i < 256; i++) {
-                    //for(i=0; i< 1 << ((Misc&7)+1); i++) {
+                    // for(i=0; i< 1 << ((Misc&7)+1); i++) {
                     r[i] = i;
                 }
             }
@@ -257,7 +261,10 @@ struct GIFInfo {
         ptr1 = Raster;
         do {
             ch = ch1 = NEXTBYTE;
-            while (ch--) { *ptr1 = NEXTBYTE; ptr1++; }
+            while (ch--) {
+                *ptr1 = NEXTBYTE;
+                ptr1++;
+            }
             if ((dataptr - RawGIF) > filesize) {
                 gifWarning(": This GIF file seems to be truncated. Winging it.\n");
                 break;
@@ -265,14 +272,13 @@ struct GIFInfo {
         } while (ch1);
 
 #ifdef DMC_DEBUG
-        cerr << "ReadGIF() - picture is " << Width << "x" << Height << ", " << BitsPerPixel << " bits, "
-            << (Interlace ? "" : "non-") << "interlaced\n";
+        cerr << "ReadGIF() - picture is " << Width << "x" << Height << ", " << BitsPerPixel << " bits, " << (Interlace ? "" : "non-") << "interlaced\n";
 #endif
 
         // Allocate the 'pic' */
         maxpixels = Width * Height;
 
-        picptr = pic8 = new unsigned char[maxpixels*chan];
+        picptr = pic8 = new unsigned char[maxpixels * chan];
 
         // Decompress the file, continuing until you see the GIF EOF
         // code. One obvious enhancement is to add checking for corrupt
@@ -293,16 +299,15 @@ struct GIFInfo {
                 FinChar = CurCode & BitMask;
                 if (!Interlace) {
                     *picptr++ = r[FinChar];
-                    //cerr << int(FinChar) << '-';
+                    // cerr << int(FinChar) << '-';
                     if (!GrayColormap) {
                         *picptr++ = g[FinChar];
                         *picptr++ = b[FinChar];
                     }
-                }
-                else doInterlace(FinChar);
+                } else
+                    doInterlace(FinChar);
                 npixels++;
-            }
-            else {
+            } else {
                 // If not a clear code, must be data: save same as CurCode and InCode
 
                 // if we're at maxcode and didn't get a clear, stop loading
@@ -350,15 +355,17 @@ struct GIFInfo {
                 if (npixels + OutCount > maxpixels) OutCount = maxpixels - npixels;
 
                 npixels += OutCount;
-                if (!Interlace) for (i = OutCount - 1; i >= 0; i--) {
-                    *picptr++ = r[OutCode[i]];
-                    //cerr << OutCode[i] << '_';
-                    if (!GrayColormap) {
-                        *picptr++ = g[OutCode[i]];
-                        *picptr++ = b[OutCode[i]];
+                if (!Interlace)
+                    for (i = OutCount - 1; i >= 0; i--) {
+                        *picptr++ = r[OutCode[i]];
+                        // cerr << OutCode[i] << '_';
+                        if (!GrayColormap) {
+                            *picptr++ = g[OutCode[i]];
+                            *picptr++ = b[OutCode[i]];
+                        }
                     }
-                }
-                else for (i = OutCount - 1; i >= 0; i--) doInterlace(OutCode[i]);
+                else
+                    for (i = OutCount - 1; i >= 0; i--) doInterlace(OutCode[i]);
                 OutCount = 0;
 
                 // Build the hash table on-the-fly. No table is stored in the file.
@@ -388,7 +395,7 @@ struct GIFInfo {
         if (npixels != maxpixels) {
             gifWarning(": This GIF file seems to be truncated. Winging it.\n");
             if (!Interlace) // clear->EOBuffer */
-                memset((char *)pic8 + npixels, 0, (size_t)(maxpixels - npixels));
+                memset((char*)pic8 + npixels, 0, (size_t)(maxpixels - npixels));
         }
 
         // fill in the GIFInfo structure */
@@ -414,7 +421,7 @@ struct GIFInfo {
 
         pic = NULL;
 
-        FILE *fp = fopen(fname, "rb");
+        FILE* fp = fopen(fname, "rb");
         if (!fp) return (gifError("can't open file"));
 
         // find the size of the file
@@ -431,16 +438,18 @@ struct GIFInfo {
         ASSERT_RM(Raster, "memory alloc failed");
         memset(Raster, 0, filesize + 256);
 
-        if (fread(dataptr, (size_t)filesize, (size_t)1, fp) != 1)
-            return(gifError("GIF data read failed"));
+        if (fread(dataptr, (size_t)filesize, (size_t)1, fp) != 1) return (gifError("GIF data read failed"));
 
         fclose(fp);
 
         origptr = dataptr;
 
-        if (strncmp((char *)dataptr, id87, (size_t)6) == 0) gif89 = false;
-        else if (strncmp((char *)dataptr, id89, (size_t)6) == 0) gif89 = true;
-        else return(gifError("not a GIF file"));
+        if (strncmp((char*)dataptr, id87, (size_t)6) == 0)
+            gif89 = false;
+        else if (strncmp((char*)dataptr, id89, (size_t)6) == 0)
+            gif89 = true;
+        else
+            return (gifError("not a GIF file"));
 
         dataptr += 6;
 
@@ -477,8 +486,7 @@ struct GIFInfo {
                 // cerr << i << " " << int(r[i]) << " " << int(g[i]) << " " << int(b[i]) << endl;
                 GrayColormap = GrayColormap && (r[i] == g[i] && r[i] == b[i]);
             }
-        }
-        else { // no colormap in GIF file
+        } else { // no colormap in GIF file
             // put std EGA palette (repeated 16 times) into colormap, for lack of anything better to do
 
             GrayColormap = false;
@@ -491,21 +499,18 @@ struct GIFInfo {
 
         if (WantPaletteInds) {
             GrayColormap = true;
-            for (i = 0; i < ColorMapSize; i++) {
-                r[i] = i;
-            }
+            for (i = 0; i < ColorMapSize; i++) { r[i] = i; }
         }
 
         /* possible things at this point are:
-        * an application extension block
-        * a comment extension block
-        * an (optional) graphic control extension block
-        * followed by either an image
-        * or a plaintext extension
-        */
+         * an application extension block
+         * a comment extension block
+         * an (optional) graphic control extension block
+         * followed by either an image
+         * or a plaintext extension
+         */
 
-        while (1)
-        {
+        while (1) {
             block = NEXTBYTE;
             if (block == EXTENSION) { // parse extension blocks
                 int i, fn, blocksize;
@@ -518,19 +523,17 @@ struct GIFInfo {
                     if (blocksize == 2) {
                         EATBYTE;
                         EATBYTE;
-                    }
-                    else {
+                    } else {
                         for (i = 0; i < blocksize; i++) EATBYTE;
                     }
                     int sbsize;
                     while ((sbsize = NEXTBYTE) > 0) { // eat any following data subblocks
                         for (i = 0; i < sbsize; i++) EATBYTE;
                     }
-                }
-                else if (fn == 0xFE) { // Comment Extension
+                } else if (fn == 0xFE) { // Comment Extension
                     int ch, j, sbsize, cmtlen;
-                    byte *ptr1;
-                    char *sp;
+                    byte* ptr1;
+                    char* sp;
 
                     cmtlen = 0;
                     ptr1 = dataptr; // remember start of comments
@@ -542,7 +545,7 @@ struct GIFInfo {
                     } while (sbsize);
 
                     if (cmtlen > 0) { // build into one un-blocked comment
-                        char *cmt = new char[cmtlen + 1];
+                        char* cmt = new char[cmtlen + 1];
                         ASSERT_RM(cmt, "memory alloc failed");
 
                         sp = cmt;
@@ -553,17 +556,20 @@ struct GIFInfo {
                         *sp = '\0';
                         std::cerr << "GIF Comment: " << cmt << std::endl;
                     }
-                }
-                else if (fn == 0x01) { // PlainText Extension
+                } else if (fn == 0x01) { // PlainText Extension
                     int j, sbsize, ch;
                     int tgLeft, tgTop, tgWidth, tgHeight, cWidth, cHeight, fg, bg;
 
                     gifWarning("PlainText extension found in GIF file. Ignored.\n");
                     sbsize = NEXTBYTE;
-                    tgLeft = NEXTBYTE; tgLeft += (NEXTBYTE) << 8;
-                    tgTop = NEXTBYTE; tgTop += (NEXTBYTE) << 8;
-                    tgWidth = NEXTBYTE; tgWidth += (NEXTBYTE) << 8;
-                    tgHeight = NEXTBYTE; tgHeight += (NEXTBYTE) << 8;
+                    tgLeft = NEXTBYTE;
+                    tgLeft += (NEXTBYTE) << 8;
+                    tgTop = NEXTBYTE;
+                    tgTop += (NEXTBYTE) << 8;
+                    tgWidth = NEXTBYTE;
+                    tgWidth += (NEXTBYTE) << 8;
+                    tgHeight = NEXTBYTE;
+                    tgHeight += (NEXTBYTE) << 8;
                     cWidth = NEXTBYTE;
                     cHeight = NEXTBYTE;
                     fg = NEXTBYTE;
@@ -571,15 +577,16 @@ struct GIFInfo {
                     i = 12;
                     for (; i < sbsize; i++) EATBYTE; // read rest of first subblock
 #ifdef DMC_DEBUG
-                    cerr << "PlainText: tgrid=" << tgLeft << "," << tgTop << " " << tgWidth << "x" << tgHeight
-                        << " cell=" << cWidth << "x" << cHeight << " col=" << fg << "," << bg << endl;
+                    cerr << "PlainText: tgrid=" << tgLeft << "," << tgTop << " " << tgWidth << "x" << tgHeight << " cell=" << cWidth << "x" << cHeight
+                         << " col=" << fg << "," << bg << endl;
 #endif
                     // read (and ignore) data sub-blocks
                     do {
                         j = 0;
                         sbsize = NEXTBYTE;
                         while (j < sbsize) {
-                            ch = NEXTBYTE; j++;
+                            ch = NEXTBYTE;
+                            j++;
 #ifdef DMC_DEBUG
                             cerr << ch;
 #endif
@@ -588,35 +595,44 @@ struct GIFInfo {
 #ifdef DMC_DEBUG
                     cerr << endl << endl;
 #endif
-                }
-                else if (fn == 0xF9) { // Graphic Control Extension
+                } else if (fn == 0xF9) { // Graphic Control Extension
                     int j, sbsize;
 
                     gifWarning("Graphic Control Extension in GIF file. Ignored.\n");
                     // read (and ignore) data sub-blocks
                     do {
-                        j = 0; sbsize = NEXTBYTE;
-                        while (j < sbsize) { EATBYTE; j++; }
+                        j = 0;
+                        sbsize = NEXTBYTE;
+                        while (j < sbsize) {
+                            EATBYTE;
+                            j++;
+                        }
                     } while (sbsize);
-                }
-                else if (fn == 0xFF) { // Application Extension
+                } else if (fn == 0xFF) { // Application Extension
                     int j, sbsize;
                     gifWarning("Application extension");
                     // read (and ignore) data sub-blocks
                     do {
-                        j = 0; sbsize = NEXTBYTE;
-                        while (j < sbsize) { EATBYTE; j++; }
+                        j = 0;
+                        sbsize = NEXTBYTE;
+                        while (j < sbsize) {
+                            EATBYTE;
+                            j++;
+                        }
                     } while (sbsize);
-                }
-                else { // unknown extension
+                } else { // unknown extension
                     int j, sbsize;
 
                     gifWarning("unknown GIF extension 0x%02x");
 
                     // read (and ignore) data sub-blocks
                     do {
-                        j = 0; sbsize = NEXTBYTE;
-                        while (j < sbsize) { EATBYTE; j++; }
+                        j = 0;
+                        sbsize = NEXTBYTE;
+                        while (j < sbsize) {
+                            EATBYTE;
+                            j++;
+                        }
                     } while (sbsize);
                 }
             }
@@ -630,15 +646,21 @@ struct GIFInfo {
                     int i, misc, ch, ch1;
 
                     // skip image header
-                    EATBYTE; EATBYTE; // left position
-                    EATBYTE; EATBYTE; // top position
-                    EATBYTE; EATBYTE; // width
-                    EATBYTE; EATBYTE; // height
+                    EATBYTE;
+                    EATBYTE; // left position
+                    EATBYTE;
+                    EATBYTE; // top position
+                    EATBYTE;
+                    EATBYTE; // width
+                    EATBYTE;
+                    EATBYTE;         // height
                     misc = NEXTBYTE; // misc. bits
 
                     if (misc & 0x80) { // image has local colormap. skip it
                         for (i = 0; i < 1 << ((misc & 7) + 1); i++) {
-                            EATBYTE; EATBYTE; EATBYTE;
+                            EATBYTE;
+                            EATBYTE;
+                            EATBYTE;
                         }
                     }
 
@@ -650,8 +672,7 @@ struct GIFInfo {
                         while (ch--) EATBYTE;
                         if ((dataptr - RawGIF) > filesize) break; // EOF
                     } while (ch1);
-                }
-                else if (readImage())
+                } else if (readImage())
                     gotimage = true;
 
 #ifdef DMC_DEBUG
@@ -675,11 +696,12 @@ struct GIFInfo {
 
                 // don't mention bad block if file was trunc'd, as it's all bogus
                 if ((dataptr - origptr) < filesize) {
-                    sprintf(str, "Unknown block type (0x%02x) at offset 0x%lx",
-                        block, (long unsigned int)((dataptr - origptr) - 1));
+                    sprintf(str, "Unknown block type (0x%02x) at offset 0x%lx", block, (long unsigned int)((dataptr - origptr) - 1));
 
-                    if (!gotimage) return gifError(str);
-                    else gifWarning(str);
+                    if (!gotimage)
+                        return gifError(str);
+                    else
+                        gifWarning(str);
                 }
 
                 break;
@@ -690,11 +712,12 @@ struct GIFInfo {
 #endif
         }
 
-        delete[] RawGIF; RawGIF = NULL;
-        delete[] Raster; Raster = NULL;
+        delete[] RawGIF;
+        RawGIF = NULL;
+        delete[] Raster;
+        Raster = NULL;
 
-        if (!gotimage)
-            return(gifError("no image data found in GIF file"));
+        if (!gotimage) return (gifError("no image data found in GIF file"));
 
 #ifdef DMC_DEBUG
         cerr << endl << endl;
@@ -705,7 +728,7 @@ struct GIFInfo {
 };
 
 //////////////////////////////////////////////////////////////////////
-void ImageLoadSave::LoadGIF(const char *fname, bool WantPaletteInds)
+void ImageLoadSave::LoadGIF(const char* fname, bool WantPaletteInds)
 {
     GIFInfo pi;
 
@@ -732,13 +755,10 @@ void ImageLoadSave::LoadGIF(const char *fname, bool WantPaletteInds)
 // GIF Saving Routines
 
 // Used in output
-static unsigned long masks[] = { 0x0000, 0x0001, 0x0003, 0x0007, 0x000F,
-0x001F, 0x003F, 0x007F, 0x00FF,
-0x01FF, 0x03FF, 0x07FF, 0x0FFF,
-0x1FFF, 0x3FFF, 0x7FFF, 0xFFFF };
+static unsigned long masks[] = {0x0000, 0x0001, 0x0003, 0x0007, 0x000F, 0x001F, 0x003F, 0x007F, 0x00FF,
+                                0x01FF, 0x03FF, 0x07FF, 0x0FFF, 0x1FFF, 0x3FFF, 0x7FFF, 0xFFFF};
 
-struct GIFWriter
-{
+struct GIFWriter {
     int init_bits;
     int EOFCode;
 
@@ -749,15 +769,12 @@ struct GIFWriter
     char accum[256];
 
     // What file we will write to.
-    FILE *fp;
-    const char *bname;
+    FILE* fp;
+    const char* bname;
 
     //////////////////////////////////////////////////////////////////////
     // Set up the 'byte output' routine
-    DMC_DECL void char_init()
-    {
-        a_count = 0;
-    }
+    DMC_DECL void char_init() { a_count = 0; }
 
     //////////////////////////////////////////////////////////////////////
     // Flush the packet to disk, and reset the accumulator
@@ -776,8 +793,7 @@ struct GIFWriter
     DMC_DECL void char_out(int c)
     {
         accum[a_count++] = c;
-        if (a_count >= 254)
-            flush_char();
+        if (a_count >= 254) flush_char();
     }
 
     //////////////////////////////////////////////////////////////////////
@@ -786,7 +802,7 @@ struct GIFWriter
     unsigned long cur_accum;
     int cur_bits;
 
-#define min(a,b) ((a>b) ? b : a)
+#define min(a, b) ((a > b) ? b : a)
 
 #define NUM_BITS 12 /* BITS was already defined on some systems */
 
@@ -794,9 +810,9 @@ struct GIFWriter
 
     typedef long int count_int;
 
-    int n_bits; /* number of bits/code */
-    int maxbits; /* user settable max # bits/code */
-    int maxcode; /* maximum code, given n_bits */
+    int n_bits;     /* number of bits/code */
+    int maxbits;    /* user settable max # bits/code */
+    int maxcode;    /* maximum code, given n_bits */
     int maxmaxcode; /* NEVER generate this */
 
 #define MAXCODE(n_bits) ((1 << (n_bits)) - 1)
@@ -809,17 +825,17 @@ struct GIFWriter
     int hsize; /* for dynamic table sizing */
 
     /*
-    * To save much memory, we overlay the table used by compress() with those
-    * used by decompress(). The tab_prefix table is the same size and type
-    * as the codetab. The tab_suffix table needs 2**BITS characters. We
-    * get this from the beginning of htab. The output stack uses the rest
-    * of htab, and contains characters. There is plenty of room for any
-    * possible stack (stack used to be 8000 characters).
-    */
+     * To save much memory, we overlay the table used by compress() with those
+     * used by decompress(). The tab_prefix table is the same size and type
+     * as the codetab. The tab_suffix table needs 2**BITS characters. We
+     * get this from the beginning of htab. The output stack uses the rest
+     * of htab, and contains characters. There is plenty of room for any
+     * possible stack (stack used to be 8000 characters).
+     */
 
 #define tab_prefixof(i) CodeTabOf(i)
-#define tab_suffixof(i) ((byte *)(htab))[i]
-#define de_stack ((byte *)&tab_suffixof(1<<NUM_BITS))
+#define tab_suffixof(i) ((byte*)(htab))[i]
+#define de_stack ((byte*)&tab_suffixof(1 << NUM_BITS))
 
     int free_ent; /* first unused entry */
 
@@ -827,13 +843,13 @@ struct GIFWriter
     // and compression rate changes, start over.
     int clear_flg;
 
-    long int in_count; /* length of input */
+    long int in_count;  /* length of input */
     long int out_count; /* # of codes output (for DEBUGging) */
 
     //////////////////////////////
     void cl_hash(count_int hsize)
     {
-        count_int *htab_p = htab + hsize;
+        count_int* htab_p = htab + hsize;
         long i;
         long m1 = -1;
 
@@ -858,40 +874,39 @@ struct GIFWriter
             htab_p -= 16;
         } while ((i -= 16) >= 0);
 
-        for (i += 16; i > 0; i--)
-            *--htab_p = m1;
+        for (i += 16; i > 0; i--) *--htab_p = m1;
     }
 
     /*
-    * Compress
-    *
-    * Algorithm: use open addressing double hashing (no chaining) on the
-    * prefix code / next character combination. We do a variant of Knuth's
-    * algorithm D (vol. 3, sec. 6.4) along with G. Knott's relatively-prime
-    * secondary probe. Here, the modular division first probe gives way
-    * to a faster exclusive-or manipulation. Also do block compression with
-    * an adaptive reset, whereby the code table is cleared when the compression
-    * ratio decreases, but after the table fills. The variable-length output
-    * codes are re-sized at this point, and a special CLEAR code is generated
-    * for the decompressor. Late addition: construct the table according to
-    * file size for noticeable speed improvement on small files. Please direct
-    * questions about this implementation to ames!jaw.
-    */
+     * Compress
+     *
+     * Algorithm: use open addressing double hashing (no chaining) on the
+     * prefix code / next character combination. We do a variant of Knuth's
+     * algorithm D (vol. 3, sec. 6.4) along with G. Knott's relatively-prime
+     * secondary probe. Here, the modular division first probe gives way
+     * to a faster exclusive-or manipulation. Also do block compression with
+     * an adaptive reset, whereby the code table is cleared when the compression
+     * ratio decreases, but after the table fills. The variable-length output
+     * codes are re-sized at this point, and a special CLEAR code is generated
+     * for the decompressor. Late addition: construct the table according to
+     * file size for noticeable speed improvement on small files. Please direct
+     * questions about this implementation to ames!jaw.
+     */
 
     /*****************************************************************
-    * Output the given code.
-    * Inputs:
-    * code: A n_bits-bit integer. If == -1, then EOF. This assumes
-    * that n_bits <= (long)wordsize - 1.
-    *
-    * Outputs:
-    * Outputs code to the file.
-    *
-    * Algorithm:
-    * Maintain a BITS character long buffer (so that 8 codes will
-    * fit in it exactly). Use the VAX insv instruction to insert each
-    * code in turn. When the buffer fills up empty it and start over.
-    */
+     * Output the given code.
+     * Inputs:
+     * code: A n_bits-bit integer. If == -1, then EOF. This assumes
+     * that n_bits <= (long)wordsize - 1.
+     *
+     * Outputs:
+     * Outputs code to the file.
+     *
+     * Algorithm:
+     * Maintain a BITS character long buffer (so that 8 codes will
+     * fit in it exactly). Use the VAX insv instruction to insert each
+     * code in turn. When the buffer fills up empty it and start over.
+     */
     void output(int code)
     {
         cur_accum &= masks[cur_bits];
@@ -910,17 +925,15 @@ struct GIFWriter
         }
 
         /*
-        * If the next entry is going to be too big for the code size,
-        * then increase it, if possible.
-        */
+         * If the next entry is going to be too big for the code size,
+         * then increase it, if possible.
+         */
 
         if (free_ent > maxcode || clear_flg) {
-
             if (clear_flg) {
                 maxcode = MAXCODE(n_bits = init_bits);
                 clear_flg = 0;
-            }
-            else {
+            } else {
                 n_bits++;
                 if (n_bits == maxbits)
                     maxcode = maxmaxcode;
@@ -946,7 +959,7 @@ struct GIFWriter
     }
 
     //////////////////////////////////////////////////////////////////////
-    void compress(byte *data, int len)
+    void compress(byte* data, int len)
     {
         long fcode;
         int i = 0;
@@ -977,11 +990,11 @@ struct GIFWriter
 
         char_init();
         // Translate the byte using lookup table.
-        ent = *data++; len--;
+        ent = *data++;
+        len--;
 
         hshift = 0;
-        for (fcode = (long)hsize; fcode < 65536L; fcode *= 2L)
-            hshift++;
+        for (fcode = (long)hsize; fcode < 65536L; fcode *= 2L) hshift++;
         hshift = 8 - hshift; /* set hash code range bound */
 
         hsize_reg = hsize;
@@ -990,7 +1003,8 @@ struct GIFWriter
         output(ClearCode);
 
         while (len) {
-            c = *data++; len--;
+            c = *data++;
+            len--;
             in_count++;
 
             fcode = (long)(((long)c << maxbits) + ent);
@@ -1005,20 +1019,17 @@ struct GIFWriter
                 goto nomatch;
 
             disp = hsize_reg - i; /* secondary hash (after G. Knott) */
-            if (i == 0)
-                disp = 1;
+            if (i == 0) disp = 1;
 
         probe:
-            if ((i -= disp) < 0)
-                i += hsize_reg;
+            if ((i -= disp) < 0) i += hsize_reg;
 
             if (HashTabOf(i) == fcode) {
                 ent = CodeTabOf(i);
                 continue;
             }
 
-            if ((long)HashTabOf(i) >= 0)
-                goto probe;
+            if ((long)HashTabOf(i) >= 0) goto probe;
 
         nomatch:
             output(ent);
@@ -1028,9 +1039,7 @@ struct GIFWriter
             if (free_ent < maxmaxcode) {
                 CodeTabOf(i) = free_ent++; /* code -> hashtable */
                 HashTabOf(i) = fcode;
-            }
-            else
-            {
+            } else {
                 // Clear out the hash table for block compress.
                 cl_hash((count_int)hsize);
                 free_ent = ClearCode + 2;
@@ -1047,7 +1056,7 @@ struct GIFWriter
     }
 
     //////////////////////////////
-    DMC_DECL void putword(int w, FILE *fp)
+    DMC_DECL void putword(int w, FILE* fp)
     {
         /* writes a 16-bit integer in GIF order (LSB first) */
         fputc(w & 0xff, fp);
@@ -1055,8 +1064,7 @@ struct GIFWriter
     }
 
     //////////////////////////////////////////////////////////////////////
-    void WriteGIF(const char *fname, int wid, int hgt, byte *Pix, int MaxColorsWanted = 256,
-        bool GrayScale = false, const char *comment = NULL)
+    void WriteGIF(const char* fname, int wid, int hgt, byte* Pix, int MaxColorsWanted = 256, bool GrayScale = false, const char* comment = NULL)
     {
         int size = wid * hgt;
 
@@ -1065,15 +1073,14 @@ struct GIFWriter
         int ColorMapSize, InitCodeSize, BitsPerPixel;
 
         // Fill in the 8-bit image and the color map somehow.
-        Quantizer<uc3Pixel, unsigned char> Qnt((uc3Pixel *)Pix, size, GrayScale);
+        Quantizer<uc3Pixel, unsigned char> Qnt((uc3Pixel*)Pix, size, GrayScale);
         Qnt.SetParams(MaxColorsWanted);
-        byte *pic8 = Qnt.GetIndexImage(); // I must now delete pic8.
+        byte* pic8 = Qnt.GetIndexImage(); // I must now delete pic8.
         size_t NumColors = Qnt.GetColorMap().size();
 
         // Compute 'BitsPerPixel'.
         for (BitsPerPixel = 1; BitsPerPixel < 8; BitsPerPixel++) {
-            if (size_t(1ull << BitsPerPixel) >= NumColors)
-                break;
+            if (size_t(1ull << BitsPerPixel) >= NumColors) break;
         }
 
         ColorMapSize = 1 << BitsPerPixel;
@@ -1091,8 +1098,8 @@ struct GIFWriter
         putword(wid, fp); /* screen descriptor */
         putword(hgt, fp);
 
-        int i = 0x80; /* Yes, there is a color map */
-        i |= (8 - 1) << 4; /* OR in the color resolution (hardwired 8) */
+        int i = 0x80;            /* Yes, there is a color map */
+        i |= (8 - 1) << 4;       /* OR in the color resolution (hardwired 8) */
         i |= (BitsPerPixel - 1); /* OR in the # of bits per pixel */
         fputc(i, fp);
 
@@ -1115,8 +1122,8 @@ struct GIFWriter
             fputc(0, fp);
         }
 
-        if (comment && strlen(comment) > (size_t) 0) { /* write comment blocks */
-            const char *sp;
+        if (comment && strlen(comment) > (size_t)0) { /* write comment blocks */
+            const char* sp;
             int i, blen;
 
             fputc(0x21, fp); /* EXTENSION block */
@@ -1143,9 +1150,9 @@ struct GIFWriter
 
         fputc(InitCodeSize, fp);
         init_bits = InitCodeSize + 1;
-        compress(pic8, wid*hgt);
+        compress(pic8, wid * hgt);
 
-        fputc(0, fp); /* Write out a Zero-length packet (EOF) */
+        fputc(0, fp);   /* Write out a Zero-length packet (EOF) */
         fputc(';', fp); /* Write GIF file terminator */
 
         delete[] pic8;
@@ -1159,11 +1166,9 @@ struct GIFWriter
     }
 };
 
-void ImageLoadSave::SaveGIF(const char *fname, int MaxColorsWanted) const
+void ImageLoadSave::SaveGIF(const char* fname, int MaxColorsWanted) const
 {
-    if (Pix == NULL || chan < 1 || wid < 1 || hgt < 1) {
-        throw DMcError("Image is empty. Not saving.");
-    }
+    if (Pix == NULL || chan < 1 || wid < 1 || hgt < 1) { throw DMcError("Image is empty. Not saving."); }
 
     if (chan != 1 && chan != 3) {
         std::stringstream er;
@@ -1172,5 +1177,5 @@ void ImageLoadSave::SaveGIF(const char *fname, int MaxColorsWanted) const
     }
 
     GIFWriter gw;
-    gw.WriteGIF(fname, wid, hgt, (unsigned char *)Pix, MaxColorsWanted, (chan == 1), "Written using DaveMc Tools");
+    gw.WriteGIF(fname, wid, hgt, (unsigned char*)Pix, MaxColorsWanted, (chan == 1), "Written using DaveMc Tools");
 }

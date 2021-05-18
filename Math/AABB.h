@@ -9,9 +9,7 @@
 
 #include <string>
 
-template<class Vec_T>
-class AABB
-{
+template <class Vec_T> class AABB {
 public:
     Vec_T m_min, m_max;
 
@@ -33,15 +31,13 @@ public:
 /////////////////////////////////////////////////
 // Utility operations
 
-template<class Vec_T>
-AABB<Vec_T> operator+(const AABB<Vec_T>& b, const Vec_T& v)
+template <class Vec_T> AABB<Vec_T> operator+(const AABB<Vec_T>& b, const Vec_T& v)
 {
-	AABB<Vec_T> b2 = { b.m_min + v, b.m_max + v };
-	return b2;
+    AABB<Vec_T> b2 = {b.m_min + v, b.m_max + v};
+    return b2;
 }
 
-template<class Vec_T>
-DMC_DECL std::ostream& operator<<(std::ostream& os, const AABB<Vec_T>& B)
+template <class Vec_T> DMC_DECL std::ostream& operator<<(std::ostream& os, const AABB<Vec_T>& B)
 {
     os << '[' << B.m_min << ", " << B.m_max << ']';
 

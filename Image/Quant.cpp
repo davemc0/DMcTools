@@ -4,15 +4,15 @@
 // Copyright David K. McAllister, Mar. 1999 and June 2007
 
 #include "Image/Quant.h"
+
 #include "Util/Assert.h"
 
-#include <iostream>
-#include <functional>
 #include <algorithm>
+#include <functional>
+#include <iostream>
 
 // See if there are <= MaxColors unique colors. If so, return true and fill in IndexImg.
-template<class Pixel_T, class Index_T>
-bool Quantizer<Pixel_T, Index_T>::TrivialSolution()
+template <class Pixel_T, class Index_T> bool Quantizer<Pixel_T, Index_T>::TrivialSolution()
 {
     for (size_t y = 0; y < size && CMap.size() <= MaxColors; y++) {
         bool FoundIt = false;
@@ -25,8 +25,7 @@ bool Quantizer<Pixel_T, Index_T>::TrivialSolution()
         }
 
         if (!FoundIt) {
-            if (CMap.size() >= MaxColors)
-                return false;
+            if (CMap.size() >= MaxColors) return false;
 
             // Add a new color map entry
             IndexImg[y] = (Index_T)CMap.size();
@@ -39,17 +38,14 @@ bool Quantizer<Pixel_T, Index_T>::TrivialSolution()
 
 // Reduce the color map by computing the set of unique colors.
 // Also overwrite IndexImg with the new indices.
-template<class Pixel_T, class Index_T>
-void Quantizer<Pixel_T, Index_T>::ReduceColorMap()
+template <class Pixel_T, class Index_T> void Quantizer<Pixel_T, Index_T>::ReduceColorMap()
 {
     std::vector<bool> IsUsed(MaxColors, false);
     std::vector<Index_T> pc2nc(MaxColors, 0);
     ColorMap<Pixel_T> CMap2;
 
     // Scan image and flag which colormap entries were actually used.
-    for (size_t i = 0; i < size; i++) {
-        IsUsed[IndexImg[i]] = true;
-    }
+    for (size_t i = 0; i < size; i++) { IsUsed[IndexImg[i]] = true; }
 
     // Reduce color map by removing unused and duplicate colors.
     for (size_t i = 0; i < CMap.size(); i++) {
@@ -63,15 +59,12 @@ void Quantizer<Pixel_T, Index_T>::ReduceColorMap()
         if (j == i && IsUsed[i]) { // Wasn't found.
             pc2nc[i] = (Index_T)CMap2.size();
             CMap2.C.push_back(CMap[i]);
-        }
-        else
+        } else
             pc2nc[i] = pc2nc[j];
     }
 
     // Replace the image with a new one.
-    for (size_t i = 0; i < size; i++) {
-        IndexImg[i] = pc2nc[IndexImg[i]];
-    }
+    for (size_t i = 0; i < size; i++) { IndexImg[i] = pc2nc[IndexImg[i]]; }
 
     CMap = CMap2;
 }
@@ -79,14 +72,11 @@ void Quantizer<Pixel_T, Index_T>::ReduceColorMap()
 // Centroids is the sums created when looping over all the pixels and the count.
 // Here we simply divide the centroid sums by the counts to make a color value in the MathPixType,
 // then convert from the centroid's MathPixType to the image's and color map's Pixel_T.
-template<class Pixel_T, class Index_T>
-void Quantizer<Pixel_T, Index_T>::CentroidsToColorMap(const std::vector<CountedPixel<MathPixType> > &Centroids)
+template <class Pixel_T, class Index_T> void Quantizer<Pixel_T, Index_T>::CentroidsToColorMap(const std::vector<CountedPixel<MathPixType>>& Centroids)
 {
     CMap.C.resize(0);
     for (size_t i = 0; i < Centroids.size(); i++) {
-        if (Centroids[i].count > 0) {
-            CMap.C.push_back(static_cast<Pixel_T>(Centroids[i].color / Centroids[i].count));
-        }
+        if (Centroids[i].count > 0) { CMap.C.push_back(static_cast<Pixel_T>(Centroids[i].color / Centroids[i].count)); }
     }
 
     // If there were unused centroids, set them randomly or to the value of the worst pixel.
@@ -101,8 +91,8 @@ void Quantizer<Pixel_T, Index_T>::CentroidsToColorMap(const std::vector<CountedP
 // Map the TrueColor image to an Index_T image by assigning each pixel to the index of the closest color map entry. No dither.
 // Output: Centroids is how many pixels chose each entry and the color sums for later computing the centroids.
 // Returns amount of numerical error.
-template<class Pixel_T, class Index_T>
-typename Quantizer<Pixel_T, Index_T>::MathType Quantizer<Pixel_T, Index_T>::Image3to1(std::vector<CountedPixel<MathPixType> > &Centroids)
+template <class Pixel_T, class Index_T>
+typename Quantizer<Pixel_T, Index_T>::MathType Quantizer<Pixel_T, Index_T>::Image3to1(std::vector<CountedPixel<MathPixType>>& Centroids)
 {
     MathType Error = 0;
     Centroids.clear();
@@ -130,8 +120,7 @@ typename Quantizer<Pixel_T, Index_T>::MathType Quantizer<Pixel_T, Index_T>::Imag
             // Weight by distance, so farther ones don't get forgotten
             Centroids[BestC].count += BestErr;
             Centroids[BestC].color += MathPixType(Pix[y]) * BestErr;
-        }
-        else {
+        } else {
             Centroids[BestC].count++;
             Centroids[BestC].color += MathPixType(Pix[y]);
         }
@@ -151,9 +140,9 @@ typename Quantizer<Pixel_T, Index_T>::MathType Quantizer<Pixel_T, Index_T>::Imag
 // find the color map entry that is closest to each histogram entry.
 // Output: Centroids is how many pixels chose each entry and the color sums for later computing the centroids.
 // Returns amount of numerical error.
-template<class Pixel_T, class Index_T>
-typename Quantizer<Pixel_T, Index_T>::MathType Quantizer<Pixel_T, Index_T>::Image3to1Fast(
-    const std::vector<CountedPixel<Pixel_T> > &CHist, std::vector<CountedPixel<MathPixType> > &Centroids)
+template <class Pixel_T, class Index_T>
+typename Quantizer<Pixel_T, Index_T>::MathType Quantizer<Pixel_T, Index_T>::Image3to1Fast(const std::vector<CountedPixel<Pixel_T>>& CHist,
+                                                                                          std::vector<CountedPixel<MathPixType>>& Centroids)
 {
     MathType Error = 0;
     Centroids.clear();
@@ -179,13 +168,12 @@ typename Quantizer<Pixel_T, Index_T>::MathType Quantizer<Pixel_T, Index_T>::Imag
             // Weight by distance, so farther ones don't get forgotten
             // To really make sure less common colors receive a color map entry,
             // don't weight the hist bucket's contribution to the centroid's color by the number of pixels in the hist bucket.
-            // Then when the pixels have their final assignment to a centroid 
+            // Then when the pixels have their final assignment to a centroid
             // Could also neglect any pixel whose value is a linear combination of two centroids since that's an AA boundary.
             Centroids[BestC].count += CHist[y].count * BestErr;
             MathType Wgt = CHist[y].count * BestErr;
             Centroids[BestC].color += static_cast<MathPixType>(CHist[y].color) * Wgt;
-        }
-        else {
+        } else {
             Centroids[BestC].count += CHist[y].count;
             MathType Wgt = CHist[y].count;
             Centroids[BestC].color += static_cast<MathPixType>(CHist[y].color) * Wgt;
@@ -202,8 +190,8 @@ typename Quantizer<Pixel_T, Index_T>::MathType Quantizer<Pixel_T, Index_T>::Imag
 
 // Given an initial colormap, refine it to reduce error.
 // If Fast is true, this operates on a histogram of the image, otherwise it operates on the actual pixels and ignores CHist.
-template<class Pixel_T, class Index_T>
-typename Quantizer<Pixel_T, Index_T>::MathType Quantizer<Pixel_T, Index_T>::RefineColorMap(const bool Fast, const std::vector<CountedPixel<Pixel_T> > &CHist)
+template <class Pixel_T, class Index_T>
+typename Quantizer<Pixel_T, Index_T>::MathType Quantizer<Pixel_T, Index_T>::RefineColorMap(const bool Fast, const std::vector<CountedPixel<Pixel_T>>& CHist)
 {
     std::vector<CountedPixel<MathPixType>> Centroids;
 
@@ -234,30 +222,26 @@ typename Quantizer<Pixel_T, Index_T>::MathType Quantizer<Pixel_T, Index_T>::Refi
 
 // Returns a hash value for the pixel value
 // Will need to make a specialization for float pixels
-template<class Pixel_T>
-int PixelHash(const Pixel_T &pp, const int keep)
+template <class Pixel_T> int PixelHash(const Pixel_T& pp, const int keep)
 {
     const int total = std::numeric_limits<typename Pixel_T::ElType>::digits;
     const int kill = total - keep;
     int ind = 0;
-    for (int i = 0; i < Pixel_T::Chan; i++)
-        ind = (ind << keep) | (pp[i] >> kill);
+    for (int i = 0; i < Pixel_T::Chan; i++) ind = (ind << keep) | (pp[i] >> kill);
     return ind;
 }
 
 // Specialized for float pixels.
-template<>
-int PixelHash(const f3Pixel &pp, const int keep)
+template <> int PixelHash(const f3Pixel& pp, const int keep)
 {
-    ASSERT_R(0); // XXX This isn't very good. Need better float hash.
+    ASSERT_R(0);             // XXX This isn't very good. Need better float hash.
     f3Pixel tmp = pp * 0.5f; // Shrink it down a bit and fit it into the range.
     ui3Pixel ui(tmp);
     return PixelHash(ui, keep);
 }
 
 // Make an associative histogram of pixel colors by chopping the lsbs of the color values to map similar colors to a histogram entry.
-template<class Pixel_T, class Index_T>
-void Quantizer<Pixel_T, Index_T>::MakeHist(std::vector<CountedPixel<Pixel_T> > &CHist)
+template <class Pixel_T, class Index_T> void Quantizer<Pixel_T, Index_T>::MakeHist(std::vector<CountedPixel<Pixel_T>>& CHist)
 {
 #ifdef DMC_DEBUG
     cerr << "Making histogram.\n";
@@ -272,9 +256,7 @@ void Quantizer<Pixel_T, Index_T>::MakeHist(std::vector<CountedPixel<Pixel_T> > &
     for (size_t i = 0; i < size; i++) {
         int ind = PixelHash(Pix[i], keep);
 
-        if (CHist[ind].count == 0) {
-            CHist[ind].color = Pix[i];
-        }
+        if (CHist[ind].count == 0) { CHist[ind].color = Pix[i]; }
         CHist[ind].count++;
     }
 
@@ -298,8 +280,7 @@ void Quantizer<Pixel_T, Index_T>::MakeHist(std::vector<CountedPixel<Pixel_T> > &
 
     if (MakeArtisticPalette) {
         // We want all used colors to be of equal importance when making an artistic palette so that highlights come out right.
-        for (size_t i = 0; i < CHist.size(); i++)
-            CHist[i].count = 1;
+        for (size_t i = 0; i < CHist.size(); i++) CHist[i].count = 1;
     }
 
 #ifdef DMC_DEBUG
@@ -315,15 +296,11 @@ struct Box {
 };
 
 // Sort the boxes by their PixCount
-bool PixCount_greater(const Box &p1, const Box &p2)
-{
-    return p1.PixCount > p2.PixCount;
-}
+bool PixCount_greater(const Box& p1, const Box& p2) { return p1.PixCount > p2.PixCount; }
 
 // The median-cut colormap generator. This is based on Paul Heckbert's paper
 // "Color Image Quantization for Frame Buffer Display", SIGGRAPH '82 Proceedings, page 297.
-template<class Pixel_T, class Index_T>
-void Quantizer<Pixel_T, Index_T>::MedianCut(std::vector<CountedPixel<Pixel_T> > &CHist)
+template <class Pixel_T, class Index_T> void Quantizer<Pixel_T, Index_T>::MedianCut(std::vector<CountedPixel<Pixel_T>>& CHist)
 {
     std::vector<Box> Boxes; // The bounding boxes for the HECount that map to a given entry
 
@@ -340,8 +317,7 @@ void Quantizer<Pixel_T, Index_T>::MedianCut(std::vector<CountedPixel<Pixel_T> > 
         size_t bi;
         for (bi = 0; bi < Boxes.size() && Boxes[bi].HECount < 2; bi++)
             ;
-        if (bi == Boxes.size())
-            break; // No splittable boxes.
+        if (bi == Boxes.size()) break; // No splittable boxes.
 
         // Go through the Box finding the minimum and maximum of each component - the boundaries of the box.
         size_t ind = Boxes[bi].index;
@@ -424,8 +400,7 @@ void Quantizer<Pixel_T, Index_T>::MedianCut(std::vector<CountedPixel<Pixel_T> > 
 #endif
 }
 
-template<class Pixel_T, class Index_T>
-void Quantizer<Pixel_T, Index_T>::DumpCMap()
+template <class Pixel_T, class Index_T> void Quantizer<Pixel_T, Index_T>::DumpCMap()
 {
     std::cerr << "CMap[" << CMap.size() << "]\n";
     for (int i = 0; i < CMap.size(); i++) std::cerr << CMap[i] << std::endl;
@@ -437,11 +412,9 @@ void Quantizer<Pixel_T, Index_T>::DumpCMap()
 // 2) Median cut to get some good seed colors.
 // 3) Refine quantization iteratively with weighted histogram from median cut.
 // 4) Refine quantization iteratively using actual pixels.
-template<class Pixel_T, class Index_T>
-void Quantizer<Pixel_T, Index_T>::DoQuant()
+template <class Pixel_T, class Index_T> void Quantizer<Pixel_T, Index_T>::DoQuant()
 {
-    if (IndexImg == NULL)
-        IndexImg = new Index_T[size];
+    if (IndexImg == NULL) IndexImg = new Index_T[size];
     ASSERT_RM(IndexImg, "memory alloc failed");
 
     // 1) Trivial finish if gray.
@@ -454,9 +427,7 @@ void Quantizer<Pixel_T, Index_T>::DoQuant()
 
         // Make a gray color map
         CMap.C.resize(MaxColors);
-        for (size_t i = 0; i < MaxColors; i++) {
-            CMap[i] = Pixel_T((ElType)i);
-        }
+        for (size_t i = 0; i < MaxColors; i++) { CMap[i] = Pixel_T((ElType)i); }
 
         ReduceColorMap();
 
@@ -464,8 +435,7 @@ void Quantizer<Pixel_T, Index_T>::DoQuant()
     }
 
     // 1) Trivial finish if few unique colors.
-    if (TrivialSolution())
-        return;
+    if (TrivialSolution()) return;
 
     // 2) Median cut to get some good seed colors.
     std::vector<CountedPixel<Pixel_T>> CHist;
@@ -482,41 +452,37 @@ void Quantizer<Pixel_T, Index_T>::DoQuant()
 }
 
 // Allocate and return an IndexImg. Caller must delete IndexImg.
-template<class Pixel_T, class Index_T>
-Index_T *Quantizer<Pixel_T, Index_T>::GetIndexImage()
+template <class Pixel_T, class Index_T> Index_T* Quantizer<Pixel_T, Index_T>::GetIndexImage()
 {
     if (CMap.size() == 0) DoQuant();
-    Index_T *TheIndexImg = IndexImg;
+    Index_T* TheIndexImg = IndexImg;
     IndexImg = NULL; // Swap it out
     return TheIndexImg;
 }
 template unsigned char* Quantizer<uc3Pixel, unsigned char>::GetIndexImage();
 
 // Return the chosen color map
-template<class Pixel_T, class Index_T>
-ColorMap<Pixel_T> &Quantizer<Pixel_T, Index_T>::GetColorMap()
+template <class Pixel_T, class Index_T> ColorMap<Pixel_T>& Quantizer<Pixel_T, Index_T>::GetColorMap()
 {
     if (CMap.size() == 0) DoQuant();
     return CMap;
 }
-template ColorMap<uc3Pixel> &Quantizer<uc3Pixel, unsigned char>::GetColorMap();
+template ColorMap<uc3Pixel>& Quantizer<uc3Pixel, unsigned char>::GetColorMap();
 
 // Fill NewTrueColorImg based on CMap's colors and used IndexImg
-template<class Pixel_T, class Index_T>
-void Quantizer<Pixel_T, Index_T>::GetQuantizedTrueColorImage(Pixel_T *NewTrueColorImg)
+template <class Pixel_T, class Index_T> void Quantizer<Pixel_T, Index_T>::GetQuantizedTrueColorImage(Pixel_T* NewTrueColorImg)
 {
     std::cerr << CMap.size() << std::endl;
     if (CMap.size() == 0 || IndexImg == NULL) DoQuant();
     for (size_t i = 0; i < size; i++) {
-        // cerr << i << " " << int(IndexImg[i]) << endl; 
+        // cerr << i << " " << int(IndexImg[i]) << endl;
         NewTrueColorImg[i] = CMap[IndexImg[i]];
     }
 }
-template void Quantizer<uc3Pixel, unsigned char>::GetQuantizedTrueColorImage(uc3Pixel *NewTrueColorImg);
+template void Quantizer<uc3Pixel, unsigned char>::GetQuantizedTrueColorImage(uc3Pixel* NewTrueColorImg);
 
 // Does MakeHist and returns the fraction of histogram boxes that had pixels
-template<class Pixel_T, class Index_T>
-float Quantizer<Pixel_T, Index_T>::GetHistogramCount()
+template <class Pixel_T, class Index_T> float Quantizer<Pixel_T, Index_T>::GetHistogramCount()
 {
     std::vector<CountedPixel<Pixel_T>> CHist;
     MakeHist(CHist);

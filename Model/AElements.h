@@ -5,15 +5,14 @@
 
 #pragma once
 
-#include "Model/MeshElements.h"
 #include "Model/BaseObject.h"
+#include "Model/MeshElements.h"
 
 // This should be true if the space exists for the attributes.
 // (that is, for anything derived from AElement).
 #define HAS_ATTRIBS 0x80
 
-struct AVertex : public Vertex
-{
+struct AVertex : public Vertex {
     f3Vector Col;
     f3Vector Nor;
     f3Vector Tex;
@@ -21,18 +20,18 @@ struct AVertex : public Vertex
 
     DMC_DECL ~AVertex()
     {
-        //INFO("~AVertex");
+        // INFO("~AVertex");
     }
 };
 
-DMC_DECL bool VertexDataSame(const AVertex *V0, const AVertex *V1, const unsigned int VertData)
+DMC_DECL bool VertexDataSame(const AVertex* V0, const AVertex* V1, const unsigned int VertData)
 {
     bool IsSame = V0->V == V1->V;
 
-    if(VertData & OBJ_COLORS)    IsSame = IsSame && (V0->Col == V1->Col);
-    if(VertData & OBJ_NORMALS)   IsSame = IsSame && (V0->Nor == V1->Nor);
-    if(VertData & OBJ_TEXCOORDS) IsSame = IsSame && (V0->Tex == V1->Tex);
-    if(VertData & OBJ_TANGENTS)  IsSame = IsSame && (V0->Tan == V1->Tan);
+    if (VertData & OBJ_COLORS) IsSame = IsSame && (V0->Col == V1->Col);
+    if (VertData & OBJ_NORMALS) IsSame = IsSame && (V0->Nor == V1->Nor);
+    if (VertData & OBJ_TEXCOORDS) IsSame = IsSame && (V0->Tex == V1->Tex);
+    if (VertData & OBJ_TANGENTS) IsSame = IsSame && (V0->Tan == V1->Tan);
 
 #if 0
     if(!IsSame) {
@@ -47,16 +46,14 @@ DMC_DECL bool VertexDataSame(const AVertex *V0, const AVertex *V1, const unsigne
     return IsSame;
 }
 
-struct AEdge : public Edge
-{
+struct AEdge : public Edge {
     DMC_DECL ~AEdge()
     {
-        //INFO("~AEdge");
+        // INFO("~AEdge");
     }
 };
 
-struct AFace : public Face
-{
+struct AFace : public Face {
     f3Vector Col;
     f3Vector Nor;
     f3Vector Tex;
@@ -64,11 +61,11 @@ struct AFace : public Face
 
     DMC_DECL ~AFace()
     {
-        //INFO("~AFACE");
+        // INFO("~AFACE");
     }
 };
 
 // Factories for making a new one of these.
-extern Vertex *AVertexFactory();
-extern Edge *AEdgeFactory();
-extern Face *AFaceFactory();
+extern Vertex* AVertexFactory();
+extern Edge* AEdgeFactory();
+extern Face* AFaceFactory();

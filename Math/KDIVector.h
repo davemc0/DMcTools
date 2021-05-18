@@ -10,14 +10,13 @@
 
 #pragma once
 
-#include "Math/Vector.h"
 #include "Math/KDItemTree.h"
+#include "Math/Vector.h"
 
-struct KDIVector : public f3Vector
-{
+struct KDIVector : public f3Vector {
     // Might add things here like normal and coords in spherical map.
 
     DMC_DECL KDIVector() {}
 
-    DMC_DECL KDIVector(const f3Vector &Vert) : f3Vector(Vert) {}
+    DMC_DECL KDIVector(const f3Vector& Vert) : f3Vector(Vert) {}
 };

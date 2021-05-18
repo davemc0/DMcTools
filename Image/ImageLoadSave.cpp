@@ -372,8 +372,8 @@ void ImageLoadSave::LoadPPM(const char* fname)
     char Magic1, Magic2;
     InFile >> Magic1 >> Magic2;
 
-    if (Magic1 != 'P' || (Magic2 != '5' && Magic2 != '6' && Magic2 != '7' && Magic2 != '8' && Magic2 != 'Z' && Magic2 != 'S' && Magic2 != 'T' &&
-                          Magic2 != 'U' && Magic2 != 'V')) {
+    if (Magic1 != 'P' ||
+        (Magic2 != '5' && Magic2 != '6' && Magic2 != '7' && Magic2 != '8' && Magic2 != 'Z' && Magic2 != 'S' && Magic2 != 'T' && Magic2 != 'U' && Magic2 != 'V')) {
         InFile.close();
         throw DMcError("Not a known PPM file: " + string(fname));
     }
@@ -619,7 +619,7 @@ void ImageLoadSave::LoadJPEG(const char* fname)
     is_uint = false;
     is_float = false;
     Pix = ImageAlloc();
-    memcpy(Pix, image, wid*hgt*chan);
+    memcpy(Pix, image, wid * hgt * chan);
     stbi_image_free(image);
 }
 
@@ -761,15 +761,9 @@ void ImageLoadSave::SaveTIFF(const char* fname) const
 
 #else /* DMC_USE_TIFF */
 
-void ImageLoadSave::LoadTIFF(const char* fname)
-{
-    throw DMcError("TIFF Support not compiled in.");
-}
+void ImageLoadSave::LoadTIFF(const char* fname) { throw DMcError("TIFF Support not compiled in."); }
 
-void ImageLoadSave::SaveTIFF(const char* fname) const
-{
-    throw DMcError("TIFF Support not compiled in.");
-}
+void ImageLoadSave::SaveTIFF(const char* fname) const { throw DMcError("TIFF Support not compiled in."); }
 
 #endif /* DMC_USE_TIFF */
 
@@ -881,15 +875,9 @@ void ImageLoadSave::SaveMAT(const char* fname) const
 
 #else /* DMC_USE_MAT */
 
-void ImageLoadSave::LoadMAT(const char* fname)
-{
-    throw DMcError("MAT Support not compiled in.");
-}
+void ImageLoadSave::LoadMAT(const char* fname) { throw DMcError("MAT Support not compiled in."); }
 
-void ImageLoadSave::SaveMAT(const char* fname) const
-{
-    throw DMcError("MAT Support not compiled in.");
-}
+void ImageLoadSave::SaveMAT(const char* fname) const { throw DMcError("MAT Support not compiled in."); }
 
 #endif /* DMC_USE_MAT */
 

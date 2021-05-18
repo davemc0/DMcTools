@@ -18,7 +18,6 @@
 // NMax is the max number of function calls.
 // Returns the error of the answer p[0].
 
-template<class Elem_T>
-Elem_T DownSimplex(HVector<Elem_T> *p, size_t ndim, Elem_T ftol,
-                          Elem_T (*funk)(const HVector<Elem_T> &, void *),
-                          void *UserData, int &nfunk, const int NMax = NMAX);
+template <class Elem_T>
+Elem_T DownSimplex(HVector<Elem_T>* p, size_t ndim, Elem_T ftol, Elem_T (*funk)(const HVector<Elem_T>&, void*), void* UserData, int& nfunk,
+                   const int NMax = NMAX);

@@ -7,8 +7,8 @@
 
 #include "Math/BBox.h"
 
-#include <vector>
 #include <algorithm>
+#include <vector>
 
 // The class Item_T must support the following functions:
 // friend DMC_INLINE bool lessX(const Item_T &a, const Item_T &b);
@@ -25,31 +25,32 @@
 #define DMC_KD_MAX_BOX_SIZE 128
 #endif
 
-template<typename Item_T>
-class KDBoxTree
-{
+template <typename Item_T> class KDBoxTree {
     BBox<f3Vector> Box;
     std::vector<Item_T> Items;
     Item_T Med;
     KDBoxTree *left, *right;
-    bool(*myless)(const Item_T &a, const Item_T &b);
+    bool (*myless)(const Item_T& a, const Item_T& b);
 
 public:
-    KDBoxTree() { left = right = NULL; myless = NULL; }
+    KDBoxTree()
+    {
+        left = right = NULL;
+        myless = NULL;
+    }
 
     KDBoxTree(const typename std::vector<Item_T>::iterator first, const typename std::vector<Item_T>::iterator last)
     {
         left = right = NULL;
         myless = NULL;
         Items.assign(first, last);
-        for (typename std::vector<Item_T>::iterator I = Items.begin(); I != Items.end(); I++)
-            Box += I->vector();
+        for (typename std::vector<Item_T>::iterator I = Items.begin(); I != Items.end(); I++) Box += I->vector();
 
         // std::cerr << "Constructed KDBoxTree with " << Items.size() << " items.\n";
     }
 
     // A copy constructor.
-    KDBoxTree(const KDBoxTree &Tr) : Box(Tr.Box), Items(Tr.Items), Med(Tr.Med)
+    KDBoxTree(const KDBoxTree& Tr) : Box(Tr.Box), Items(Tr.Items), Med(Tr.Med)
     {
         // std::cerr << "Copying KDBoxTree\n";
         myless = Tr.myless;
@@ -57,26 +58,21 @@ public:
             left = new KDBoxTree(*Tr.left);
             right = new KDBoxTree(*Tr.right);
             ASSERT_RM(left && right, "memory alloc failed");
-        }
-        else
+        } else
             left = right = NULL;
     }
 
     ~KDBoxTree()
     {
-        if (left)
-            delete left;
-        if (right)
-            delete right;
+        if (left) delete left;
+        if (right) delete right;
     }
 
     // Remove everything in the tree.
     void clear()
     {
-        if (left)
-            delete left;
-        if (right)
-            delete right;
+        if (left) delete left;
+        if (right) delete right;
 
         Items.clear();
         left = right = NULL;
@@ -84,9 +80,9 @@ public:
         Box.Reset();
     }
 
-    void insert(const Item_T &It)
+    void insert(const Item_T& It)
     {
-        //std::cerr << "Box In\n";
+        // std::cerr << "Box In\n";
         Box += It.vector();
 
         // std::cerr << Items.size() << Box << " " << It.Vert->V << std::endl;
@@ -103,15 +99,14 @@ public:
         Items.push_back(It);
 
         // Do I need to split the box?
-        if (Items.size() > DMC_KD_MAX_BOX_SIZE)
-            SplitBox();
+        if (Items.size() > DMC_KD_MAX_BOX_SIZE) SplitBox();
     }
 
     // Find an exact match.
     // This function probably should be const but it's hard because we would
     // have to make Res const (since it's part of the Tree) and we can't make
     // Res const because it's returned by modifying it. Maybe switch to pointers?
-    bool find(const Item_T &It, Item_T &Res)
+    bool find(const Item_T& It, Item_T& Res)
     {
         // fprintf(stderr, "F: 0x%08x ", long(this));
         // std::cerr << Items.size() << Box << " " << It.Vert->V << std::endl;
@@ -136,10 +131,9 @@ public:
 
     // Finds a close enough item to the query point.
     // Returns true if there is one, false if not.
-    bool find(const Item_T &It, Item_T &Res, const f3Vector::ElType &D)
+    bool find(const Item_T& It, Item_T& Res, const f3Vector::ElType& D)
     {
-        if (FNE(It, Res, dmcm::Sqr(D)))
-            return true;
+        if (FNE(It, Res, dmcm::Sqr(D))) return true;
 
         if (D > 0)
             return FNEB(It, Res, D);
@@ -149,7 +143,7 @@ public:
 
     // Finds the closest item to the query point.
     // Returns the distance to it (not squared).
-    f3Vector::ElType nearest(const Item_T &It, Item_T &Res) const
+    f3Vector::ElType nearest(const Item_T& It, Item_T& Res) const
     {
         f3Vector::ElType dist = FC(It, Res);
 
@@ -163,37 +157,33 @@ public:
         if (left) {
             left->Dump();
             right->Dump();
-        }
-        else {
+        } else {
             std::cerr << "Count = " << Items.size() << std::endl;
             for (int i = 0; i < Items.size(); i++) {
-                const f3Vector &V = Items[i].vector();
+                const f3Vector& V = Items[i].vector();
                 fprintf(stderr, "%d %0.20lf %0.20lf %0.20lf\n", i, V.x, V.y, V.z);
                 // std::cerr << i << " " << Items[i].vector() << std::endl;
             }
         }
     }
 
-    const BBox<f3Vector> &GetBBox()
-    {
-        return Box;
-    }
+    const BBox<f3Vector>& GetBBox() { return Box; }
 
 private:
-
     // While inserting, the box got too full and must be split
     void SplitBox()
     {
         // Find which dimension.
         f3Vector d = Box.MaxV - Box.MinV;
 
-        if (d.x > d.y) myless = (d.x > d.z) ? Item_T::lessX : Item_T::lessZ;
-        else myless = (d.y > d.z) ? Item_T::lessY : Item_T::lessZ;
+        if (d.x > d.y)
+            myless = (d.x > d.z) ? Item_T::lessX : Item_T::lessZ;
+        else
+            myless = (d.y > d.z) ? Item_T::lessY : Item_T::lessZ;
 
         for (typename std::vector<Item_T>::const_iterator Ti = Items.begin(); Ti != Items.end(); Ti++) {
             f3Vector Vf = Ti->vector();
-            if (dmcm::isNaN(Vf.x) || dmcm::isNaN(Vf.y) || dmcm::isNaN(Vf.z))
-                std::cerr << "NAN " << Vf << std::endl;
+            if (dmcm::isNaN(Vf.x) || dmcm::isNaN(Vf.y) || dmcm::isNaN(Vf.z)) std::cerr << "NAN " << Vf << std::endl;
         }
 
         // Split the box into two kids and find median.
@@ -204,8 +194,10 @@ private:
         // Handle yucky case of median being duplicate.
         if (!myless(*(MedP - 1), *MedP)) {
             // Shift gears to more complex comparator.
-            if (d.x > d.y) myless = d.x > d.z ? Item_T::lessFX : Item_T::lessFZ;
-            else myless = d.y > d.z ? Item_T::lessFY : Item_T::lessFZ;
+            if (d.x > d.y)
+                myless = d.x > d.z ? Item_T::lessFX : Item_T::lessFZ;
+            else
+                myless = d.y > d.z ? Item_T::lessFY : Item_T::lessFZ;
 
             sort(Items.begin(), Items.end(), myless);
         }
@@ -221,7 +213,7 @@ private:
 
     // Finds a close enough item in the same box as the query point.
     // Returns true if there is one, false if not.
-    bool FNE(const Item_T &It, Item_T &Res, const f3Vector::ElType &DSqr = 0)
+    bool FNE(const Item_T& It, Item_T& Res, const f3Vector::ElType& DSqr = 0)
     {
         if (left) {
             // Find into the kids.
@@ -243,16 +235,14 @@ private:
     // Find a close enough item in any box.
     // Returns true if there is one, false if not.
     // Uses box - bounding box test.
-    bool FNEB(const Item_T &It, Item_T &Res, const f3Vector::ElType &D = 0)
+    bool FNEB(const Item_T& It, Item_T& Res, const f3Vector::ElType& D = 0)
     {
         if (left) {
             if (left->Box.SphereIntersect(It.vector(), D))
-                if (left->FNEB(It, Res, D))
-                    return true;
+                if (left->FNEB(It, Res, D)) return true;
 
             if (right->Box.SphereIntersect(It.vector(), D))
-                if (right->FNEB(It, Res, D))
-                    return true;
+                if (right->FNEB(It, Res, D)) return true;
             return false;
         }
 
@@ -268,7 +258,7 @@ private:
 
     // Finds the closest item in the same box as the query point.
     // Returns it in Res and returns distance from It.
-    f3Vector::ElType FC(const Item_T &It, Item_T &Res) const
+    f3Vector::ElType FC(const Item_T& It, Item_T& Res) const
     {
         if (left) {
             // Find into the kids.
@@ -278,8 +268,7 @@ private:
                 return right->FC(It, Res);
         }
 
-        if (Items.size() == 0)
-            return DMC_MAXFLOAT;
+        if (Items.size() == 0) return DMC_MAXFLOAT;
 
         f3Vector::ElType BestLenSqr = DMC_MAXFLOAT;
         for (typename std::vector<Item_T>::const_iterator I = Items.begin(); I != Items.end(); I++) {
@@ -297,15 +286,13 @@ private:
     // Returns it in Res and returns distance from It.
     // If there are none then it returns D and doesn't touch Res.
     // Uses box - bounding box test.
-    f3Vector::ElType FCB(const Item_T &It, Item_T &Res, const f3Vector::ElType &D) const
+    f3Vector::ElType FCB(const Item_T& It, Item_T& Res, const f3Vector::ElType& D) const
     {
         if (left) {
             f3Vector::ElType tb = D; // Value to beat.
-            if (left->Box.SphereIntersect(It.vector(), tb))
-                tb = left->FCB(It, Res, tb);
+            if (left->Box.SphereIntersect(It.vector(), tb)) tb = left->FCB(It, Res, tb);
 
-            if (right->Box.SphereIntersect(It.vector(), tb))
-                tb = right->FCB(It, Res, tb);
+            if (right->Box.SphereIntersect(It.vector(), tb)) tb = right->FCB(It, Res, tb);
 
             return tb;
         }

@@ -13,7 +13,7 @@
 // Define this to use the class "half" from ILM's OpenEXR.
 #define DMC_USE_HALF_FLOAT
 
-#ifdef  __GNUC__
+#ifdef __GNUC__
 // This is a GCC compiler
 #define DMC_MACHINE_gcc
 
@@ -50,8 +50,6 @@
 #endif
 #endif
 
-
-
 #if _WIN64
 #define DMC_BITNESS_64
 #define DMC_BITNESS 64
@@ -61,9 +59,9 @@
 #endif
 
 #define _CRT_SECURE_NO_WARNINGS
-#pragma warning (disable:4996) // disable deprecated warning
-#pragma warning (disable:4244) // disable bogus conversion warnings
-#pragma warning (disable:4305) // disable bogus conversion warnings
+#pragma warning(disable : 4996) // disable deprecated warning
+#pragma warning(disable : 4244) // disable bogus conversion warnings
+#pragma warning(disable : 4305) // disable bogus conversion warnings
 //#pragma warning (disable:4800) // disable bogus conversion warnings
 //#pragma warning (disable:4786) // stupid symbol size limitation
 //#pragma warning (disable:4018) // disable signed/unsigned mismatch

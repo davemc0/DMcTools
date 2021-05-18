@@ -29,13 +29,13 @@ char *tokentext(void);  /* return token text */
 %}
 
 %union {
-  int		none; /* Used to flag values w/o type */
-  int		ival;
-  f3Vector::ElType	fval;
-  char		*sval;
-  f3Vector::ElType	*mptr;
-  f3Vector	*vec;
-  vector<int>	*ibuf;
+  int  none; /* Used to flag values w/o type */
+  int  ival;
+  f3Vector::ElType fval;
+  char  *sval;
+  f3Vector::ElType *mptr;
+  f3Vector *vec;
+  vector<int> *ibuf;
   vector<f3Vector::ElType> *fbuf;
   vector<f3Vector> *vbuf;
 }
@@ -187,390 +187,390 @@ char *tokentext(void);  /* return token text */
 
 %%
 
-vrmlfile	: node
-		;
+vrmlfile : node
+  ;
 
-node		: rnode					    	{s_DEF_name(NULL);}
-		| TR_DEF T_STRING rnode				{s_DEF_name($2);}
-		;
+node  : rnode          {s_DEF_name(NULL);}
+  | TR_DEF T_STRING rnode    {s_DEF_name($2);}
+  ;
 
-rnode		: TR_Separator '{'				{s_Separator_begin();}
+rnode  : TR_Separator '{'    {s_Separator_begin();}
                   separator_fields nodes '}' {s_Separator_end();}
-		| TR_Cube '{'					    {s_InitCube();}
-		  cube_fields '}'			    	{s_EndCube();}
-		| TR_Cylinder '{'					{s_InitCylinder();}
-		  cylinder_fields '}'				{s_EndCylinder();}
-		| TR_Coordinate3 '{' c3_field '}'	{s_Vertices($3); delete $3;}
-		| TR_DirectionalLight '{'           {s_InitLight(0);}
+  | TR_Cube '{'         {s_InitCube();}
+    cube_fields '}'        {s_EndCube();}
+  | TR_Cylinder '{'     {s_InitCylinder();}
+    cylinder_fields '}'    {s_EndCylinder();}
+  | TR_Coordinate3 '{' c3_field '}' {s_Vertices($3); delete $3;}
+  | TR_DirectionalLight '{'           {s_InitLight(0);}
           light_fields '}'                  {s_EndLight();}
-		| TR_IndexedFaceSet '{' ifs_fields '}'		{s_OutputIndexedFaceSet();}
-		| TR_Info '{' info_fields '}'			{}
-		| TR_Material '{' mat_fields '}'		{}
-		| TR_MaterialBinding '{' mb_field '}'		{s_MaterialBinding($3);}
-		| TR_MatrixTransform '{' mt_field '}'		{}
-		| TR_Normal '{' v3_field '}'			{s_Normals($3); delete $3;}
-		| TR_NormalBinding '{' nb_field '}'		{s_NormalBinding($3);}
-		| TR_OrthographicCamera '{'          {s_InitCamera(0);}
+  | TR_IndexedFaceSet '{' ifs_fields '}'  {s_OutputIndexedFaceSet();}
+  | TR_Info '{' info_fields '}'   {}
+  | TR_Material '{' mat_fields '}'  {}
+  | TR_MaterialBinding '{' mb_field '}'  {s_MaterialBinding($3);}
+  | TR_MatrixTransform '{' mt_field '}'  {}
+  | TR_Normal '{' v3_field '}'   {s_Normals($3); delete $3;}
+  | TR_NormalBinding '{' nb_field '}'  {s_NormalBinding($3);}
+  | TR_OrthographicCamera '{'          {s_InitCamera(0);}
           cam_fields '}'                     {s_EndCamera();}
-		| TR_PerspectiveCamera '{'           {s_InitCamera(1);}
+  | TR_PerspectiveCamera '{'           {s_InitCamera(1);}
           cam_fields '}'                     {s_EndCamera();}
-		| TR_PointLight '{'           {s_InitLight(1);}
+  | TR_PointLight '{'           {s_InitLight(1);}
           light_fields '}'                  {s_EndLight();}
-		| TR_Rotation '{' ro_field '}'			{}
-		| TR_Scale '{' sc_field '}'			{}
-		| TR_ShapeHints '{' sh_fields '}'		{}
-		| TR_SpotLight '{'           {s_InitLight(2);}
+  | TR_Rotation '{' ro_field '}'   {}
+  | TR_Scale '{' sc_field '}'   {}
+  | TR_ShapeHints '{' sh_fields '}'  {}
+  | TR_SpotLight '{'           {s_InitLight(2);}
           light_fields '}'                  {s_EndLight();}
-		| TR_Texture2 '{' t2_field '}'			{}
-		| TR_Texture2Transform '{'			{s_Tex2Tran_begin();}
-		  t2t_fields '}'				{s_Tex2Tran_end();}
-		| TR_TextureCoordinate2 '{' tc2_field '}'	{s_TexCoords($3); delete $3;}
-		| TR_Translation '{' tr_field '}'		{}
-		| TR_RotationKey_ktx_com '{' rot_ktx_fields '}'	{}
-		| TR_ScaleKey_ktx_com '{' sca_ktx_fields '}'	{}
-		| TR_PositionKey_ktx_com '{' pos_ktx_fields '}'	{}
-		| TR_AnimationStyle_ktx_com '{' ani_ktx_fields '}'	{}
-		| TR_AnimationFrames_ktx_com '{' anif_ktx_fields '}'	{}
-		| TR_AimTarget_ktx_com '{' aim_ktx_fields '}'	{}
-		;
+  | TR_Texture2 '{' t2_field '}'   {}
+  | TR_Texture2Transform '{'   {s_Tex2Tran_begin();}
+    t2t_fields '}'    {s_Tex2Tran_end();}
+  | TR_TextureCoordinate2 '{' tc2_field '}' {s_TexCoords($3); delete $3;}
+  | TR_Translation '{' tr_field '}'  {}
+  | TR_RotationKey_ktx_com '{' rot_ktx_fields '}' {}
+  | TR_ScaleKey_ktx_com '{' sca_ktx_fields '}' {}
+  | TR_PositionKey_ktx_com '{' pos_ktx_fields '}' {}
+  | TR_AnimationStyle_ktx_com '{' ani_ktx_fields '}' {}
+  | TR_AnimationFrames_ktx_com '{' anif_ktx_fields '}' {}
+  | TR_AimTarget_ktx_com '{' aim_ktx_fields '}' {}
+  ;
 
-nodes		: nodes node
-		|
-		;
+nodes  : nodes node
+  |
+  ;
 
 separator_fields: separator_fields separator_field
-		|
-		;
+  |
+  ;
 
-separator_field	: TR_renderCulling rcopt			{}
-		| TR_name T_STRING				{/* Really part of WWWAnchor*/}
-		| TR_map TR_NONE				{/* Really part of WWWAnchor*/}
-		;
+separator_field : TR_renderCulling rcopt   {}
+  | TR_name T_STRING    {/* Really part of WWWAnchor*/}
+  | TR_map TR_NONE    {/* Really part of WWWAnchor*/}
+  ;
 
-rcopt		: TR_ON		{$$ = TR_ON;}
-		| TR_OFF	{$$ = TR_OFF;}
-		| TR_AUTO	{$$ = TR_AUTO;}
-		;
+rcopt  : TR_ON  {$$ = TR_ON;}
+  | TR_OFF {$$ = TR_OFF;}
+  | TR_AUTO {$$ = TR_AUTO;}
+  ;
 
-info_fields	: info_fields info_field
-		|
-		;
+info_fields : info_fields info_field
+  |
+  ;
 
-info_field	: TR_string T_STRING {s_Info($2);}
-		;
+info_field : TR_string T_STRING {s_Info($2);}
+  ;
 
-cam_fields	: cam_fields cam_field
-		|
-		;
+cam_fields : cam_fields cam_field
+  |
+  ;
 
-cam_field	: TR_position      triple		{s_CameraParam3($2, 0, 1);}
-		| TR_orientation   triple fnum		{s_CameraParam3($2, $3, 2);}
-		| TR_focalDistance fnum				{s_CameraParam1($2, 3);}
-		| TR_heightAngle   fnum				{s_CameraParam1($2, 4);}
-		| TR_height        fnum				{s_CameraParam1($2, 4);}
-		;
+cam_field : TR_position      triple  {s_CameraParam3($2, 0, 1);}
+  | TR_orientation   triple fnum  {s_CameraParam3($2, $3, 2);}
+  | TR_focalDistance fnum    {s_CameraParam1($2, 3);}
+  | TR_heightAngle   fnum    {s_CameraParam1($2, 4);}
+  | TR_height        fnum    {s_CameraParam1($2, 4);}
+  ;
 
-light_fields	: light_fields light_field
-		|
-		;
+light_fields : light_fields light_field
+  |
+  ;
 
-light_field    	: TR_on sf_bool			{s_LightParam1($2, 1);}
-		| TR_intensity fnum			    {s_LightParam1($2, 2);}
-		| TR_color triple			    {s_LightParam3($2, 3);}
-		| TR_direction triple			{s_LightParam3($2, 4);}
-		| TR_location triple			{s_LightParam3($2, 5);}
-		| TR_dropOffRate fnum			{s_LightParam1($2, 6);}
-		| TR_cutOffAngle fnum			{s_LightParam1($2, 7);}
-		;
+light_field     : TR_on sf_bool   {s_LightParam1($2, 1);}
+  | TR_intensity fnum       {s_LightParam1($2, 2);}
+  | TR_color triple       {s_LightParam3($2, 3);}
+  | TR_direction triple   {s_LightParam3($2, 4);}
+  | TR_location triple   {s_LightParam3($2, 5);}
+  | TR_dropOffRate fnum   {s_LightParam1($2, 6);}
+  | TR_cutOffAngle fnum   {s_LightParam1($2, 7);}
+  ;
 
-t2t_fields	: t2t_fields t2t_field
-		|
-		;
+t2t_fields : t2t_fields t2t_field
+  |
+  ;
 
-t2t_field	: sc2_field				{}
-		| ro2_field				{}
-		| tr2_field				{}
-		| ce2_field				{}
-		;
+t2t_field : sc2_field    {}
+  | ro2_field    {}
+  | tr2_field    {}
+  | ce2_field    {}
+  ;
 
-ce2_field	: TR_center double				{s_Center($2);}
-		;
+ce2_field : TR_center double    {s_Center($2);}
+  ;
 
-sc2_field	: TR_scaleFactor double				{s_Scale($2);}
-		;
+sc2_field : TR_scaleFactor double    {s_Scale($2);}
+  ;
 
-ro2_field	: TR_rotation fnum				{s_Rotation($2);}
-		;
+ro2_field : TR_rotation fnum    {s_Rotation($2);}
+  ;
 
-tr2_field	: TR_translation double				{s_Translation($2);}
-		;
+tr2_field : TR_translation double    {s_Translation($2);}
+  ;
 
-sc_field	: TR_scaleFactor triple				{s_Scale($2);}
-		;
+sc_field : TR_scaleFactor triple    {s_Scale($2);}
+  ;
 
-ro_field	: TR_rotation triple fnum			{s_Rotation($3, $2);}
-		;
+ro_field : TR_rotation triple fnum   {s_Rotation($3, $2);}
+  ;
 
-tr_field	: TR_translation triple				{s_Translation($2);}
-		;
+tr_field : TR_translation triple    {s_Translation($2);}
+  ;
 
-mb_field	: TR_value TR_PER_VERTEX_INDEXED		{$$ = PER_VERTEX_INDEXED}
-		| TR_value TR_PER_FACE_INDEXED			{$$ = PER_FACE_INDEXED}
-		| TR_value TR_OVERALL				{$$ = OVERALL}
-		| TR_value TR_PER_FACE				{$$ = PER_FACE}
-		| TR_value TR_PER_VERTEX			{$$ = PER_VERTEX}
-		;
+mb_field : TR_value TR_PER_VERTEX_INDEXED  {$$ = PER_VERTEX_INDEXED}
+  | TR_value TR_PER_FACE_INDEXED   {$$ = PER_FACE_INDEXED}
+  | TR_value TR_OVERALL    {$$ = OVERALL}
+  | TR_value TR_PER_FACE    {$$ = PER_FACE}
+  | TR_value TR_PER_VERTEX   {$$ = PER_VERTEX}
+  ;
 
-nb_field	: TR_value TR_PER_VERTEX_INDEXED		{$$ = PER_VERTEX_INDEXED}
-		| TR_value TR_PER_FACE_INDEXED			{$$ = PER_FACE_INDEXED}
-		| TR_value TR_OVERALL				{$$ = OVERALL}
-		| TR_value TR_PER_FACE				{$$ = PER_FACE}
-		| TR_value TR_PER_VERTEX			{$$ = PER_VERTEX}
-		;
+nb_field : TR_value TR_PER_VERTEX_INDEXED  {$$ = PER_VERTEX_INDEXED}
+  | TR_value TR_PER_FACE_INDEXED   {$$ = PER_FACE_INDEXED}
+  | TR_value TR_OVERALL    {$$ = OVERALL}
+  | TR_value TR_PER_FACE    {$$ = PER_FACE}
+  | TR_value TR_PER_VERTEX   {$$ = PER_VERTEX}
+  ;
 
-cube_fields	: cube_fields cube_field
-		|
-		;
+cube_fields : cube_fields cube_field
+  |
+  ;
 
-cube_field	: TR_width fnum					{s_ObjWidth($2);}
-		| TR_height fnum				{s_ObjHeight($2);}
-		| TR_depth fnum					{s_ObjDepth($2);}
-		;
+cube_field : TR_width fnum     {s_ObjWidth($2);}
+  | TR_height fnum    {s_ObjHeight($2);}
+  | TR_depth fnum     {s_ObjDepth($2);}
+  ;
 
-cylinder_fields	: cylinder_fields cylinder_field
-		|
-		;
+cylinder_fields : cylinder_fields cylinder_field
+  |
+  ;
 
-cylinder_field	: TR_radius fnum		{s_ObjRadius($2);}
-		| TR_height fnum				{s_ObjHeight($2);}
-		;
+cylinder_field : TR_radius fnum  {s_ObjRadius($2);}
+  | TR_height fnum    {s_ObjHeight($2);}
+  ;
 
 /* This is so it can recognize 3D Studio Max extensions. */
 
-rot_ktx_fields	: rot_ktx_fields rot_ktx_field
-		|
-		;
+rot_ktx_fields : rot_ktx_fields rot_ktx_field
+  |
+  ;
 
-rot_ktx_field	: TR_fields '[' ext_fields ']'			{}
-		| TR_frame isingle				{}
-		| ro_field					{}
-		;
+rot_ktx_field : TR_fields '[' ext_fields ']'   {}
+  | TR_frame isingle    {}
+  | ro_field     {}
+  ;
 
-sca_ktx_fields	: sca_ktx_fields sca_ktx_field
-		|
-		;
+sca_ktx_fields : sca_ktx_fields sca_ktx_field
+  |
+  ;
 
-sca_ktx_field	: TR_fields '[' ext_fields ']'			{}
-		| TR_scale triple				{}
-		| TR_frame isingle				{}
-		| ro_field					{}
-		;
+sca_ktx_field : TR_fields '[' ext_fields ']'   {}
+  | TR_scale triple    {}
+  | TR_frame isingle    {}
+  | ro_field     {}
+  ;
 
-pos_ktx_fields	: pos_ktx_fields pos_ktx_field
-		|
-		;
+pos_ktx_fields : pos_ktx_fields pos_ktx_field
+  |
+  ;
 
-pos_ktx_field	: TR_fields '[' ext_fields ']'			{}
-		| TR_frame isingle				{}
-		| tr_field					{}
-		;
+pos_ktx_field : TR_fields '[' ext_fields ']'   {}
+  | TR_frame isingle    {}
+  | tr_field     {}
+  ;
 
-ani_ktx_fields	: ani_ktx_fields ani_ktx_field
-		|
-		;
+ani_ktx_fields : ani_ktx_fields ani_ktx_field
+  |
+  ;
 
-ani_ktx_field	: TR_fields '[' ext_fields ']'			{}
-		| TR_splineUse					{}
-		| TR_pivotOffset triple				{}
-		;
+ani_ktx_field : TR_fields '[' ext_fields ']'   {}
+  | TR_splineUse     {}
+  | TR_pivotOffset triple    {}
+  ;
 
-anif_ktx_fields	: anif_ktx_fields anif_ktx_field
-		|
-		;
+anif_ktx_fields : anif_ktx_fields anif_ktx_field
+  |
+  ;
 
-anif_ktx_field	: TR_fields '[' ext_fields ']'			{}
-		| TR_length isingle				{}
-		| TR_rate isingle				{}
-		;
+anif_ktx_field : TR_fields '[' ext_fields ']'   {}
+  | TR_length isingle    {}
+  | TR_rate isingle    {}
+  ;
 
-aim_ktx_fields	: aim_ktx_fields aim_ktx_field
-		|
-		;
+aim_ktx_fields : aim_ktx_fields aim_ktx_field
+  |
+  ;
 
-aim_ktx_field	: TR_fields '[' ext_fields ']'			{}
-		| TR_aimer T_STRING				{}
-		;
+aim_ktx_field : TR_fields '[' ext_fields ']'   {}
+  | TR_aimer T_STRING    {}
+  ;
 
-ext_fields	: ext_field					{}
-		| ext_fields ',' ext_field			{}
+ext_fields : ext_field     {}
+  | ext_fields ',' ext_field   {}
 
-ext_field	: T_STRING T_STRING				{}
-		| T_STRING known_field_name			{}
-		;
+ext_field : T_STRING T_STRING    {}
+  | T_STRING known_field_name   {}
+  ;
 
-known_field_name : TR_rotation					{}
-		| TR_translation				{}
-		| TR_pivotOffset				{}
-		| TR_splineUse					{}
-		| TR_frame					{}
-		| TR_aimer					{}
-		| TR_scale					{}
-		| TR_length					{}
-		| TR_rate					{}
-		;
+known_field_name : TR_rotation     {}
+  | TR_translation    {}
+  | TR_pivotOffset    {}
+  | TR_splineUse     {}
+  | TR_frame     {}
+  | TR_aimer     {}
+  | TR_scale     {}
+  | TR_length     {}
+  | TR_rate     {}
+  ;
 
 /* End 3DSMAX extensions. */
 
-sh_fields	: sh_fields sh_field
-		|
-		;
+sh_fields : sh_fields sh_field
+  |
+  ;
 
-sh_field	: TR_vertexOrdering TR_COUNTERCLOCKWISE		{}
-		| TR_vertexOrdering TR_CLOCKWISE		{}
-		| TR_shapeType	    shape_type			{}
-		| TR_faceType	    TR_CONVEX			{}
-		| TR_creaseAngle    fnum			{s_CreaseAngle($2);}
-		;
+sh_field : TR_vertexOrdering TR_COUNTERCLOCKWISE  {}
+  | TR_vertexOrdering TR_CLOCKWISE  {}
+  | TR_shapeType     shape_type   {}
+  | TR_faceType     TR_CONVEX   {}
+  | TR_creaseAngle    fnum   {s_CreaseAngle($2);}
+  ;
 
-shape_type	: TR_SOLID					{}
-		| TR_UNKNOWN_SHAPE_TYPE				{}
-		;
+shape_type : TR_SOLID     {}
+  | TR_UNKNOWN_SHAPE_TYPE    {}
+  ;
 
-mt_field	: TR_matrix matrix4x4		   {s_Matrix($2); delete [] $2;}
-		;
+mt_field : TR_matrix matrix4x4     {s_Matrix($2); delete [] $2;}
+  ;
 
-matrix4x4	: fnum fnum fnum fnum
-	          fnum fnum fnum fnum
-	          fnum fnum fnum fnum
-	          fnum fnum fnum fnum
+matrix4x4 : fnum fnum fnum fnum
+           fnum fnum fnum fnum
+           fnum fnum fnum fnum
+           fnum fnum fnum fnum
                     {$$ = new f3Vector::ElType[16];
-	             ASSERTERR($$, "new matrix failed");
-		     $$[0] = $1;   $$[1] = $2;   $$[2] = $3;   $$[3] = $4;
+              ASSERTERR($$, "new matrix failed");
+       $$[0] = $1;   $$[1] = $2;   $$[2] = $3;   $$[3] = $4;
                      $$[4] = $5;   $$[5] = $6;   $$[6] = $7;   $$[7] = $8;
                      $$[8] = $9;   $$[9] = $10;  $$[10] = $11; $$[11] = $12;
                      $$[12] = $13; $$[13] = $14; $$[14] = $15; $$[15] = $16;}
-		;
+  ;
 
-t2_field	: TR_filename T_STRING			{s_Texture2_filename($2);}
-		|					{s_Texture2_filename("");}
-		;
+t2_field : TR_filename T_STRING   {s_Texture2_filename($2);}
+  |     {s_Texture2_filename("");}
+  ;
 
-c3_field	: TR_point '[' triples ']'		{$$ = $3;}
-		| TR_point  onetriple			{$$ = $2;}
-		;
+c3_field : TR_point '[' triples ']'  {$$ = $3;}
+  | TR_point  onetriple   {$$ = $2;}
+  ;
 
-v3_field	: TR_vector '[' triples ']'		{$$ = $3;}
-		| TR_vector  onetriple			{$$ = $2;}
-		;
+v3_field : TR_vector '[' triples ']'  {$$ = $3;}
+  | TR_vector  onetriple   {$$ = $2;}
+  ;
 
-tc2_field	: TR_point '[' doubles ']'		{$$ = $3;}
-		| TR_point onedouble			{$$ = $2;}
-		;
+tc2_field : TR_point '[' doubles ']'  {$$ = $3;}
+  | TR_point onedouble   {$$ = $2;}
+  ;
 
-ifs_fields	: ifs_field
-		| ifs_fields ifs_field
-		;
+ifs_fields : ifs_field
+  | ifs_fields ifs_field
+  ;
 
-ifs_field	: TR_coordIndex '[' isingles ']'	{s_CoordIndices($3);}
-		| TR_materialIndex '[' isingles ']'	{s_MaterialIndices($3);}
-		| TR_normalIndex '[' isingles ']'	{s_NormalIndices($3);}
-		| TR_textureCoordIndex '[' isingles ']'	{s_TexCoordIndices($3);}
-		;
+ifs_field : TR_coordIndex '[' isingles ']' {s_CoordIndices($3);}
+  | TR_materialIndex '[' isingles ']' {s_MaterialIndices($3);}
+  | TR_normalIndex '[' isingles ']' {s_NormalIndices($3);}
+  | TR_textureCoordIndex '[' isingles ']' {s_TexCoordIndices($3);}
+  ;
 
-mat_fields	: mat_fields mat_field
-		|
-		;
+mat_fields : mat_fields mat_field
+  |
+  ;
 
-mat_field	: TR_ambientColor  acolor		{s_AmbientColors($2); delete $2;}
-		| TR_diffuseColor  dcolor		{s_DiffuseColors($2); delete $2;}
-		| TR_emissiveColor ecolor		{s_EmissiveColors($2); delete $2;}
-		| TR_specularColor scolor		{s_SpecularColors($2); delete $2;}
-		| TR_shininess	   shine		{s_Shininesses($2); delete $2;}
-		| TR_transparency  transp		{s_Transparencies($2); delete $2;}
-		;
+mat_field : TR_ambientColor  acolor  {s_AmbientColors($2); delete $2;}
+  | TR_diffuseColor  dcolor  {s_DiffuseColors($2); delete $2;}
+  | TR_emissiveColor ecolor  {s_EmissiveColors($2); delete $2;}
+  | TR_specularColor scolor  {s_SpecularColors($2); delete $2;}
+  | TR_shininess    shine  {s_Shininesses($2); delete $2;}
+  | TR_transparency  transp  {s_Transparencies($2); delete $2;}
+  ;
 
-acolor		: '[' triples ']'			{$$ = $2;}
-		| onetriple				{$$ = $1;}
-		;
+acolor  : '[' triples ']'   {$$ = $2;}
+  | onetriple    {$$ = $1;}
+  ;
 
-dcolor		: '[' triples ']'			{$$ = $2;}
-		| onetriple				{$$ = $1;}
-		;
+dcolor  : '[' triples ']'   {$$ = $2;}
+  | onetriple    {$$ = $1;}
+  ;
 
-ecolor		: '[' triples ']'			{$$ = $2;}
-		| onetriple				{$$ = $1;}
-		;
+ecolor  : '[' triples ']'   {$$ = $2;}
+  | onetriple    {$$ = $1;}
+  ;
 
-scolor		: '[' triples ']'			{$$ = $2;}
-		| onetriple				{$$ = $1;}
-		;
+scolor  : '[' triples ']'   {$$ = $2;}
+  | onetriple    {$$ = $1;}
+  ;
 
-shine		: '[' fsingles ']'			{$$ = $2;}
-		| onefsingle				{$$ = $1;}
-		;
+shine  : '[' fsingles ']'   {$$ = $2;}
+  | onefsingle    {$$ = $1;}
+  ;
 
-transp		: '[' fsingles ']'			{$$ = $2;}
-		| onefsingle				{$$ = $1;}
-		;
+transp  : '[' fsingles ']'   {$$ = $2;}
+  | onefsingle    {$$ = $1;}
+  ;
 
-triples		: rtriples			{$$ = $1}
-		| rtriples ','			{$$ = $1}
-		;
+triples  : rtriples   {$$ = $1}
+  | rtriples ','   {$$ = $1}
+  ;
 
-rtriples	: triple			{$$=new vector<f3Vector>; $$->push_back(*$1); delete $1;}
-		| rtriples ',' triple		{$$ = $1; $$->push_back(*$3); delete $3;}
-		;
+rtriples : triple   {$$=new vector<f3Vector>; $$->push_back(*$1); delete $1;}
+  | rtriples ',' triple  {$$ = $1; $$->push_back(*$3); delete $3;}
+  ;
 
-onetriple	: fnum fnum fnum		{$$=new vector<f3Vector>; $$->push_back(f3Vector($1, $2, $3));}
-		;
+onetriple : fnum fnum fnum  {$$=new vector<f3Vector>; $$->push_back(f3Vector($1, $2, $3));}
+  ;
 
-triple		: fnum fnum fnum		{$$ = new f3Vector($1, $2, $3);}
-		;
+triple  : fnum fnum fnum  {$$ = new f3Vector($1, $2, $3);}
+  ;
 
-doubles		: rdoubles			{$$ = $1}
-		| rdoubles ','			{$$ = $1}
-		;
+doubles  : rdoubles   {$$ = $1}
+  | rdoubles ','   {$$ = $1}
+  ;
 
-rdoubles	: double			{$$=new vector<f3Vector>; $$->push_back(*$1); delete $1;}
-		| rdoubles ',' double		{$$ = $1; $$->push_back(*$3); delete $3;}
-		;
+rdoubles : double   {$$=new vector<f3Vector>; $$->push_back(*$1); delete $1;}
+  | rdoubles ',' double  {$$ = $1; $$->push_back(*$3); delete $3;}
+  ;
 
-onedouble	: fnum fnum			{$$=new vector<f3Vector>; $$->push_back(f3Vector($1, $2, 0));}
-		;
+onedouble : fnum fnum   {$$=new vector<f3Vector>; $$->push_back(f3Vector($1, $2, 0));}
+  ;
 
-double		: fnum fnum			{$$ = new f3Vector($1, $2, 0);}
-		;
+double  : fnum fnum   {$$ = new f3Vector($1, $2, 0);}
+  ;
 
-isingles	: risingles			{$$ = $1}
-		| risingles ','			{$$ = $1}
-		| 				{$$ = new vector<int>;}
-		;
+isingles : risingles   {$$ = $1}
+  | risingles ','   {$$ = $1}
+  |     {$$ = new vector<int>;}
+  ;
 
-risingles	: isingle			{$$ = new vector<int>; $$->push_back($1);}
-		| risingles ',' isingle		{$$ = $1; $$->push_back($3);}
-		;
+risingles : isingle   {$$ = new vector<int>; $$->push_back($1);}
+  | risingles ',' isingle  {$$ = $1; $$->push_back($3);}
+  ;
 
-isingle		: T_INT				{$$ = $1;}
+isingle  : T_INT    {$$ = $1;}
 
-fsingles	: rfsingles			{$$ = $1}
-		| rfsingles ','			{$$ = $1}
-		;
+fsingles : rfsingles   {$$ = $1}
+  | rfsingles ','   {$$ = $1}
+  ;
 
-rfsingles	: fnum				{$$ = new vector<f3Vector::ElType>; $$->push_back($1);}
-		| rfsingles ',' fnum		{$$ = $1; $$->push_back($3);}
-		;
+rfsingles : fnum    {$$ = new vector<f3Vector::ElType>; $$->push_back($1);}
+  | rfsingles ',' fnum  {$$ = $1; $$->push_back($3);}
+  ;
 
-onefsingle	: fnum				{$$ = new vector<f3Vector::ElType>; $$->push_back($1);}
-		;
+onefsingle : fnum    {$$ = new vector<f3Vector::ElType>; $$->push_back($1);}
+  ;
 
-sf_bool		: T_INT				{$$ = (int) ($1) ? 1 : 0;}
-                | TR_TRUE			{$$ = 1;}
-                | TR_FALSE			{$$ = 0;}
-		;
+sf_bool  : T_INT    {$$ = (int) ($1) ? 1 : 0;}
+                | TR_TRUE   {$$ = 1;}
+                | TR_FALSE   {$$ = 0;}
+  ;
 
-fnum		: T_INT				{$$ = (f3Vector::ElType) $1;}
-                | T_FLOAT			{$$ = $1;}
-		;
+fnum  : T_INT    {$$ = (f3Vector::ElType) $1;}
+                | T_FLOAT   {$$ = $1;}
+  ;
 
 %%
 /* get yylex() from FlexMe.cpp */

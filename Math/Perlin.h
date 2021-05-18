@@ -9,8 +9,7 @@
 
 #define MAX_OCTAVES 16
 
-class Perlin
-{
+class Perlin {
     int NOct;
     double Persist;
     static bool RandFilled;
@@ -29,8 +28,7 @@ class Perlin
         t *= 80.0;
         t += 10.0;
 
-        if(t >=0 && t <= 99)
-            Histogram[int(t)]++;
+        if (t >= 0 && t <= 99) Histogram[int(t)]++;
     }
 
     // These ones return a random double on -1.0 -> 1.0 based on the seed x,y,z.
@@ -40,13 +38,10 @@ class Perlin
         // -1 to 1
         // return 1.0 - double((x * (x*x* Pr[1][i] + Pr[2][i]) + Pr[3][i]) & 0x7fffffff) / 1073741823.0;
         // 0 to 1
-        return double((x * (x*x* Pr[1][i] + Pr[2][i]) + Pr[3][i]) & 0x7fffffff) / 2147483647.0;
+        return double((x * (x * x * Pr[1][i] + Pr[2][i]) + Pr[3][i]) & 0x7fffffff) / 2147483647.0;
     }
 
-    DMC_DECL double RandNoise(int x, int y, int i)
-    {
-        return RandNoise(y * Pr[0][i] + x, i);
-    }
+    DMC_DECL double RandNoise(int x, int y, int i) { return RandNoise(y * Pr[0][i] + x, i); }
 
     DMC_DECL double RandNoise(int x, int y, int z, int i)
     {
@@ -59,7 +54,7 @@ class Perlin
     // Smoothly interpolates between a and b.
     DMC_DECL double Interp(double a, double b, double t)
     {
-        double f = t*t*(3-2*t);
+        double f = t * t * (3 - 2 * t);
 
         return a + (b - a) * f;
     }
@@ -82,7 +77,7 @@ public:
     double Noise(double x);
     double Noise(double x, double y);
     double Noise(double x, double y, double z);
-    DMC_DECL double Noise(const f3Vector &V) {return Noise(V.x, V.y, V.z);}
+    DMC_DECL double Noise(const f3Vector& V) { return Noise(V.x, V.y, V.z); }
 
     // This should really be private, but sometimes I want to call it directly.
     // X and Y should be in 0.0 -> pretty big.
@@ -90,6 +85,6 @@ public:
     double InterpolatedNoise(double x, double y, int Oct);
     double InterpolatedNoise(double x, double y, double z, int Oct);
 
-    void SetNumOctaves(int Oct); // Oct >= 1.
+    void SetNumOctaves(int Oct);         // Oct >= 1.
     void SetPersistance(double persist); // 0 < persist < 1. 0.5 is good.
 };

@@ -5,10 +5,10 @@
 
 #pragma once
 
-#include "Model/TextureDB.h"
 #include "Math/BBox.h"
 #include "Math/Matrix44.h"
 #include "Math/Vector.h"
+#include "Model/TextureDB.h"
 
 #include <vector>
 
@@ -20,27 +20,26 @@
 #define OBJ_TANGENTS 8
 #define OBJ_ALL (OBJ_COLORS | OBJ_NORMALS | OBJ_TEXCOORDS | OBJ_TANGENTS)
 
-typedef enum {DMC_BASE_OBJECT, DMC_TRI_OBJECT, DMC_MESH_OBJECT, DMC_RENDER_OBJECT} ObjectTypes;
+typedef enum { DMC_BASE_OBJECT, DMC_TRI_OBJECT, DMC_MESH_OBJECT, DMC_RENDER_OBJECT } ObjectTypes;
 
-struct BaseObject
-{
+struct BaseObject {
     char Name[64];
-    int DispLists[OBJ_ALL+1]; // So you can have a disp list for each set of attribs.
-    Matrix44<typename f3Vector::ElType> Transform; // The current transformation.
+    int DispLists[OBJ_ALL + 1];                       // So you can have a disp list for each set of attribs.
+    Matrix44<typename f3Vector::ElType> Transform;    // The current transformation.
     Matrix44<typename f3Vector::ElType> TexTransform; // The current texture transformation.
     BBox<f3Vector> Box;
     f3Vector dcolor; // The object-wide colors.
     f3Vector::ElType alpha;
     f3Vector scolor, ecolor, acolor;
-    f3Vector::ElType shininess, creaseAngle; // Used for later generation of normals.
-    int ObjID; // OpenGL display list ID.
-    TexInfo *TexPtr; // Index into the texture database.
-    ObjectTypes ObjectType; // My cheat for RTTI.
+    f3Vector::ElType shininess, creaseAngle;                                             // Used for later generation of normals.
+    int ObjID;                                                                           // OpenGL display list ID.
+    TexInfo* TexPtr;                                                                     // Index into the texture database.
+    ObjectTypes ObjectType;                                                              // My cheat for RTTI.
     bool DColorValid, AlphaValid, SColorValid, EColorValid, AColorValid, ShininessValid; // Are object-wide values valid?
-    bool CullBack; // Rendering instructions.
-    bool RenderOnOff; // Toggle whether to display this object or not.
-    bool RenderAsSBRDF; // Application specific, obviously.
-    f3Vector::ElType RenderPriority; // Use this to order the objects in some way. Used by operator<.
+    bool CullBack;                                                                       // Rendering instructions.
+    bool RenderOnOff;                                                                    // Toggle whether to display this object or not.
+    bool RenderAsSBRDF;                                                                  // Application specific, obviously.
+    f3Vector::ElType RenderPriority;                                                     // Use this to order the objects in some way. Used by operator<.
 
     // This is a mask of bits regarding the fields of the mesh
     // elements.  See the #defines in AElements.h and (and maybe other
@@ -50,7 +49,7 @@ struct BaseObject
 
     DMC_DECL BaseObject()
     {
-        //INFO("Making BaseObject.");
+        // INFO("Making BaseObject.");
         ObjectType = DMC_BASE_OBJECT;
         Name[0] = '\0';
         TexPtr = NULL;
@@ -60,17 +59,16 @@ struct BaseObject
         alpha = 1.0;
         creaseAngle = M_PI * 0.5;
         shininess = 32.0;
-        dcolor = f3Vector(0,1,0);
-        scolor = f3Vector(0,0,0);
-        ecolor = f3Vector(0,0,0);
-        acolor = f3Vector(0.2,0.2,0.2);
+        dcolor = f3Vector(0, 1, 0);
+        scolor = f3Vector(0, 0, 0);
+        ecolor = f3Vector(0, 0, 0);
+        acolor = f3Vector(0.2, 0.2, 0.2);
         EdgeType = VertexType = FaceType = OBJ_NONE;
         CullBack = true;
         RenderOnOff = true;
         RenderAsSBRDF = false;
         RenderPriority = 1000;
-        for(int i=0; i<OBJ_ALL+1; i++)
-            DispLists[i] = -1;
+        for (int i = 0; i < OBJ_ALL + 1; i++) DispLists[i] = -1;
     }
 
     virtual ~BaseObject()
@@ -97,8 +95,8 @@ struct BaseObject
 
     virtual void RebuildBBox() = 0;
 
-    virtual void ApplyTransform(Matrix44<typename f3Vector::ElType> &Mat) = 0;
+    virtual void ApplyTransform(Matrix44<typename f3Vector::ElType>& Mat) = 0;
 
     // Transform all texcoords by this matrix.
-    virtual void ApplyTextureTransform(Matrix44<typename f3Vector::ElType> &Mat) = 0;
+    virtual void ApplyTextureTransform(Matrix44<typename f3Vector::ElType>& Mat) = 0;
 };

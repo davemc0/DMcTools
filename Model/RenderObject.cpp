@@ -3,8 +3,9 @@
 //
 // Copyright David K. McAllister, Dec. 2001.
 
-#include "Model/Model.h"
 #include "Model/RenderObject.h"
+
+#include "Model/Model.h"
 
 void RenderObject::Dump() const
 {
@@ -43,7 +44,7 @@ void RenderObject::RebuildBBox()
 // Transform every vertex in the model.
 // Transform every normal and tangent by using ProjectDirection, which is not
 // the inverse transpose, but merely the upper 3x3.
-void RenderObject::ApplyTransform(Matrix44<typename f3Vector::ElType> &Mat)
+void RenderObject::ApplyTransform(Matrix44<typename f3Vector::ElType>& Mat)
 {
     ASSERT_R(0);
 #if 0
@@ -66,12 +67,10 @@ void RenderObject::ApplyTransform(Matrix44<typename f3Vector::ElType> &Mat)
 #endif
 }
 
-void RenderObject::ApplyTextureTransform(Matrix44<typename f3Vector::ElType> &Mat)
+void RenderObject::ApplyTextureTransform(Matrix44<typename f3Vector::ElType>& Mat)
 {
     ASSERT_R(VertexType & OBJ_TEXCOORDS);
 
     int i;
-    for(i=0; i<(int)verts.size(); i++) {
-        texcoords[i] = Mat * texcoords[i];
-    }
+    for (i = 0; i < (int)verts.size(); i++) { texcoords[i] = Mat * texcoords[i]; }
 }

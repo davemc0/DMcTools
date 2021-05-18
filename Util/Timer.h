@@ -15,17 +15,16 @@
 
 #pragma once
 
-class Timer
-{
-    double StartTime; // The time the clock was most-recently started.
+class Timer {
+    double StartTime;   // The time the clock was most-recently started.
     double ElapsedTime; // Total of the time-spans that it was started then stopped.
-    bool Going; // Is the clock going now?
+    bool Going;         // Is the clock going now?
 
-//#ifdef DMC_MACHINE_win
+    //#ifdef DMC_MACHINE_win
     unsigned int freqHigh, freqLow; // The QueryPerformanceCounter frequency.
-    unsigned int high_bias; // How to get more bits in the double.
-    double Multiplier; // Multiply Pentium clock ticks by this to get time.
-//#endif
+    unsigned int high_bias;         // How to get more bits in the double.
+    double Multiplier;              // Multiply Pentium clock ticks by this to get time.
+    //#endif
 
 public:
     // Create a new stopwatch. It is stopped.
@@ -55,11 +54,10 @@ public:
 // Call StartEvent() at the start of each frame.
 // It keeps track of when each call to NextFrame occurs,
 // and you can get statistics on this.
-class StatTimer
-{
+class StatTimer {
     Timer Clock;
-    float *EventTimes; // A list of the elapsed times between adjacent calls to NextEvent().
-    bool IsGoing; // Has StartEvent() been called yet?
+    float* EventTimes; // A list of the elapsed times between adjacent calls to NextEvent().
+    bool IsGoing;      // Has StartEvent() been called yet?
     int NumEvents, MaxEvents;
 
 public:
@@ -73,8 +71,8 @@ public:
     void StartEvent();
 
     // N queries over up to the most recent N frames.
-    float GetMean(int N=0x7fffffff);
-    float GetMin(int N=0x7fffffff);
-    float GetMax(int N=0x7fffffff);
+    float GetMean(int N = 0x7fffffff);
+    float GetMin(int N = 0x7fffffff);
+    float GetMax(int N = 0x7fffffff);
     // double GetMedian(int N=0x7fffffff);
 };

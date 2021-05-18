@@ -7,8 +7,8 @@
 
 #if 0
 
-#include "Util/Assert.h"
 #include "Math/MiscMath.h"
+#include "Util/Assert.h"
 
 // 3x3 blur with special kernel for a uc1Image.
 void ucImage::FastBlur1Chan()

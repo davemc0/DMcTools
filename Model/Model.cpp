@@ -4,10 +4,11 @@
 // Copyright David K. McAllister, July 1999.
 
 #include "Model/Model.h"
+
+#include "Model/CameraDB.h"
+#include "Model/LightDB.h"
 #include "Model/Mesh.h"
 #include "Model/RenderObject.h"
-#include "Model/LightDB.h"
-#include "Model/CameraDB.h"
 
 using namespace std;
 
@@ -17,34 +18,34 @@ LightDB LitDB;
 CameraDB CamDB;
 
 // Returns false on success; true on error.
-bool Model::Save(const char *fname)
+bool Model::Save(const char* fname)
 {
     ASSERT_RM(fname, "NULL filename");
     bool status = true;
 
     cerr << "Model has " << int(Objs.size()) << " objects.\n";
 
-    const char *extc = strrchr(fname, '.');
+    const char* extc = strrchr(fname, '.');
     extc++;
 
-    if(strlen(extc) != 3) {
+    if (strlen(extc) != 3) {
         cerr << "Can't grok filename " << fname << endl;
         return status;
     }
 
-    char *extp = strdup(extc);
+    char* extp = strdup(extc);
 
     extp[0] |= 0x20;
     extp[1] |= 0x20;
     extp[2] |= 0x20;
 
-    if(!strcmp(extp, "wrl"))
+    if (!strcmp(extp, "wrl"))
         status = SaveVRML(fname);
-    else if(!strcmp(extp, "obj"))
+    else if (!strcmp(extp, "obj"))
         status = SaveOBJ(fname);
-    else if(!strcmp(extp, "tri"))
+    else if (!strcmp(extp, "tri"))
         status = true; // SaveTRI(fname);
-    else if(!strcmp(extp, "ply"))
+    else if (!strcmp(extp, "ply"))
         status = true; // SavePLY(fname);
     else {
         cerr << "Can't grok filename " << fname << endl;
@@ -57,54 +58,45 @@ bool Model::Save(const char *fname)
 // Generate and remove attribs as needed
 void Model::ModifyAttribs(const unsigned int RequiredAttribs, const unsigned int AcceptedAttribs)
 {
-    if(RequiredAttribs & OBJ_COLORS)
-        GenColors();
-    if(RequiredAttribs & OBJ_NORMALS)
-        GenNormals();
-    if(RequiredAttribs & OBJ_TEXCOORDS)
-        GenTexCoords();
-    if(RequiredAttribs & OBJ_TANGENTS)
-        GenTangents();
+    if (RequiredAttribs & OBJ_COLORS) GenColors();
+    if (RequiredAttribs & OBJ_NORMALS) GenNormals();
+    if (RequiredAttribs & OBJ_TEXCOORDS) GenTexCoords();
+    if (RequiredAttribs & OBJ_TANGENTS) GenTangents();
 
     // Remove undesired attribs.
-    if(!(AcceptedAttribs & OBJ_COLORS))
-        RemoveColors();
-    if(!(AcceptedAttribs & OBJ_NORMALS))
-        RemoveNormals();
-    if(!(AcceptedAttribs & OBJ_TEXCOORDS))
-        RemoveTexCoords();
-    if(!(AcceptedAttribs & OBJ_TANGENTS))
-        RemoveTangents();
+    if (!(AcceptedAttribs & OBJ_COLORS)) RemoveColors();
+    if (!(AcceptedAttribs & OBJ_NORMALS)) RemoveNormals();
+    if (!(AcceptedAttribs & OBJ_TEXCOORDS)) RemoveTexCoords();
+    if (!(AcceptedAttribs & OBJ_TANGENTS)) RemoveTangents();
 }
 
 // Returns false on success; true on error.
-bool Model::Load(const char *fname, const unsigned int RequiredAttribs,
-                 const unsigned int AcceptedAttribs)
+bool Model::Load(const char* fname, const unsigned int RequiredAttribs, const unsigned int AcceptedAttribs)
 {
     ASSERT_RM(fname, "NULL filename");
     bool status = true;
 
-    const char *extc = strrchr(fname, '.');
+    const char* extc = strrchr(fname, '.');
     extc++;
 
-    if(strlen(extc) != 3) {
+    if (strlen(extc) != 3) {
         cerr << "Can't grok filename " << fname << endl;
         return status;
     }
 
-    char *extp = strdup(extc);
+    char* extp = strdup(extc);
 
     extp[0] |= 0x20;
     extp[1] |= 0x20;
     extp[2] |= 0x20;
 
-    if(!strcmp(extp, "wrl"))
+    if (!strcmp(extp, "wrl"))
         status = LoadVRML(fname, RequiredAttribs, AcceptedAttribs);
-    else if(!strcmp(extp, "obj"))
+    else if (!strcmp(extp, "obj"))
         status = LoadOBJ(fname, RequiredAttribs, AcceptedAttribs);
-    else if(!strcmp(extp, "tri"))
+    else if (!strcmp(extp, "tri"))
         status = true; // LoadTRI(fname, RequiredAttribs, AcceptedAttribs);
-    else if(!strcmp(extp, "ply"))
+    else if (!strcmp(extp, "ply"))
         status = true; // LoadPLY(fname, RequiredAttribs, AcceptedAttribs);
     else {
         cerr << "Can't grok filename " << fname << endl;
@@ -115,8 +107,7 @@ bool Model::Load(const char *fname, const unsigned int RequiredAttribs,
     // ((Mesh*)Objs[0])->CheckIntegrity();
     // RemoveNormals(); // XXX
 
-    if(!status)
-        ModifyAttribs(RequiredAttribs, AcceptedAttribs);
+    if (!status) ModifyAttribs(RequiredAttribs, AcceptedAttribs);
 
     return status;
 }
@@ -125,25 +116,24 @@ bool Model::Load(const char *fname, const unsigned int RequiredAttribs,
 // which is DMC_RENDER_OBJECT or DMC_TRI_OBJECT.
 void Model::ObjectConvert(ObjectTypes DestType, unsigned int AcceptedAttribs)
 {
-    for(int i=0; i< (int)Objs.size(); i++) {
+    for (int i = 0; i < (int)Objs.size(); i++) {
         // cerr << i << endl;
-        if(Objs[i]->ObjectType == DMC_MESH_OBJECT) {
-            BaseObject *Ob;
-            switch(DestType) {
+        if (Objs[i]->ObjectType == DMC_MESH_OBJECT) {
+            BaseObject* Ob;
+            switch (DestType) {
             case DMC_RENDER_OBJECT:
                 Ob = new RenderObject;
-                ((Mesh *)Objs[i])->ExportRenderObject(*((RenderObject *)Ob), AcceptedAttribs);
-                delete (Mesh *)Objs[i];
+                ((Mesh*)Objs[i])->ExportRenderObject(*((RenderObject*)Ob), AcceptedAttribs);
+                delete (Mesh*)Objs[i];
                 Objs[i] = Ob;
                 break;
             case DMC_TRI_OBJECT:
                 Ob = new TriObject;
-                ((Mesh *)Objs[i])->ExportTriObject(*((TriObject *)Ob), AcceptedAttribs);
-                delete (Mesh *)Objs[i];
+                ((Mesh*)Objs[i])->ExportTriObject(*((TriObject*)Ob), AcceptedAttribs);
+                delete (Mesh*)Objs[i];
                 Objs[i] = Ob;
                 break;
-            default:
-                ASSERT_R(0);
+            default: ASSERT_R(0);
             }
         }
     }
@@ -153,58 +143,48 @@ void Model::ObjectConvert(ObjectTypes DestType, unsigned int AcceptedAttribs)
 // If the model consists of multiple TriObjects, collapse them all into a single TriObject.
 void Model::Flatten()
 {
-    if((int)Objs.size() < 2)
-        return;
+    if ((int)Objs.size() < 2) return;
 
-    TriObject *NOb = dynamic_cast<TriObject *>(Objs[0]);
+    TriObject* NOb = dynamic_cast<TriObject*>(Objs[0]);
     ASSERT_R(NOb);
     ASSERT_R(NOb->PrimType == L_TRIANGLES);
 
-    for(size_t i=1; i<Objs.size(); i++) {
-        const TriObject *TOb = dynamic_cast<TriObject *>(Objs[i]);
+    for (size_t i = 1; i < Objs.size(); i++) {
+        const TriObject* TOb = dynamic_cast<TriObject*>(Objs[i]);
         ASSERT_RM(TOb, "All objects in the Model must be TriObjects. Mesh is not allowed, for example.\n");
 
-        if((int) TOb->verts.size() < 1)
-            continue;
+        if ((int)TOb->verts.size() < 1) continue;
 
         ASSERT_R(TOb->PrimType == L_TRIANGLES);
 
-        if((int) TOb->dcolors.size() > 1)
-            ASSERT_RM(TOb->dcolors.size() == TOb->verts.size(), "TriObject Bad dcolors.size()");
+        if ((int)TOb->dcolors.size() > 1) ASSERT_RM(TOb->dcolors.size() == TOb->verts.size(), "TriObject Bad dcolors.size()");
 
-        if((int) TOb->normals.size() > 1)
-            ASSERT_RM(TOb->normals.size() == TOb->verts.size(), "TriObject Bad normals.size()");
+        if ((int)TOb->normals.size() > 1) ASSERT_RM(TOb->normals.size() == TOb->verts.size(), "TriObject Bad normals.size()");
 
-        if((int) TOb->texcoords.size() > 1)
-            ASSERT_RM(TOb->texcoords.size() == TOb->verts.size(), "TriObject Bad texcoords.size()");
+        if ((int)TOb->texcoords.size() > 1) ASSERT_RM(TOb->texcoords.size() == TOb->verts.size(), "TriObject Bad texcoords.size()");
 
-        if((int) NOb->dcolors.size() > 1)
-            ASSERT_RM(NOb->dcolors.size() == NOb->verts.size(), "List Bad dcolors.size()");
+        if ((int)NOb->dcolors.size() > 1) ASSERT_RM(NOb->dcolors.size() == NOb->verts.size(), "List Bad dcolors.size()");
 
-        if((int) NOb->normals.size() > 1)
-            ASSERT_RM(NOb->normals.size() == NOb->verts.size(), "List Bad normals.size()");
+        if ((int)NOb->normals.size() > 1) ASSERT_RM(NOb->normals.size() == NOb->verts.size(), "List Bad normals.size()");
 
-        if((int) NOb->texcoords.size() > 1)
-            ASSERT_RM(NOb->texcoords.size() == NOb->verts.size(), "List Bad texcoords.size()");
+        if ((int)NOb->texcoords.size() > 1) ASSERT_RM(NOb->texcoords.size() == NOb->verts.size(), "List Bad texcoords.size()");
 
-        if((int) NOb->dcolors.size() == 1 &&
-            ((TOb->dcolors.size() == 1 && TOb->dcolors[0] != NOb->dcolors[0]) ||
-            TOb->dcolors.size() > 1)) {
-                // NOb was doing per-object color, but TOb doesn't match it, so convert NOb to per-vertex color.
-                f3Vector col = NOb->dcolors[0];
-                NOb->dcolors.clear();
-                NOb->dcolors.insert(NOb->dcolors.begin(), NOb->verts.size(), col);
+        if ((int)NOb->dcolors.size() == 1 && ((TOb->dcolors.size() == 1 && TOb->dcolors[0] != NOb->dcolors[0]) || TOb->dcolors.size() > 1)) {
+            // NOb was doing per-object color, but TOb doesn't match it, so convert NOb to per-vertex color.
+            f3Vector col = NOb->dcolors[0];
+            NOb->dcolors.clear();
+            NOb->dcolors.insert(NOb->dcolors.begin(), NOb->verts.size(), col);
         }
 
-        if((int) NOb->dcolors.size() != 1) {
-            if((int) TOb->dcolors.size() == 1) {
+        if ((int)NOb->dcolors.size() != 1) {
+            if ((int)TOb->dcolors.size() == 1) {
                 // Expand its colors.
                 f3Vector col = TOb->dcolors[0];
                 NOb->dcolors.insert(NOb->dcolors.end(), TOb->verts.size(), col);
-            } else if((int) TOb->dcolors.size() == 0) {
-                if((int) NOb->dcolors.size()) {
+            } else if ((int)TOb->dcolors.size() == 0) {
+                if ((int)NOb->dcolors.size()) {
                     // Have to synthesize a bunch of them.
-                    f3Vector col(0,1,0);
+                    f3Vector col(0, 1, 0);
                     NOb->dcolors.insert(NOb->dcolors.end(), TOb->verts.size(), col);
                 }
             } else {
@@ -213,23 +193,22 @@ void Model::Flatten()
             }
         }
 
-        if((int) NOb->normals.size() == 1 && ((TOb->normals.size() == 1 && TOb->normals[0] != NOb->normals[0])
-            || TOb->normals.size() > 1)) {
-                // Expand my normals.
-                f3Vector col = NOb->normals[0];
-                NOb->normals.clear();
-                NOb->normals.insert(NOb->normals.begin(), NOb->verts.size(), col);
+        if ((int)NOb->normals.size() == 1 && ((TOb->normals.size() == 1 && TOb->normals[0] != NOb->normals[0]) || TOb->normals.size() > 1)) {
+            // Expand my normals.
+            f3Vector col = NOb->normals[0];
+            NOb->normals.clear();
+            NOb->normals.insert(NOb->normals.begin(), NOb->verts.size(), col);
         }
 
-        if((int) NOb->normals.size() != 1) {
-            if((int) TOb->normals.size() == 1) {
+        if ((int)NOb->normals.size() != 1) {
+            if ((int)TOb->normals.size() == 1) {
                 // Expand its normals.
                 f3Vector col = TOb->normals[0];
                 NOb->normals.insert(NOb->normals.end(), TOb->verts.size(), col);
-            } else if((int) TOb->normals.size() == 0) {
-                if((int) NOb->normals.size()) {
+            } else if ((int)TOb->normals.size() == 0) {
+                if ((int)NOb->normals.size()) {
                     // Have to synthesize a bunch of them.
-                    f3Vector col(0,1,0);
+                    f3Vector col(0, 1, 0);
                     NOb->normals.insert(NOb->normals.end(), TOb->verts.size(), col);
                 }
             } else {
@@ -238,23 +217,22 @@ void Model::Flatten()
             }
         }
 
-        if((int) NOb->texcoords.size() == 1 && ((TOb->texcoords.size() == 1
-            && TOb->texcoords[0] != NOb->texcoords[0]) || TOb->texcoords.size() > 1)) {
-                // Expand my texcoords.
-                f3Vector col = NOb->texcoords[0];
-                NOb->texcoords.clear();
-                NOb->texcoords.insert(NOb->texcoords.begin(), NOb->verts.size(), col);
+        if ((int)NOb->texcoords.size() == 1 && ((TOb->texcoords.size() == 1 && TOb->texcoords[0] != NOb->texcoords[0]) || TOb->texcoords.size() > 1)) {
+            // Expand my texcoords.
+            f3Vector col = NOb->texcoords[0];
+            NOb->texcoords.clear();
+            NOb->texcoords.insert(NOb->texcoords.begin(), NOb->verts.size(), col);
         }
 
-        if((int) NOb->texcoords.size() != 1) {
-            if((int) TOb->texcoords.size() == 1) {
+        if ((int)NOb->texcoords.size() != 1) {
+            if ((int)TOb->texcoords.size() == 1) {
                 // Expand its texcoords.
                 f3Vector col = TOb->texcoords[0];
                 NOb->texcoords.insert(NOb->texcoords.end(), TOb->verts.size(), col);
-            } else if(TOb->texcoords.size() == 0) {
-                if(NOb->texcoords.size()) {
+            } else if (TOb->texcoords.size() == 0) {
+                if (NOb->texcoords.size()) {
                     // Have to synthesize a bunch of them.
-                    f3Vector col(0,1,0);
+                    f3Vector col(0, 1, 0);
                     NOb->texcoords.insert(NOb->texcoords.end(), TOb->verts.size(), col);
                 }
             } else {
@@ -266,29 +244,24 @@ void Model::Flatten()
         NOb->verts.insert(NOb->verts.end(), TOb->verts.begin(), TOb->verts.end());
     }
 
-    if(Objs.size() > 1) {
-        for(size_t i=1; i<Objs.size(); i++)
-            delete Objs[i];
-        Objs.erase(Objs.begin()+1, Objs.end());
+    if (Objs.size() > 1) {
+        for (size_t i = 1; i < Objs.size(); i++) delete Objs[i];
+        Objs.erase(Objs.begin() + 1, Objs.end());
     }
 
     ASSERT_RM(NOb->verts.size() % 3 == 0, "Must have a multiple of three vertices in TriObject.");
 
-    if(NOb->dcolors.size() > 1)
-        ASSERT_RM(NOb->dcolors.size() == NOb->verts.size(), "Bad dcolors.size()");
+    if (NOb->dcolors.size() > 1) ASSERT_RM(NOb->dcolors.size() == NOb->verts.size(), "Bad dcolors.size()");
 
-    if(NOb->normals.size() > 1)
-        ASSERT_RM(NOb->normals.size() == NOb->verts.size(), "Bad normals.size()");
+    if (NOb->normals.size() > 1) ASSERT_RM(NOb->normals.size() == NOb->verts.size(), "Bad normals.size()");
 
-    if(NOb->texcoords.size() > 1)
-        ASSERT_RM(NOb->texcoords.size() == NOb->verts.size(), "Bad texcoords.size()");
+    if (NOb->texcoords.size() > 1) ASSERT_RM(NOb->texcoords.size() == NOb->verts.size(), "Bad texcoords.size()");
 }
 
 void Model::Dump() const
 {
-    cerr << "Dumping Model ObjId: " << ObjID << "\nModel BBox: " << Box << endl
-        << "NumObjects: " << int(Objs.size()) << endl << endl;
-    for(int i=0; i<(int)Objs.size(); i++) {
+    cerr << "Dumping Model ObjId: " << ObjID << "\nModel BBox: " << Box << endl << "NumObjects: " << int(Objs.size()) << endl << endl;
+    for (int i = 0; i < (int)Objs.size(); i++) {
         cerr << "Object index: " << i << endl;
         Objs[i]->Dump();
     }
@@ -298,18 +271,18 @@ void Model::RebuildBBox()
 {
     Box.Reset();
 
-    for(int i=0; i<(int)Objs.size(); i++) {
+    for (int i = 0; i < (int)Objs.size(); i++) {
         Objs[i]->RebuildBBox();
         Box += Objs[i]->Box;
     }
 }
 
 // Also rebuilds the BBox.
-void Model::ApplyTransform(Matrix44<typename f3Vector::ElType> &Mat)
+void Model::ApplyTransform(Matrix44<typename f3Vector::ElType>& Mat)
 {
     Box.Reset();
 
-    for(int i=0; i< (int)Objs.size(); i++) {
+    for (int i = 0; i < (int)Objs.size(); i++) {
         Objs[i]->ApplyTransform(Mat);
         Box += Objs[i]->Box;
     }
@@ -317,56 +290,47 @@ void Model::ApplyTransform(Matrix44<typename f3Vector::ElType> &Mat)
 
 void Model::GenColors()
 {
-    for(int i=0; i< (int)Objs.size(); i++)
-        Objs[i]->GenColors();
+    for (int i = 0; i < (int)Objs.size(); i++) Objs[i]->GenColors();
 }
 
 void Model::GenNormals()
 {
-    for(int i=0; i< (int)Objs.size(); i++)
-        Objs[i]->GenNormals();
+    for (int i = 0; i < (int)Objs.size(); i++) Objs[i]->GenNormals();
 }
 
 void Model::GenTexCoords()
 {
-    for(int i=0; i< (int)Objs.size(); i++)
-        Objs[i]->GenTexCoords();
+    for (int i = 0; i < (int)Objs.size(); i++) Objs[i]->GenTexCoords();
 }
 
 void Model::GenTangents()
 {
-    for(int i=0; i< (int)Objs.size(); i++)
-        Objs[i]->GenTangents();
+    for (int i = 0; i < (int)Objs.size(); i++) Objs[i]->GenTangents();
 }
 
 void Model::RemoveColors()
 {
-    for(int i=0; i< (int)Objs.size(); i++)
-        Objs[i]->RemoveColors();
+    for (int i = 0; i < (int)Objs.size(); i++) Objs[i]->RemoveColors();
 }
 
 void Model::RemoveNormals()
 {
-    for(int i=0; i< (int)Objs.size(); i++)
-        Objs[i]->RemoveNormals();
+    for (int i = 0; i < (int)Objs.size(); i++) Objs[i]->RemoveNormals();
 }
 
 void Model::RemoveTexCoords()
 {
-    for(int i=0; i< (int)Objs.size(); i++)
-        Objs[i]->RemoveTexCoords();
+    for (int i = 0; i < (int)Objs.size(); i++) Objs[i]->RemoveTexCoords();
 }
 
 void Model::RemoveTangents()
 {
-    for(int i=0; i< (int)Objs.size(); i++)
-        Objs[i]->RemoveTangents();
+    for (int i = 0; i < (int)Objs.size(); i++) Objs[i]->RemoveTangents();
 }
 
 void Model::FixFacing()
 {
-    for(int i=0; i< (int)Objs.size(); i++) {
-        if(Objs[i]->ObjectType == DMC_MESH_OBJECT)
-            ((Mesh *)Objs[i])->FixFacing();
+    for (int i = 0; i < (int)Objs.size(); i++) {
+        if (Objs[i]->ObjectType == DMC_MESH_OBJECT) ((Mesh*)Objs[i])->FixFacing();
     }
 }
