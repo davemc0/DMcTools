@@ -13,10 +13,10 @@
 #define HAS_ATTRIBS 0x80
 
 struct AVertex : public Vertex {
-    f3Vector Col;
-    f3Vector Nor;
-    f3Vector Tex;
-    f3Vector Tan;
+    f3vec Col;
+    f3vec Nor;
+    f3vec Tex;
+    f3vec Tan;
 
     DMC_DECL ~AVertex()
     {
@@ -54,10 +54,10 @@ struct AEdge : public Edge {
 };
 
 struct AFace : public Face {
-    f3Vector Col;
-    f3Vector Nor;
-    f3Vector Tex;
-    f3Vector Tan;
+    f3vec Col;
+    f3vec Nor;
+    f3vec Tex;
+    f3vec Tan;
 
     DMC_DECL ~AFace()
     {

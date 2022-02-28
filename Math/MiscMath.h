@@ -5,11 +5,8 @@
 
 #pragma once
 
-// For suppressing windows.h definitions of min and max.
-#define NOMINMAX
-
 #include "Util/Utils.h"
-#include "toolconfig.h"
+#include "Util/toolconfig.h"
 
 #include <cfloat>
 #include <cmath>
@@ -97,7 +94,7 @@ template <class T> DMC_DECL T Saturate(const T d) { return d <= 0 ? 0 : (d >= 1 
 
 template <class T> DMC_DECL T Round(const T d)
 {
-    // round appears to be missing in VS 2012 but is in 2013.
+    // Round appears to be missing in VS 2012 but is in 2013.
     return floor(d + static_cast<T>(0.5));
 }
 

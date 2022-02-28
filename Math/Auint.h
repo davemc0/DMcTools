@@ -5,9 +5,10 @@
 
 #pragma once
 
-#include "toolconfig.h"
+#include "Util/toolconfig.h"
 
 #include <cstdio>
+#include <iostream>
 #include <vector>
 
 class auint {
@@ -27,7 +28,7 @@ public:
         char num[100];
         sprintf(num, "%d", x);
         int len = strlen(num);
-        cerr << "x" << num << " " << len << endl;
+        std::cerr << "x" << num << " " << len << std::endl;
 
         for (int i = 0; i < len; i++) val.push_back(num[i] - '0');
     }

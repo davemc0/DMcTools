@@ -46,7 +46,7 @@ struct saveParams {
     bool monochrome;
 };
 
-// baseImage is used to give commonality to all images. This lets them be passed around as a baseImage*.
+// BaseImage is used to give commonality to all images. This lets them be passed around as a baseImage*.
 // The functions in the base class should be sufficient to allow all operations that don't depend on the image's datatype.
 // For example, calling OpenGL's glTexImage2D() should be doable with just the baseImage.
 // Other things it's been wanted for: accessing members to print their values, get the pixel data pointer for loading and saving.

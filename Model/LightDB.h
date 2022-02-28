@@ -1,5 +1,5 @@
 //////////////////////////////////////////////////////////////////////
-// LightDB.h - Represent a Light and a list of Lights
+// LightInfo.h - Represent a Light and a list of Lights
 //
 // Copyright David K. McAllister, July 1999.
 
@@ -14,11 +14,11 @@ struct LightInfo {
     bool Enabled;
     int LightID;   // This is the OpenGL Light object ID.
     int LightType; // 0 = Directional, 1 = Point, 2 = Spot.
-    f3Vector::ElType Intensity;
-    f3Vector Color;
-    f3Vector Position; // Direction or location.
-    f3Vector::ElType DropOffRate;
-    f3Vector::ElType CutOffAngle;
+    f3vec::ElType Intensity;
+    f3vec Color;
+    f3vec Position; // Direction or location.
+    f3vec::ElType DropOffRate;
+    f3vec::ElType CutOffAngle;
 
     DMC_DECL LightInfo()
     {
@@ -27,8 +27,8 @@ struct LightInfo {
         LightID = -1;
         LightType = -1;
         Intensity = 1;
-        Color = f3Vector(1, 1, 1);
-        Position = f3Vector(0, 0, 1);
+        Color = f3vec(1, 1, 1);
+        Position = f3vec(0, 0, 1);
         DropOffRate = 0;
         CutOffAngle = 0.785398;
     }

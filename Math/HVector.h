@@ -141,7 +141,7 @@ public:
     // with the given standard deviation.
     HVector<Elem_T>& nrand(const Elem_T sigma = 1.0);
 
-    DMC_DECL Elem_T length2() const
+    DMC_DECL Elem_T lenSqr() const
     {
         ASSERT_R(size() > 0);
 
@@ -151,7 +151,7 @@ public:
         return l2;
     }
 
-    DMC_DECL Elem_T length() const { return dmcm::Sqrt(length2()); }
+    DMC_DECL Elem_T length() const { return dmcm::Sqrt(lenSqr()); }
 
     friend HMatrix<Elem_T> OuterProd(const HVector<Elem_T>& A, const HVector<Elem_T>& B);
 

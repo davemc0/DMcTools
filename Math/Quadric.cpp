@@ -6,9 +6,9 @@
 
 #include "Math/Quadric.h"
 
-template <class Fl_T> bool Quadric3<Fl_T>::FindMin(t3Vector<Fl_T>& p, Fl_T SingularityThresh) const
+template <class Vec_T> bool Quadric3<Vec_T>::FindMin(Vec_T& p, typename Vec_T::ElType SingularityThresh) const
 {
-    Matrix44<Fl_T> M(matrix44());
+    Matrix44<Vec_T> M(matrix44());
 
     // This makes sure we get nearly singular matrices.
     M.SetSingularityThreshold(SingularityThresh);
@@ -30,8 +30,8 @@ template <class Fl_T> bool Quadric3<Fl_T>::FindMin(t3Vector<Fl_T>& p, Fl_T Singu
 
     return (dmcm::isFinite(p.x) && dmcm::isFinite(p.y) && dmcm::isFinite(p.z));
 }
-template bool Quadric3<float>::FindMin(t3Vector<float>& p, float SingularityThresh) const;
-template bool Quadric3<double>::FindMin(t3Vector<double>& p, double SingularityThresh) const;
+template bool Quadric3<f3vec>::FindMin(f3vec& p, float SingularityThresh) const;
+template bool Quadric3<d3vec>::FindMin(d3vec& p, double SingularityThresh) const;
 
 // Use quadric approximation - infinite lines
 //
@@ -78,30 +78,30 @@ template bool Quadric3<double>::FindMin(t3Vector<double>& p, double SingularityT
 // Z*2*((1 -vz^2)*Dz - (vz*vx)*Dx - (vz*vy)*Dy) +
 // Dx^2 + Dy^2 + Dz^2
 
-template <class Fl_T> void Quadric3<Fl_T>::CreateLine(const t3Vector<Fl_T>& o, const t3Vector<Fl_T>& p1)
+template <class Vec_T> void Quadric3<Vec_T>::CreateLine(const Vec_T& o, const Vec_T& p1)
 {
-    t3Vector<Fl_T> v = p1 - o;
+    Vec_T v = p1 - o;
     v.normalize();
 
     // Compute the quadric for this guy.
 
-    Fl_T Dov = Dot(o, v);
+    ElType Dov = dot(o, v);
 
-    Fl_T A, B, C, D, E, F, G, H, I, J;
+    ElType A, B, C, D, E, F, G, H, I, J;
 
-    Fl_T vx2m1 = 1 - v.x * v.x;
-    Fl_T vy2m1 = 1 - v.y * v.y;
-    Fl_T vz2m1 = 1 - v.z * v.z;
+    ElType vx2m1 = 1 - v.x * v.x;
+    ElType vy2m1 = 1 - v.y * v.y;
+    ElType vz2m1 = 1 - v.z * v.z;
 
-    Fl_T vxvy = v.x * v.y;
-    Fl_T vxvz = v.x * v.z;
-    Fl_T vyvz = v.y * v.z;
+    ElType vxvy = v.x * v.y;
+    ElType vxvz = v.x * v.z;
+    ElType vyvz = v.y * v.z;
 
-    Fl_T Dx = Dov * v.x - o.x;
-    Fl_T Dy = Dov * v.y - o.y;
-    Fl_T Dz = Dov * v.z - o.z;
+    ElType Dx = Dov * v.x - o.x;
+    ElType Dy = Dov * v.y - o.y;
+    ElType Dz = Dov * v.z - o.z;
 
-    Fl_T mixedMid = v.x * v.x + v.y * v.y + v.z * v.z - 2;
+    ElType mixedMid = v.x * v.x + v.y * v.y + v.z * v.z - 2;
 
     A = vx2m1 * vx2m1 + vxvy * vxvy + vxvz * vxvz; // X^2
     B = vy2m1 * vy2m1 + vxvy * vxvy + vyvz * vyvz; // Y^2
@@ -128,7 +128,7 @@ template <class Fl_T> void Quadric3<Fl_T>::CreateLine(const t3Vector<Fl_T>& o, c
     vals[0] = A;
     vals[1] = B;
     vals[2] = C;
-    vals[3] = J; // constant coef...
+    vals[3] = J; // Constant coef...
 
     vals[4] = D * 0.5;
     vals[5] = E * 0.5;
@@ -138,5 +138,5 @@ template <class Fl_T> void Quadric3<Fl_T>::CreateLine(const t3Vector<Fl_T>& o, c
     vals[8] = H * 0.5;
     vals[9] = I * 0.5;
 }
-template void Quadric3<float>::CreateLine(const t3Vector<float>& o, const t3Vector<float>& p1);
-template void Quadric3<double>::CreateLine(const t3Vector<double>& o, const t3Vector<double>& p1);
+template void Quadric3<f3vec>::CreateLine(const f3vec& o, const f3vec& p1);
+template void Quadric3<d3vec>::CreateLine(const d3vec& o, const d3vec& p1);

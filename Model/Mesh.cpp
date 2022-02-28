@@ -11,8 +11,7 @@
 
 using namespace std;
 
-// The factory functions create an item of the correct type,
-// but return it as the base class.
+// The factory functions create an item of the correct type, but return it as the base class.
 Vertex* VertexFactory() { return new Vertex; }
 
 Edge* EdgeFactory() { return new Edge; }
@@ -26,16 +25,16 @@ Edge* AEdgeFactory() { return new AEdge; }
 Face* AFaceFactory() { return new AFace; }
 
 // Return true if vector is bad.
-DMC_DECL bool CheckVec(const f3Vector& V)
+DMC_DECL bool CheckVec(const f3vec& V)
 {
-    f3Vector::ElType len2 = V.length2();
+    f3vec::ElType len2 = V.lenSqr();
     return (len2 < 0.97 || len2 > 1.03 || !dmcm::isFinite(V.x) || !dmcm::isFinite(V.y) || !dmcm::isFinite(V.z));
 }
 
 // Return true if vectors are unequal.
-DMC_DECL bool CompareVecs(const f3Vector& V0, const f3Vector& V1, f3Vector::ElType Eps = 1e-1)
+DMC_DECL bool CompareVecs(const f3vec& V0, const f3vec& V1, f3vec::ElType Eps = 1e-1)
 {
-    f3Vector F = Abs(CompDiv(V0, V1) - 1.);
+    f3vec F = abs((V0 / V1) - 1.);
     bool bad = F.x > Eps || F.y > Eps || F.z > Eps;
     WARN_D(!bad, F);
     return bad;
@@ -44,13 +43,13 @@ DMC_DECL bool CompareVecs(const f3Vector& V0, const f3Vector& V1, f3Vector::ElTy
 // The single-element interface.
 
 // Given a vertex, find a vertex in the edge list that should be adjacent.
-Vertex* Mesh::FindVertexInEdgeList(const vector<Edge*>& Edg, const f3Vector& V, Edge*& e) const
+Vertex* Mesh::FindVertexInEdgeList(const vector<Edge*>& Edg, const f3vec& V, Edge*& e) const
 {
     for (int j = 0; j < (int)Edg.size(); j++) {
-        if (VecEq(Edg[j]->v0->V, V, dmcm::Sqr(MeshMaxDist))) {
+        if (isNear(Edg[j]->v0->V, V, dmcm::Sqr(MeshMaxDist))) {
             e = Edg[j];
             return Edg[j]->v0;
-        } else if (VecEq(Edg[j]->v1->V, V, dmcm::Sqr(MeshMaxDist))) {
+        } else if (isNear(Edg[j]->v1->V, V, dmcm::Sqr(MeshMaxDist))) {
             e = Edg[j];
             return Edg[j]->v1;
         }
@@ -112,12 +111,12 @@ Mesh::~Mesh()
 
 // Import the incoming TriObject into this Mesh.
 // This Mesh may either be populated or not.
-void Mesh::ImportTriObject(const TriObject& Ob, f3Vector::ElType MeshDistFactor, Vertex* (*VF)(), Edge* (*EF)(), Face* (*FF)())
+void Mesh::ImportTriObject(const TriObject& Ob, f3vec::ElType MeshDistFactor, Vertex* (*VF)(), Edge* (*EF)(), Face* (*FF)())
 {
     INFO("Converting TriObject to Mesh.");
 
     // Set the MeshMaxDist relative to the bounding box.
-    if (MeshDistFactor >= 0) MeshMaxDist = (Ob.Box.MaxV - Ob.Box.MinV).length() * MeshDistFactor;
+    if (MeshDistFactor >= 0) MeshMaxDist = Ob.Box.extent().length() * MeshDistFactor;
 
     ASSERT_R(Ob.PrimType == L_TRIANGLES);
     ASSERT_RM(Ob.verts.size() % 3 == 0, "TriObject must be multiple of three vertices.");
@@ -276,11 +275,11 @@ void Mesh::ExportTriObject(TriObject& Ob, unsigned int AcceptedAttribs)
     Ob.PrimType = L_TRIANGLES;
     for (Face* F = Faces; F; F = F->next) {
         Ob.verts.push_back(F->v0->V);
-        Ob.Box += F->v0->V;
+        Ob.Box.grow(F->v0->V);
         Ob.verts.push_back(F->v1->V);
-        Ob.Box += F->v1->V;
+        Ob.Box.grow(F->v1->V);
         Ob.verts.push_back(F->v2->V);
-        Ob.Box += F->v2->V;
+        Ob.Box.grow(F->v2->V);
 
         // Export color, texture coordinates, and normals.
         if (VertexType & AcceptedAttribs & OBJ_COLORS) {
@@ -332,26 +331,26 @@ void Mesh::ExportRenderObject(RenderObject& Ob, unsigned int AcceptedAttribs)
         VIndMapper[V] = ind;
 
         // Make the data arrays.
-        Ob.verts.push_back(f3Vector(V->V));
+        Ob.verts.push_back(f3vec(V->V));
 
-        if (Ob.VertexType & OBJ_COLORS) Ob.dcolors.push_back(f3Vector(V->Col));
+        if (Ob.VertexType & OBJ_COLORS) Ob.dcolors.push_back(f3vec(V->Col));
 
         if (Ob.VertexType & OBJ_NORMALS) {
             if (CheckVec(V->Nor)) {
                 WARN_D(1, "Export: BadNorm: " << Ob.Name << " " << V->Nor);
-                V->Nor = f3Vector(0, 0, 0);
+                V->Nor = f3vec(0, 0, 0);
             }
-            Ob.normals.push_back(f3Vector(V->Nor));
+            Ob.normals.push_back(f3vec(V->Nor));
         }
 
-        if (Ob.VertexType & OBJ_TEXCOORDS) Ob.texcoords.push_back(f3Vector(V->Tex));
+        if (Ob.VertexType & OBJ_TEXCOORDS) Ob.texcoords.push_back(f3vec(V->Tex));
 
         if (Ob.VertexType & OBJ_TANGENTS) {
             if (CheckVec(V->Tan)) {
                 WARN_D(1, "Export: BadTan: " << Ob.Name << " " << V->Tan);
-                V->Tan = f3Vector(0, 0, 0);
+                V->Tan = f3vec(0, 0, 0);
             }
-            Ob.tangents.push_back(f3Vector(V->Tan));
+            Ob.tangents.push_back(f3vec(V->Tan));
         }
     }
 
@@ -439,11 +438,11 @@ void Mesh::FixFacing()
 }
 
 // Debug: See if all the vertices are inside the box.
-bool Mesh::CheckSize(const BBox<f3Vector>& Box)
+bool Mesh::CheckSize(const Aabb& Box)
 {
     bool bad = false;
     for (Vertex* V = Verts; V; V = V->next) {
-        if (!Box.Inside(V->V)) {
+        if (!Box.contains(V->V)) {
             WARN_D(1, "Vertex out of box: " << V->V);
             bad = true;
         }
@@ -668,7 +667,7 @@ void Mesh::GenColorsFromFaceColors()
 
     // Accumulate the facet Colors into vertex Colors.
     for (Vertex* V = Verts; V; V = V->next) {
-        f3Vector AccNorm(static_cast<AFace*>(V->Faces[0])->Col);
+        f3vec AccNorm(static_cast<AFace*>(V->Faces[0])->Col);
         // Loop on all the faces of this vertex.
         for (size_t k = 1; k < V->Faces.size(); k++) { AccNorm += static_cast<AFace*>(V->Faces[k])->Col; }
 
@@ -686,10 +685,10 @@ void Mesh::GenFaceNormals()
 
     // Generate the facet normals.
     for (AFace* F = (AFace*)Faces; F; F = (AFace*)F->next) {
-        f3Vector P0 = F->v0->V - F->v1->V;
-        f3Vector P1 = F->v2->V - F->v1->V;
+        f3vec P0 = F->v0->V - F->v1->V;
+        f3vec P1 = F->v2->V - F->v1->V;
 
-        f3Vector N = f3Vector(Cross(P1, P0));
+        f3vec N = f3vec(Cross(P1, P0));
         N.normalize();
 
         F->Nor = N;
@@ -799,7 +798,7 @@ void Mesh::GenNormalsFromFaceNormals()
     ASSERT_RM(FaceType & HAS_ATTRIBS, "Mesh must have attributes.");
     ASSERT_RM(FaceType & OBJ_NORMALS, "Mesh must have facet normals.");
 
-    f3Vector::ElType CosCrease = cos(creaseAngle);
+    f3vec::ElType CosCrease = cos(creaseAngle);
 
     bool ReDo = false;
     int i = 0;
@@ -812,7 +811,7 @@ void Mesh::GenNormalsFromFaceNormals()
 
         Vertex* SplitV = NULL;
 
-        f3Vector AccNorm(((AFace*)(V->Faces[0]))->Nor);
+        f3vec AccNorm(((AFace*)(V->Faces[0]))->Nor);
         // Loop on all the rest of the faces of this vertex. Accumulate those with
         // an angle less than creaseAngle into a smooth normal.
         for (int k = 1; k < (int)V->Faces.size();) {
@@ -820,10 +819,10 @@ void Mesh::GenNormalsFromFaceNormals()
             ASSERT_R(F);
 #if 1
             // This is for if crease angle and vertex splitting works.
-            f3Vector AccNormN = AccNorm;
+            f3vec AccNormN = AccNorm;
             AccNormN.normalize();
 
-            f3Vector::ElType AngDot = Dot(AccNormN, F->Nor);
+            f3vec::ElType AngDot = dot(AccNormN, F->Nor);
             if (AngDot > CosCrease) {
                 // Vertex is ok.
                 AccNorm += F->Nor;
@@ -880,12 +879,12 @@ void Mesh::GenTexCoords()
         // Select which dimensions become the s and t coords.
         RebuildBBox();
 
-        Matrix44<typename f3Vector::ElType> perm;
+        Matrix44<f3vec> perm;
         perm.IsIdentity() = false;
         perm.InverseValid() = false;
         perm(0, 0) = 0;
         perm(1, 1) = 0;
-        f3Vector Span = Box.MaxV - Box.MinV;
+        f3vec Span = Box.hi() - Box.lo();
         if (Span.x >= Span.y && Span.x >= Span.z) {
             perm(0, 0) = 1;
             if (Span.y >= Span.z)
@@ -906,12 +905,12 @@ void Mesh::GenTexCoords()
                 perm(1, 1) = 1;
         }
 
-        Matrix44<typename f3Vector::ElType> TmpTex = TexTransform;
+        Matrix44<f3vec> TmpTex = TexTransform;
 
         TmpTex *= perm;
 
-        TmpTex.Scale(1. / Box.MaxDim());
-        TmpTex.Translate(-Box.MinV);
+        TmpTex.Scale(1. / Box.extent().max());
+        TmpTex.Translate(-Box.lo());
 
         // Transform all the vertices by the matrix to gen. texcoords.
         for (AVertex* V = (AVertex*)Verts; V; V = (AVertex*)V->next) { V->Tex = TmpTex * V->V; }
@@ -928,16 +927,15 @@ void Mesh::GenTexCoords()
 }
 
 // Sometimes we get a bad tangent from all the vertices having the same U texcoord.
-DMC_DECL f3Vector ComputeFaceTangent(const f3Vector& P1, const f3Vector& P2, const f3Vector& P3, const f3Vector& T1, const f3Vector& T2, const f3Vector& T3,
-                                     const f3Vector& N)
+DMC_DECL f3vec ComputeFaceTangent(const f3vec& P1, const f3vec& P2, const f3vec& P3, const f3vec& T1, const f3vec& T2, const f3vec& T3, const f3vec& N)
 {
-    f3Vector Vec1 = P3 - P2;
-    f3Vector Vec2 = P1 - P2;
-    f3Vector::ElType dU1 = T3.x - T2.x;
-    f3Vector::ElType dU2 = T1.x - T2.x;
-    f3Vector V = Vec2 * dU1 - Vec1 * dU2; // Opposite of the article.
+    f3vec Vec1 = P3 - P2;
+    f3vec Vec2 = P1 - P2;
+    f3vec::ElType dU1 = T3.x - T2.x;
+    f3vec::ElType dU2 = T1.x - T2.x;
+    f3vec V = Vec2 * dU1 - Vec1 * dU2; // Opposite of the article.
     V.normalize();
-    f3Vector U = Cross(V, N);
+    f3vec U = Cross(V, N);
     U.normalize();
     return U;
 }
@@ -971,7 +969,7 @@ void Mesh::GenTangentsFromFaceTangents()
     for (AVertex* V = (AVertex*)Verts; V; V = (AVertex*)V->next) {
         ASSERT_R(V->Faces.size());
 
-        f3Vector AccTan(((AFace*)(V->Faces[0]))->Tan);
+        f3vec AccTan(((AFace*)(V->Faces[0]))->Tan);
         // Loop on all the faces of this vertex.
         for (int k = 1; k < (int)V->Faces.size(); k++) { AccTan += ((AFace*)(V->Faces[k]))->Tan; }
 
@@ -1006,26 +1004,26 @@ void Mesh::GenTangents()
 
 void Mesh::RebuildBBox()
 {
-    Box.Reset();
+    Box.reset();
 
-    for (Vertex* V = Verts; V; V = V->next) Box += V->V;
+    for (Vertex* V = Verts; V; V = V->next) Box.grow(V->V);
 }
 
-void Mesh::ApplyTransform(Matrix44<typename f3Vector::ElType>& Mat)
+void Mesh::ApplyTransform(Matrix44<f3vec>& Mat)
 {
     // XXX If this object is part of a model, the model bbox should also be recomputed.
-    Box.Reset();
+    Box.reset();
 
     for (Vertex* V = Verts; V; V = V->next) {
         V->V = Mat * V->V;
-        Box += V->V;
+        Box.grow(V->V);
     }
 
     // XXX Need to transform the normals and tangents.
     ASSERT_R(!(VertexType & (OBJ_NORMALS | OBJ_TANGENTS)));
 }
 
-void Mesh::ApplyTextureTransform(Matrix44<typename f3Vector::ElType>& Mat)
+void Mesh::ApplyTextureTransform(Matrix44<f3vec>& Mat)
 {
     ASSERT_R(VertexType & OBJ_TEXCOORDS);
 

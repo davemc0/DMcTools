@@ -1,5 +1,5 @@
 //////////////////////////////////////////////////////////////////////
-// CameraDB.h - Represent a Camera and a list of Cameras
+// CameraInfo.h - Represent a Camera and a list of Cameras
 //
 // Copyright David K. McAllister, July 1999.
 
@@ -11,7 +11,7 @@
 #include <vector>
 
 class CameraInfo {
-    Matrix44<typename f3Vector::ElType> WorldToEye; // This matrix, usually orthonormal, defines the camera pose.
+    Matrix44<f3vec> WorldToEye; // This matrix, usually orthonormal, defines the camera pose.
 
 public:
 #define DMC_CAM_ORTHO 0
@@ -21,15 +21,15 @@ public:
     int CameraType; // 0 = Orthographic, 1 = Perspective.
 
     // XXX These are only used for loading from VRML.
-    f3Vector Position;
-    f3Vector Orientation;
-    f3Vector::ElType OrientationTh;
-    f3Vector::ElType FocalDistance;
-    f3Vector::ElType HeightValue;
+    f3vec Position;
+    f3vec Orientation;
+    f3vec::ElType OrientationTh;
+    f3vec::ElType FocalDistance;
+    f3vec::ElType HeightValue;
 
     // The projection matrix
-    f3Vector::ElType wL, wR, wB, wT; // WINDOW EXTENTS DEFINED AS A RECT ON NearPlane
-    f3Vector::ElType Near, Far;      // DISTANCES TO NEAR AND FAR PLANES (IN VIEWING DIR)
+    f3vec::ElType wL, wR, wB, wT; // WINDOW EXTENTS DEFINED AS A RECT ON NearPlane
+    f3vec::ElType Near, Far;      // DISTANCES TO NEAR AND FAR PLANES (IN VIEWING DIR)
 
     bool ProjectionValid, ViewValid; // Tells whether the camera data is valid.
 
@@ -38,8 +38,8 @@ public:
         CameraName = "NoName";
         CameraID = -1;
         CameraType = -1;
-        Position = f3Vector(0, 0, 1);
-        Orientation = f3Vector(0, 0, 1);
+        Position = f3vec(0, 0, 1);
+        Orientation = f3vec(0, 0, 1);
         OrientationTh = 0;
         FocalDistance = 5;
         HeightValue = 0.785398; // Default is 2 for Orthographic.
@@ -47,32 +47,32 @@ public:
         ComputePerspective(dmcm::DtoR(45.), 1, 1, 1000);
     }
 
-    Matrix44<typename f3Vector::ElType> GetProjectionMatrix();
-    Matrix44<typename f3Vector::ElType> GetViewMatrix() { return WorldToEye; }
+    Matrix44<f3vec> GetProjectionMatrix();
+    Matrix44<f3vec> GetViewMatrix() { return WorldToEye; }
 
-    Matrix44<typename f3Vector::ElType>& ViewMat() { return WorldToEye; }
+    Matrix44<f3vec>& ViewMat() { return WorldToEye; }
 
-    f3Vector GetX();
-    f3Vector GetY();
-    f3Vector GetZ();
-    f3Vector GetPos();
-    void GetFrame(f3Vector& XCol, f3Vector& YCol, f3Vector& ZCol, f3Vector& OCol);
-    f3Vector::ElType GetFOVX(); // Returns vertical FOV in radians.
-    f3Vector::ElType GetFOVY(); // Returns vertical FOV in radians.
+    f3vec GetX();
+    f3vec GetY();
+    f3vec GetZ();
+    f3vec GetPos();
+    void GetFrame(f3vec& XCol, f3vec& YCol, f3vec& ZCol, f3vec& OCol);
+    f3vec::ElType GetFOVX(); // Returns vertical FOV in radians.
+    f3vec::ElType GetFOVY(); // Returns vertical FOV in radians.
 
     // Switch to a Perspective camera and set its params
-    void ComputePerspective(f3Vector::ElType fovyRad, f3Vector::ElType aspect, f3Vector::ElType znear, f3Vector::ElType zfar);
+    void ComputePerspective(f3vec::ElType fovyRad, f3vec::ElType aspect, f3vec::ElType znear, f3vec::ElType zfar);
     // Switch to an Ortho camera and set its params
-    void SetOrtho(f3Vector::ElType Wid, f3Vector::ElType Hgt, f3Vector::ElType znear, f3Vector::ElType zfar);
+    void SetOrtho(f3vec::ElType Wid, f3vec::ElType Hgt, f3vec::ElType znear, f3vec::ElType zfar);
 
     // Compute the eight corners of the view frustum
-    void ComputeCamPoints(f3Vector V[8]);
+    void ComputeCamPoints(f3vec V[8]);
 
     // Calculate the six planes for a camera. User must have prealloced an array
     // of 24 floats (6 planes * 4 coeffs each).
-    void ComputeCamPlanes(const f3Vector V[8], f3Vector::ElType P[][4]);
+    void ComputeCamPlanes(const f3vec V[8], f3vec::ElType P[][4]);
 
-    void Xform(const Matrix44<typename f3Vector::ElType>& M);
+    void Xform(const Matrix44<f3vec>& M);
 
     void VRMLtoMatrix();
 

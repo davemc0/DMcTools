@@ -474,7 +474,7 @@ template <class Image_T, class KernelImage_T> void ConvolveImage(Image_T& Out, c
         ConvolveMiddle(Out, In, Kernel); // If kernel size is not known at compile time.
 }
 
-// filtWid x filtWid gaussian blur for any image type.
+// FiltWid x filtWid gaussian blur for any image type.
 // filtWid must be odd.
 template <class Image_T> void GaussianBlur(Image_T& Out, const Image_T& In, const int filtWid, const typename Image_T::PixType::MathType stdev)
 {

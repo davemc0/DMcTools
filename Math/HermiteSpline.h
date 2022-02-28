@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "toolconfig.h"
+#include "Util/toolconfig.h"
 
 #include <vector>
 
@@ -48,7 +48,7 @@ public:
     void insertData(const int, const T&, const T&);
     void removeData(const int);
 
-    T sample(Param) const;     // sample with pre-computed basis functions
+    T sample(Param) const;     // Sample with pre-computed basis functions
     T operator()(Param) const; // 0 -> (nset-1)
 
     // This provides no way to access the tangent.
@@ -186,8 +186,7 @@ template <class T, class Param> void DMC_DECL HermiteSpline<T, Param>::SampleBas
     }
 }
 
-// This function solves the tridiagonal matrix for the complete
-// parametric spline. Solve the (t,x) and (t,y) systems simultaneously.
+// This function solves the tridiagonal matrix for the complete parametric spline. Solves the (t,x) and (t,y) systems simultaneously.
 template <class T, class Param> void DMC_DECL HermiteSpline<T, Param>::CompleteSpline(bool GenEndTangents)
 {
     ASSERT_D(nset == d.size());

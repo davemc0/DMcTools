@@ -3,7 +3,7 @@
 //
 // Copyright David K. McAllister, Jan. 2000.
 
-// This class extends the Vector class with the functions needed to store it in a K-D Tree.
+// This class extends the f3vec class with the functions needed to store it in a K-D Tree.
 // You generally make a KDBoxTree<KDBVector> and then add these things to it.
 
 // This class only works with KDBoxTree.
@@ -12,13 +12,13 @@
 
 #include "Math/Vector.h"
 
-class KDBVector : public f3Vector {
+class KDBVector : public f3vec {
 public:
     // Might add things here like normal and coords in spherical map.
 
     KDBVector() {}
 
-    KDBVector(const f3Vector& V) : f3Vector(V) {}
+    KDBVector(const f3vec& V) : f3vec(V) {}
 
     static bool lessX(const KDBVector& a, const KDBVector& b) { return a.x < b.x; }
 
@@ -69,5 +69,5 @@ public:
             return a.y < b.y;
     }
 
-    const f3Vector& vector() const { return *this; }
+    const f3vec& vector() const { return *this; }
 };

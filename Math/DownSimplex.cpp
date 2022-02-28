@@ -55,18 +55,18 @@ DMC_DECL Elem_T TrySimplex(HVector<Elem_T>* p, HVector<Elem_T>& y, HVector<Elem_
 }
 }; // namespace
 
-// p is the points in the simplex.
+// P is the points in the simplex.
 template <class Elem_T>
 Elem_T DownSimplex(HVector<Elem_T>* p, size_t ndim, Elem_T ftol, Elem_T (*funk)(const HVector<Elem_T>&, void*), void* UserData, int& nfunk, const int NMax)
 {
-    // ihi is the point with highest error
+    // Ihi is the point with highest error
     // inhi is the point with next-highest error
     // ilo is the point with lowest error.
     int i, ihi, ilo, inhi;
     size_t mpts = ndim + 1;
     nfunk = 0;
 
-    // y is the error of each point in the simplex.
+    // Y is the error of each point in the simplex.
     HVector<Elem_T> y(mpts);
 
     // Compute initial error of simplex points.

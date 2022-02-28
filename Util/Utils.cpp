@@ -1,11 +1,11 @@
 //////////////////////////////////////////////////////////////////////
-// Utils.cpp - Various utility functions
+// Utils.cpp - convert endian, cpuid stuff, other random stuff
 //
 // Copyright David K. McAllister, 1998.
 
 #include "Util/Utils.h"
 
-#include "toolconfig.h"
+#include "Util/toolconfig.h"
 
 #include <iostream>
 #include <string>

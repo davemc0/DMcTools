@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "toolconfig.h"
+#include "Util/toolconfig.h"
 
 #include <cstdlib>
 #include <sstream>
@@ -43,7 +43,7 @@ struct DMcError {
             std::cerr.flush();                                                                                             \
         }                                                                                                                  \
     }
-// prints msg in debug or release mode
+// Prints msg in debug or release mode
 #define INFO_R(msg)                    \
     {                                  \
         std::cerr << msg << std::endl; \
@@ -78,7 +78,7 @@ struct DMcError {
             std::cerr.flush();                                                                                             \
         }                                                                                                                  \
     }
-// prints msg in debug mode
+// Prints msg in debug mode
 #define INFO(msg)                      \
     {                                  \
         std::cerr << msg << std::endl; \

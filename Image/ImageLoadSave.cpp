@@ -627,10 +627,10 @@ void ImageLoadSave::SaveJPEG(const char* fname) const
 {
     if (Pix == NULL || chan < 1 || wid < 1 || hgt < 1) throw DMcError("Image is not defined. Not saving.");
     if (!fname || !fname[0]) throw DMcError("SaveJPEG: Filename not specified. Not saving.");
-    // if (chan != 1 && chan != 3) throw DMcError("Can only save 1 and 3 channel image as a JPEG.");
+    // Note: A 2 or 4 channel image will have the alpha channel stripped out by the JPEG saver.
 
-    int success = stbi_write_jpg(fname, wid, hgt, chan, Pix, 90);
-    if (!success) throw DMcError("SaveJPEG() failed: can't write to " + string(stbi_failure_reason()) + string(fname));
+    int success = stbi_write_jpg(fname, wid, hgt, chan, Pix, 93);
+    if (!success) throw DMcError("SaveJPEG() failed: can't write to " + string(fname));
 }
 
 //////////////////////////////////////////////////////
@@ -651,7 +651,7 @@ void TiffErrHand(const char* module, const char* fmt, va_list ap)
 
 void ImageLoadSave::LoadTIFF(const char* fname)
 {
-    TIFF* tif; // tif file handler
+    TIFF* tif; // Tif file handler
 
     TIFFSetErrorHandler(TiffErrHand);
 
@@ -789,7 +789,7 @@ void ImageLoadSave::SavePNG(const char* fname) const
     if (Pix == NULL || chan < 1 || wid < 1 || hgt < 1) throw DMcError("Image is not defined. Not saving.");
     if (!fname || !fname[0]) throw DMcError("SavePNG: Filename not specified. Not saving.");
     int success = stbi_write_jpg(fname, wid, hgt, chan, Pix, 90);
-    if (!success) throw DMcError("SavePNG() failed: " + string(stbi_failure_reason()) + string(fname));
+    if (!success) throw DMcError("SavePNG() failed: " + string(fname));
 }
 
 //////////////////////////////////////////////////////
@@ -803,7 +803,7 @@ void ImageLoadSave::LoadMAT(const char* fname)
     MATFile* pmat;
     mxArray* pa;
 
-    // open file and verify its contents with matGetArray
+    // Open file and verify its contents with matGetArray
     pmat = matOpen(fname, "r");
     if (pmat == NULL) throw DMcError("Error opening fname " + string(fname));
 
@@ -936,7 +936,7 @@ void ImageLoadSave::LoadRGBE(const char* fname)
     delete[] helpit;
 }
 
-// int freadscan(register COLOR  *scanline, int len, FILE  *fp) /* read in a scanline */
+// Int freadscan(register COLOR  *scanline, int len, FILE  *fp) /* read in a scanline */
 
 // XXX Here's a global variable. It's totally evil. Use it to set the outgoing exposure.
 float DMcExposureGlobal = 1.0f;

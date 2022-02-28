@@ -60,7 +60,7 @@ template <class vec3_T> DMC_DECL vec3_T OctahedronTo3DNN(const vec3_T& v2)
         return vec3_T(dmcm::CopySign(1, v2.x) * (1 - dmcm::Abs(v2.y)), dmcm::CopySign(1, v2.y) * (1 - dmcm::Abs(v2.x)), z); // -Z
 }
 
-template <class vec3_T> DMC_DECL vec3_T OctahedronTo3D(const vec3_T& v2) { return OctahedronTo3DNN(v2).normal(); }
+template <class vec3_T> DMC_DECL vec3_T OctahedronTo3D(const vec3_T& v2) { return OctahedronTo3DNN(v2).normalized(); }
 
 template <class vec3_T> DMC_DECL vec3_T PyramidTo2DNN(const vec3_T& v3)
 {
@@ -77,7 +77,7 @@ template <class vec3_T> DMC_DECL vec3_T PyramidTo3DNN(const vec3_T& v2)
     return vec3_T(v2.x, v2.y, v2.z > 0 ? -d : d); // Faster on Intel.
 }
 
-template <class vec3_T> DMC_DECL vec3_T PyramidTo3D(const vec3_T& v2) { return PyramidTo3DNN(v2).normal(); }
+template <class vec3_T> DMC_DECL vec3_T PyramidTo3D(const vec3_T& v2) { return PyramidTo3DNN(v2).normalized(); }
 
 template <class vec3_T> DMC_DECL vec3_T CubeTo2D(const vec3_T& v3) {}
 

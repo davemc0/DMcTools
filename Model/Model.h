@@ -13,7 +13,7 @@
 class Model {
 public:
     static TextureDB TexDB; // There is one global texture database. Sorry.
-    BBox<f3Vector> Box;
+    Aabb Box;
 
     // Pointers actually to subclasses of BaseObject.
     std::vector<BaseObject*> Objs;
@@ -43,7 +43,7 @@ public:
     // User creates the object externally, but Model deletes it.
     void InsertObject(BaseObject* NewObj)
     {
-        Box += NewObj->Box;
+        Box.grow(NewObj->Box);
         Objs.push_back(NewObj);
     }
 
@@ -68,7 +68,7 @@ public:
 
     // Transform all subobjects by this matrix.
     // Also rebuilds the BBox.
-    void ApplyTransform(Matrix44<typename f3Vector::ElType>& Mat);
+    void ApplyTransform(Matrix44<f3vec>& Mat);
 
     // Generates the given attribute based on the geometry of the mesh.
     // Sets the OBJ_WHATEVER flag.
@@ -89,9 +89,6 @@ public:
     // Return false on success.
     bool Load(const char* fname, const unsigned int RequiredAttribs = OBJ_ALL, const unsigned int AcceptedAttribs = OBJ_ALL);
     bool Save(const char* fname);
-
-    bool LoadVRML(const char* fname, const unsigned int RequiredAttribs = OBJ_ALL, const unsigned int AcceptedAttribs = OBJ_ALL);
-    bool SaveVRML(const char* fname);
 
     bool LoadOBJ(const char* fname, const unsigned int RequiredAttribs = OBJ_ALL, const unsigned int AcceptedAttribs = OBJ_ALL);
     bool SaveOBJ(const char* fname);

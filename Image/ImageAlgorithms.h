@@ -66,11 +66,11 @@ template <class KernelImage_T> KernelImage_T MakeGaussianKernel(const int N, con
 // Kernel width must be odd. Kernel should be a one channel image of the pixel's MathType.
 template <class Image_T, class KernelImage_T> void ConvolveImage(Image_T& Out, const Image_T& In, const KernelImage_T& Kernel);
 
-// filtWid x filtWid gaussian blur for any image type.
+// FiltWid x filtWid gaussian blur for any image type.
 // filtWid must be odd.
 template <class Image_T> void GaussianBlur(Image_T& Out, const Image_T& In, const int filtWid, const typename Image_T::PixType::MathType stdev);
 
-// filtWid x filtWid gaussian blur for any image type. Each pixel's contribution is further modulated by the color space distance from the target pixel
+// FiltWid x filtWid gaussian blur for any image type. Each pixel's contribution is further modulated by the color space distance from the target pixel
 // filtWid must be odd. Repeat iterations times.
 template <class Image_T>
 void VCD(Image_T& Out, const Image_T& In, const int filtWid, const typename Image_T::PixType::MathType ImageStDev,

@@ -11,17 +11,17 @@ using namespace std;
 
 // Header definition.
 typedef struct TGA_Header_ {
-    unsigned char ImageIDLength;        // length of Identifier String.
+    unsigned char ImageIDLength;        // Length of Identifier String.
     unsigned char CoMapType;            // 0 = no map
-    unsigned char ImgType;              // image type (see below for values)
-    unsigned char Index_lo, Index_hi;   // index of first color map entry
-    unsigned char Length_lo, Length_hi; // number of entries in color map
-    unsigned char CoSize;               // size of color map entry (15,16,24,32)
-    unsigned char X_org_lo, X_org_hi;   // x origin of image
-    unsigned char Y_org_lo, Y_org_hi;   // y origin of image
-    unsigned char Width_lo, Width_hi;   // width of image
-    unsigned char Height_lo, Height_hi; // height of image
-    unsigned char PixelSize;            // pixel size (8,16,24,32)
+    unsigned char ImgType;              // Image type (see below for values)
+    unsigned char Index_lo, Index_hi;   // Index of first color map entry
+    unsigned char Length_lo, Length_hi; // Number of entries in color map
+    unsigned char CoSize;               // Size of color map entry (15,16,24,32)
+    unsigned char X_org_lo, X_org_hi;   // X origin of image
+    unsigned char Y_org_lo, Y_org_hi;   // Y origin of image
+    unsigned char Width_lo, Width_hi;   // Width of image
+    unsigned char Height_lo, Height_hi; // Height of image
+    unsigned char PixelSize;            // Pixel size (8,16,24,32)
     unsigned char Desc;                 // 4 bits are number of attribute bits per pixel
 } TGA_Header;
 
@@ -34,9 +34,9 @@ typedef struct TGA_Header_ {
 #define TGA_RLERGB 10
 #define TGA_RLEMONO 11
 
-#define TGA_DESC_ALPHA_MASK ((unsigned char)0xF) // number of alpha channel bits
-#define TGA_DESC_ORG_MASK ((unsigned char)0x30)  // origin mask
-#define TGA_ORG_BOTTOM_LEFT 0x00                 // origin mask
+#define TGA_DESC_ALPHA_MASK ((unsigned char)0xF) // Number of alpha channel bits
+#define TGA_DESC_ORG_MASK ((unsigned char)0x30)  // Origin mask
+#define TGA_ORG_BOTTOM_LEFT 0x00                 // Origin mask
 #define TGA_ORG_BOTTOM_RIGHT 0x10
 #define TGA_ORG_TOP_LEFT 0x20
 #define TGA_ORG_TOP_RIGHT 0x30
@@ -139,7 +139,7 @@ static int decode_rgb_rle16(const unsigned char* src0, unsigned char* dest0, con
         int count = (*src & 0x7f) + 1; // How many raw pixels or color repeats
         src++;                         // Advance src beyond first byte to next color
 
-        if (dest + count * chan > dest0 + wid * hgt * chan) // prevent from writing out of dest range
+        if (dest + count * chan > dest0 + wid * hgt * chan) // Prevent from writing out of dest range
             count = (dest0 + wid * hgt * chan - dest) / chan;
 
         if (R5G6B5) {
@@ -191,7 +191,7 @@ static int decode_rgb_rle8(const unsigned char* src0, unsigned char* dest0, cons
         int count = (*src & 0x7f) + 1; // How many raw pixels or color repeats
         src++;                         // Advance src beyond first byte to 8-bit color
 
-        if (dest + count * chan > dest0 + wid * hgt * chan) // prevent from writing out of dest range
+        if (dest + count * chan > dest0 + wid * hgt * chan) // Prevent from writing out of dest range
             count = (dest0 + wid * hgt * chan - dest) / chan;
 
         for (int j = 0; j < count; j++) {
@@ -228,7 +228,7 @@ static int decode_rgb_rle24(const unsigned char* src0, unsigned char* dest0, con
         int count = (*src & 0x7f) + 1; // How many raw pixels or color repeats
         src++;                         // Advance src beyond first byte to 24-bit color
 
-        if (dest + count * chan > dest0 + wid * hgt * chan) // prevent from writing out of dest range
+        if (dest + count * chan > dest0 + wid * hgt * chan) // Prevent from writing out of dest range
             count = (dest0 + wid * hgt * chan - dest) / chan;
 
         for (int j = 0; j < count; j++) {
@@ -268,7 +268,7 @@ static int decode_rgb_rle32(const unsigned char* src0, unsigned char* dest0, con
         int count = (*src & 0x7f) + 1; // How many raw pixels or color repeats
         src++;                         // Advance src beyond first byte to 32-bit color
 
-        if (dest + count * chan > dest0 + wid * hgt * chan) // prevent from writing out of dest range
+        if (dest + count * chan > dest0 + wid * hgt * chan) // Prevent from writing out of dest range
             count = (dest0 + wid * hgt * chan - dest) / chan;
 
         for (int j = 0; j < count; j++) {
@@ -533,9 +533,9 @@ void ImageLoadSave::SaveTGA(const char* fname) const
 
     TGA_Header header;
     header.ImageIDLength = 0;
-    header.CoMapType = 0;                                                      // no colormap
-    header.Index_lo = header.Index_hi = 0;                                     // no colormap
-    header.Length_lo = header.Length_hi = header.CoSize = 0;                   // no colormap
+    header.CoMapType = 0;                                                      // No colormap
+    header.Index_lo = header.Index_hi = 0;                                     // No colormap
+    header.Length_lo = header.Length_hi = header.CoSize = 0;                   // No colormap
     header.X_org_lo = header.X_org_hi = header.Y_org_lo = header.Y_org_hi = 0; // 0,0 origin
     header.Width_lo = wid;
     header.Width_hi = wid >> 8;

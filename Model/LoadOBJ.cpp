@@ -15,8 +15,8 @@ namespace {
 struct MatInfo {
     char* Name;
     TexInfo* TexPtr; // This points to the texture database record.
-    f3Vector::ElType Shininess;
-    f3Vector D, S, A, E;
+    f3vec::ElType Shininess;
+    f3vec D, S, A, E;
     bool DColorValid, SColorValid, AColorValid, EColorValid, ShininessValid;
 
     DMC_DECL MatInfo()
@@ -49,21 +49,21 @@ public:
 
 static MaterialDB Mats;
 
-DMC_DECL f3Vector Get2D(char* buf)
+DMC_DECL f3vec Get2D(char* buf)
 {
-    f3Vector::ElType x, y;
+    f3vec::ElType x, y;
     if (2 != sscanf(buf, "%f %f", &x, &y)) { ASSERT_RM(0, "LoadObj parse failure in Get2D"); }
 
-    return f3Vector(x, y, 0);
+    return f3vec(x, y, 0);
 }
 
-DMC_DECL f3Vector Get3D(char* buf)
+DMC_DECL f3vec Get3D(char* buf)
 {
-    f3Vector::ElType x, y, z;
+    f3vec::ElType x, y, z;
 
     if (3 != sscanf(buf, "%f %f %f", &x, &y, &z)) { ASSERT_RM(0, "LoadObj parse failure in Get3D"); }
 
-    return f3Vector(x, y, z);
+    return f3vec(x, y, z);
 }
 
 // Add this file to the global material database.
@@ -120,8 +120,8 @@ void LoadMTL(const char* fname)
     fclose(f);
 }
 
-DMC_DECL bool GetFace(char* OBuf, vector<f3Vector>& tverts, vector<f3Vector>& tnormals, vector<f3Vector>& ttexcoords, vector<f3Vector>& verts,
-                      vector<f3Vector>& normals, vector<f3Vector>& texcoords)
+DMC_DECL bool GetFace(char* OBuf, vector<f3vec>& tverts, vector<f3vec>& tnormals, vector<f3vec>& ttexcoords, vector<f3vec>& verts, vector<f3vec>& normals,
+                      vector<f3vec>& texcoords)
 {
 #define MAX_VERTS 128
 
@@ -259,28 +259,28 @@ bool Model::LoadOBJ(const char* fname, const unsigned int RequiredAttribs, const
     strcpy(Obj->Name, "default");
 
     // These are used over all the groups in the object.
-    vector<f3Vector> ttexcoords, tnormals, tverts;
+    vector<f3vec> ttexcoords, tnormals, tverts;
 
     char TmpBuf[4096];
     while (fgets(TmpBuf, 4096, f)) {
         if (TmpBuf[0] == 'v') {
-            // some type of vertex
+            // Some type of vertex
             switch (TmpBuf[1]) {
-            case 't': // texture coordinate
+            case 't': // Texture coordinate
                 ttexcoords.push_back(Get2D(&TmpBuf[2]));
                 break;
-            case 'n': // normal...
+            case 'n': // Normal...
                 tnormals.push_back(Get3D(&TmpBuf[2]));
                 break;
-            case ' ': // vertex
-            default:  // vertex?
-                const f3Vector& V = Get3D(&TmpBuf[2]);
+            case ' ': // Vertex
+            default:  // Vertex?
+                const f3vec& V = Get3D(&TmpBuf[2]);
                 // cerr << V << endl;
                 tverts.push_back(V);
                 break;
             }
         } else if (TmpBuf[0] == 'f') {
-            // a face
+            // A face
             bool OK = GetFace(&TmpBuf[1], tverts, tnormals, ttexcoords, Obj->verts, Obj->normals, Obj->texcoords);
             ASSERT_RM(OK, "Couldn't get the vertex indices.");
         } else if (TmpBuf[0] == 'g') {
@@ -392,9 +392,9 @@ bool Model::LoadOBJ(const char* fname, const unsigned int RequiredAttribs, const
         }
 
         // Build the BBox.
-        for (size_t i = 0; i < Obj->verts.size(); i++) Obj->Box += Obj->verts[i];
+        for (size_t i = 0; i < Obj->verts.size(); i++) Obj->Box.grow(Obj->verts[i]);
 
-        Box += Obj->Box;
+        Box.grow(Obj->Box);
 
         Obj->PrimType = L_TRIANGLES;
     }

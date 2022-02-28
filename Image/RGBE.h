@@ -11,7 +11,7 @@
 
 // A subclass for RGBE pixels.
 class rgbePixel : public tPixel<unsigned char, 4> {
-    static const int DMC_EXPON_BIAS = 128; // bias signed exponent to unsigned
+    static const int DMC_EXPON_BIAS = 128; // Bias signed exponent to unsigned
 
 public:
     // Default constructor.

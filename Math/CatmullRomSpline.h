@@ -5,13 +5,13 @@
 
 #pragma once
 
-#include "toolconfig.h"
+#include "Util/toolconfig.h"
 
 #include <vector>
 
 // Just hand it any STL vector with your data and a parameter on 0..1 and it will return the interpolated value.
 // Interpolates all points except first and last. So t=0 returns d[1] and t=1 returns d[size()-2].
-// Typically T is float, double, f3Vector, etc. and Param is float or double.
+// Typically T is float, double, f3vec, etc. and Param is float or double.
 template <class T, class Param> T CatmullRomSpline(const std::vector<T>& d, Param x) // 0..1
 {
     int nset = int(d.size());

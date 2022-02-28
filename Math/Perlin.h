@@ -77,7 +77,7 @@ public:
     double Noise(double x);
     double Noise(double x, double y);
     double Noise(double x, double y, double z);
-    DMC_DECL double Noise(const f3Vector& V) { return Noise(V.x, V.y, V.z); }
+    DMC_DECL double Noise(const f3vec& V) { return Noise(V.x, V.y, V.z); }
 
     // This should really be private, but sometimes I want to call it directly.
     // X and Y should be in 0.0 -> pretty big.

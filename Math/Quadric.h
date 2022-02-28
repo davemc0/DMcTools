@@ -10,7 +10,7 @@
 #include "Math/Vector.h"
 
 // 3-Dimensional quadrics (x,y,z generally).
-// The matrix looks like this (w/respect to indices).
+// The matrix looks like this (with respect to indices).
 //
 // +--+--+--+--+
 // +XX+XY+XZ+ X+
@@ -34,19 +34,22 @@
 // Y  -> 8
 // Z  -> 9
 
-template <class Fl_T> struct Quadric3 {
-    Fl_T vals[10];
+template <class Vec_T> struct Quadric3 {
+    typedef typename Vec_T::ElType ElType; // The type of an element of the vector
+    static const int Chan = Vec_T::Chan;   // The number of channels (dimensions) in the vector
+
+    typename Vec_T::ElType vals[10];
 
     // XXX There are no constructors.
 
     // Creates a quadric from the infinite line containing p0 and p1.
-    void CreateLine(const t3Vector<Fl_T>& p0, const t3Vector<Fl_T>& p1);
+    void CreateLine(const Vec_T& p0, const Vec_T& p1);
 
     // Returns the point p that minimizes pQp.
     // returns true if it found a min, false if non-invertible.
     // Pass in a small positive singularity threshold to detect
     // near-singular quadrics. Something like 1e-7.
-    bool FindMin(t3Vector<Fl_T>& p, Fl_T SingThresh = 0) const;
+    bool FindMin(Vec_T& p, typename Vec_T::ElType SingThresh = 0) const;
 
     DMC_DECL void zero()
     {
@@ -54,9 +57,9 @@ template <class Fl_T> struct Quadric3 {
     }
 
     // Generate the matrix associated with the quadric.
-    DMC_DECL Matrix44<Fl_T> matrix44() const
+    DMC_DECL Matrix44<Vec_T> matrix44() const
     {
-        Fl_T mat[4][4];
+        typename Vec_T::ElType mat[4][4];
         mat[0][0] = vals[0];
         mat[0][1] = vals[4];
         mat[0][2] = vals[5];
@@ -74,10 +77,10 @@ template <class Fl_T> struct Quadric3 {
         mat[3][2] = vals[9];
         mat[3][3] = vals[3];
 
-        return Matrix44<Fl_T>(mat);
+        return Matrix44<Vec_T>(mat);
     }
 
-    // Add 2 Quadric3s.
+    // Add two Quadric3s.
     DMC_DECL Quadric3 operator+(const Quadric3& q) const
     {
         Quadric3 rval;
@@ -93,7 +96,7 @@ template <class Fl_T> struct Quadric3 {
 
     // Compute the outer product of this 4-vector with itself.
     // Used to generate a quadric representing a plane.
-    DMC_DECL void DoSym(const Fl_T A, const Fl_T B, const Fl_T C, const Fl_T D)
+    DMC_DECL void DoSym(const typename Vec_T::ElType A, const typename Vec_T::ElType B, const typename Vec_T::ElType C, const typename Vec_T::ElType D)
     {
         vals[0] = A * A;
         vals[1] = B * B;
@@ -110,17 +113,17 @@ template <class Fl_T> struct Quadric3 {
         vals[9] = C * D;
     };
 
-    DMC_DECL void DoSym(const t3Vector<Fl_T>& N, const Fl_T D) { DoSym(N.x, N.y, N.z, D); }
+    DMC_DECL void DoSym(const Vec_T& N, const typename Vec_T::ElType D) { DoSym(N.x, N.y, N.z, D); }
 
     // Compute p * Q * p.
-    DMC_DECL Fl_T MulPt(const t3Vector<Fl_T>& p) const
+    DMC_DECL typename Vec_T::ElType MulPt(const Vec_T& p) const
     {
         return ((p.x * p.x * vals[0] + p.y * p.y * vals[1] + p.z * p.z * vals[2] + vals[3] + 2 * p.x * p.y * vals[4] + 2 * p.x * p.z * vals[5] +
                  2 * p.y * p.z * vals[7] + 2 * p.x * vals[6] + 2 * p.y * vals[8] + 2 * p.z * vals[9]));
     }
 
     // Compute the 4-vector Q * p.
-    DMC_DECL void MulVec(const t3Vector<Fl_T>& p, Fl_T res[4]) const
+    DMC_DECL void MulVec(const Vec_T& p, typename Vec_T::ElType res[4]) const
     {
         // Compute Qp
         res[0] = (p.x * vals[0] + p.y * vals[4] + p.z * vals[5] + vals[6]);
@@ -131,7 +134,7 @@ template <class Fl_T> struct Quadric3 {
 
     // Using above equation, squared terms multiplied by v, rest by v/2
     // Compute Q' such that pQ'p = v * pQp
-    DMC_DECL void Scale(Fl_T v)
+    DMC_DECL void Scale(typename Vec_T::ElType v)
     {
         // Squared stuff.
         for (int i = 0; i < 10; i++) vals[i] *= v;

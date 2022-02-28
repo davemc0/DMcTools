@@ -10,13 +10,13 @@
 #include <vector>
 
 struct RenderObject : public BaseObject {
-    std::vector<f3Vector> verts;
-    std::vector<f3Vector> normals;   // Must have a length of 0 or VertexCount, or arbitrary non-zero if fnindices > 0.
-    std::vector<f3Vector> tangents;  // Must have a length of 0 or verts.size().
-    std::vector<f3Vector> texcoords; // Must have a length of 0 or verts.size().
-    std::vector<f3Vector> dcolors;   // Must have a length of 0 or verts.size().
-    std::vector<int> indices;        // Indices into the list of verts.
-    std::vector<int> fnindices;      // Indices into the list of normals. One per face, if being used. Length 0 otherwise.
+    std::vector<f3vec> verts;
+    std::vector<f3vec> normals;   // Must have a length of 0 or VertexCount, or arbitrary non-zero if fnindices > 0.
+    std::vector<f3vec> tangents;  // Must have a length of 0 or verts.size().
+    std::vector<f3vec> texcoords; // Must have a length of 0 or verts.size().
+    std::vector<f3vec> dcolors;   // Must have a length of 0 or verts.size().
+    std::vector<int> indices;     // Indices into the list of verts.
+    std::vector<int> fnindices;   // Indices into the list of normals. One per face, if being used. Length 0 otherwise.
 
     DMC_DECL RenderObject()
     {
@@ -58,10 +58,10 @@ struct RenderObject : public BaseObject {
 
     // Transform all vertices by this matrix.
     // Also rebuilds the BBox.
-    virtual void ApplyTransform(Matrix44<typename f3Vector::ElType>& Mat);
+    virtual void ApplyTransform(Matrix44<f3vec>& Mat);
 
     // Transform all texcoords by this matrix.
-    virtual void ApplyTextureTransform(Matrix44<typename f3Vector::ElType>& Mat);
+    virtual void ApplyTextureTransform(Matrix44<f3vec>& Mat);
 
     virtual size_t FaceCount() const { return indices.size() / 3u; }
 

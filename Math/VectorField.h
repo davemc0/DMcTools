@@ -18,11 +18,12 @@ public:
     virtual Vector_T Sample(const Space_T& P) const = 0;
 };
 
+// Vector field based on radial basis functions
 template <class Space_T, class Vector_T> class RBFVectorField : public VectorField<Space_T, Vector_T> {
     typedef std::pair<Space_T, Vector_T> RBFCenter;
 
     std::vector<RBFCenter> Centers;
-    double Sigma, Mu;
+    double sigma, mu;
 
 public:
     virtual Vector_T Sample(const Space_T& P) const
@@ -34,7 +35,7 @@ public:
         for (std::vector<RBFCenter>::const_iterator it = Centers.begin(); it != Centers.end(); it++) {
             Space_T::ElType dist = Space_T::ElType(0);
             dist = (it->first - P).length();
-            Space_T::ElType Wgt = Gaussian(dist, Sigma, Mu);
+            Space_T::ElType Wgt = Gaussian(dist, sigma, mu);
 
             TotalWgt += Wgt;
             Sum += it->second * Wgt;
@@ -49,9 +50,9 @@ public:
     void Insert(const Space_T& P, const Vector_T& V) { Centers.push_back(RBFCenter(P, V)); }
 
     // Tell it the parameters for interpolation
-    void InterpGaussian(const double Sigma_, const double Mu_)
+    void InterpGaussian(const double sigma_, const double mu_)
     {
-        Sigma = Sigma_;
-        Mu = Mu_;
+        sigma = sigma_;
+        mu = mu_;
     }
 };

@@ -6,12 +6,13 @@
 #include "Util/Timer.h"
 
 #include "Math/MiscMath.h"
-#include "toolconfig.h"
+#include "Util/toolconfig.h"
 
 #include <algorithm>
 
 #ifdef DMC_MACHINE_win
 #include <sys/timeb.h>
+#define NOMINMAX
 #include <windows.h>
 
 #ifndef _WIN64
@@ -50,7 +51,7 @@ DMC_DECL void GetPentiumCounter(DWORD& hix, DWORD& lox)
         _emit 0x31
         mov   hi,edx
         mov   lo,eax
-        xor   edx,edx // so VC gets that edx is modified
+        xor   edx,edx // So VC gets that edx is modified
         }
 
     hix = hi;
@@ -248,3 +249,15 @@ float StatTimer::GetMin(int N)
 
     return AccT;
 }
+
+/*
+
+#include <chrono>
+    startTime = std::chrono::high_resolution_clock::now();
+    auto curTime = std::chrono::high_resolution_clock::now();
+    elapsedTime += std::chrono::duration<double>(curTime - startTime).count();
+        return elapsedTime + std::chrono::duration<double>(std::chrono::high_resolution_clock::now() - startTime).count();
+    auto curTime = std::chrono::high_resolution_clock::now();
+    auto diff = elapsedTime + std::chrono::duration<double>(curTime - startTime).count();
+    std::chrono::time_point<std::chrono::high_resolution_clock> startTime; // The time the clock was most-recently started
+*/

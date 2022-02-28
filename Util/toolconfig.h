@@ -59,10 +59,10 @@
 #endif
 
 #define _CRT_SECURE_NO_WARNINGS
-#pragma warning(disable : 4996) // disable deprecated warning
-#pragma warning(disable : 4244) // disable bogus conversion warnings
-#pragma warning(disable : 4305) // disable bogus conversion warnings
-//#pragma warning (disable:4800) // disable bogus conversion warnings
+#pragma warning(disable : 4996) // Disable deprecated warning
+#pragma warning(disable : 4244) // Disable bogus conversion warnings
+#pragma warning(disable : 4305) // Disable bogus conversion warnings
+//#pragma warning (disable:4800) // Disable bogus conversion warnings
 //#pragma warning (disable:4786) // stupid symbol size limitation
 //#pragma warning (disable:4018) // disable signed/unsigned mismatch
 //#pragma warning (disable:4267) // disable 64-bit conversion warnings

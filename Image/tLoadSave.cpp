@@ -37,7 +37,7 @@ baseImage* LoadtImage(const char* fname)
     ASSERT_R(loader.baseImg != NULL);
 
     baseImage* b = loader.baseImg;
-    loader.baseImg = NULL; // swap it out of the loader so the loader, which created it, doesn't delete it.
+    loader.baseImg = NULL; // Swap it out of the loader so the loader, which created it, doesn't delete it.
     return b;
 }
 
@@ -82,7 +82,7 @@ template <class Image_T> void tLoad(const char* fname, Image_T* outImg)
         // if(f4Image  *loadedImg = dynamic_cast<f4Image  *>(base)) { *outImg = *loadedImg; }
     }
 
-    // loader will still point to base and we allow the loader destructor to delete base.
+    // Loader will still point to base and we allow the loader destructor to delete base.
 }
 
 // Instantiations. Need a case for every kind of image that will
@@ -140,10 +140,10 @@ template <class Image_T> void tSave(const char* fname, const Image_T& Img, const
         if (!(Img.is_integer() && Img.size_element() == 2)) OutImg = new tImage<tPixel<unsigned short, Image_T::PixType::Chan>>(Img);
     } else if (exts == PPM_ || exts == PFM_ || exts == PAM_ || exts == PSM_ || exts == PFM_ || exts == PZM_) { // 1s 2s 3s 4s 1f 3f 1uc 3uc 4uc
         if (!Img.is_integer()) {
-            if (ch != 1 && ch != 3) OutImg = new tImage<tPixel<float, 3>>(Img); // f2 f4
+            if (ch != 1 && ch != 3) OutImg = new tImage<tPixel<float, 3>>(Img); // F2 f4
         } else {
             if ((Img.size_element() != 2 || ch > 4) && (isUC && ch != 1 && ch != 3 && ch != 4))
-                OutImg = new tImage<tPixel<unsigned char, 3>>(Img); // uc2 ui1 ui2 ui3 ui4
+                OutImg = new tImage<tPixel<unsigned char, 3>>(Img); // Uc2 ui1 ui2 ui3 ui4
         }
     }
 

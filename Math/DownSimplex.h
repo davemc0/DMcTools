@@ -9,7 +9,7 @@
 
 #define NMAX 1000
 
-// p is the initial ndim+1 points in the simplex.
+// P is the initial ndim+1 points in the simplex.
 // ndim is the number of dimensions.
 // ftol is the error tolerance to achieve.
 // funk is the error functional to evaluate a try.

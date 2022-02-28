@@ -27,15 +27,12 @@ struct Mesh : public BaseObject {
     Edge* Edges;
     Face* Faces;
 
-    // This tree of pointers is used for quickly matching a vertex,
-    // especially when adding a new vertex to the mesh.
-    // It is a pointer so that it won't automatically get copied
-    // when I copy a mesh.
+    // This tree of pointers is used for quickly matching a vertex, especially when adding a new vertex to the mesh.
+    // It is a pointer so that it won't automatically get copied when I copy a mesh.
     KDBoxTree<KDVertex>* VertTree;
 
-    // When making a mesh, this tells how close two vertices must
-    // be to be considered the same.
-    f3Vector::ElType MeshMaxDist;
+    // When making a mesh, this tells how close two vertices must be to be considered the same.
+    f3vec::ElType MeshMaxDist;
 
     bool FacesAreFixed; // True when FixFacing() has been run and nothing has changed since then.
 
@@ -72,10 +69,10 @@ struct Mesh : public BaseObject {
         creaseAngle = M_PI * 0.5;
         shininess = 32.0;
         alpha = 1.0;
-        dcolor = f3Vector(0, 1, 0);
-        scolor = f3Vector(0, 0, 0);
-        ecolor = f3Vector(0, 0, 0);
-        acolor = f3Vector(0.2, 0.2, 0.2);
+        dcolor = f3vec(0, 1, 0);
+        scolor = f3vec(0, 0, 0);
+        ecolor = f3vec(0, 0, 0);
+        acolor = f3vec(0.2, 0.2, 0.2);
         FacesAreFixed = false;
     }
 
@@ -108,10 +105,10 @@ struct Mesh : public BaseObject {
 
     // Transform all vertices by this matrix.
     // Also rebuilds the BBox.
-    virtual void ApplyTransform(Matrix44<typename f3Vector::ElType>& Mat);
+    virtual void ApplyTransform(Matrix44<f3vec>& Mat);
 
     // Transform all texcoords by this matrix.
-    virtual void ApplyTextureTransform(Matrix44<typename f3Vector::ElType>& Mat);
+    virtual void ApplyTextureTransform(Matrix44<f3vec>& Mat);
 
     virtual size_t FaceCount() const
     {
@@ -162,7 +159,7 @@ struct Mesh : public BaseObject {
     // AVertex objects.
     //
     // To make something else, pass in a factory function for it.
-    void ImportTriObject(const TriObject& M, f3Vector::ElType MeshDistFactor = -1.0, Vertex* (*VF)() = NULL, Edge* (*EF)() = NULL, Face* (*FF)() = NULL);
+    void ImportTriObject(const TriObject& M, f3vec::ElType MeshDistFactor = -1.0, Vertex* (*VF)() = NULL, Edge* (*EF)() = NULL, Face* (*FF)() = NULL);
 
     // Return a TriObject made from this Mesh.
     // AcceptedAttribs tells what attributes to export if they exist.
@@ -187,7 +184,7 @@ struct Mesh : public BaseObject {
 
     // Makes sure the mesh is sane and counts everything, too.
     void CheckIntegrity(const bool Detailed = false);
-    bool CheckSize(const BBox<f3Vector>& Box);
+    bool CheckSize(const Aabb& Box);
 
     /////////////////////////////////////////////////////////////////
     // The single-element interface.
@@ -195,7 +192,7 @@ struct Mesh : public BaseObject {
     // Add the vertex without seeing if it already exists.
     // Doesn't make anything point to this vertex.
     // If the Vertex is really a subclass, make it yourself and pass it in.
-    DMC_DECL Vertex* AddVertex(const f3Vector& Pos, Vertex* Ver = NULL)
+    DMC_DECL Vertex* AddVertex(const f3vec& Pos, Vertex* Ver = NULL)
     {
         if (Ver == NULL) Ver = new Vertex;
         Ver->V = Pos;
@@ -259,7 +256,7 @@ struct Mesh : public BaseObject {
         return F;
     }
 
-    DMC_DECL Vertex* FindVertex(const f3Vector& V)
+    DMC_DECL Vertex* FindVertex(const f3vec& V)
     {
         Vertex Ver;
         Ver.V = V;
@@ -272,7 +269,7 @@ struct Mesh : public BaseObject {
             return NULL;
     }
 
-    Vertex* FindVertexInEdgeList(const std::vector<Edge*>& EdgeList, const f3Vector& V, Edge*& FoundEdge) const;
+    Vertex* FindVertexInEdgeList(const std::vector<Edge*>& EdgeList, const f3vec& V, Edge*& FoundEdge) const;
 
     // Searches these vertices to find an edge between them.
     // Returns NULL if the edge doesn't exist.

@@ -42,11 +42,11 @@ void TriObject::GenNormals()
     Face* F = Me.Faces;
     int i;
     for (i = 0; i < (int)verts.size(); i += 3, F = F->next) {
-        // i is currently the first vertex of the face.
-        f3Vector P0 = verts[i] - verts[i + 1];
-        f3Vector P1 = verts[i + 2] - verts[i + 1];
+        // I is currently the first vertex of the face.
+        f3vec P0 = verts[i] - verts[i + 1];
+        f3vec P1 = verts[i + 2] - verts[i + 1];
 
-        f3Vector* N = new f3Vector(Cross(P1, P0));
+        f3vec* N = new f3vec(Cross(P1, P0));
         N->normalize();
 
         // Store a pointer to this facet normal in F->e0.
@@ -55,12 +55,12 @@ void TriObject::GenNormals()
 
     // For all vertices that match this one, accumulate those with
     // an angle less than creaseAngle into a smooth normal.
-    f3Vector::ElType CosCrease = cos(creaseAngle);
+    f3vec::ElType CosCrease = cos(creaseAngle);
 
     for (i = 0, F = Me.Faces; i < (int)verts.size(); i += 3, F = F->next) {
         ASSERT_D(F);
 
-        f3Vector& FN = *((f3Vector*)F->e0);
+        f3vec& FN = *((f3vec*)F->e0);
         for (int j = 0; j < 3; j++) {
             Vertex* V;
             if (F->v0->V == verts[i + j])
@@ -73,15 +73,15 @@ void TriObject::GenNormals()
             }
 
             int cnt = 1;
-            f3Vector Accum(FN);
+            f3vec Accum(FN);
 
             // Loop on all the faces of this vertex.
             for (int k = 0; k < (int)V->Faces.size(); k++) {
                 if (V->Faces[k] != F) {
                     // Compute cos of their dihedral angle.
                     // Dot goes from 1 to -1 as ang goes from 0 to PI.
-                    f3Vector& FNT = *((f3Vector*)(V->Faces[k]->e0));
-                    f3Vector::ElType AngDot = Dot(FN, FNT);
+                    f3vec& FNT = *((f3vec*)(V->Faces[k]->e0));
+                    f3vec::ElType AngDot = dot(FN, FNT);
 
                     // If the angle < creaseAngle then Ang > CosCrease and we smooth.
                     if (AngDot > CosCrease) {
@@ -103,7 +103,7 @@ void TriObject::GenNormals()
     }
 
     // Remove the facet normals I made.
-    for (F = Me.Faces; F; F = F->next) delete (f3Vector*)F->e0;
+    for (F = Me.Faces; F; F = F->next) delete (f3vec*)F->e0;
 }
 
 // Generate tangents for each vertex.
@@ -122,7 +122,7 @@ void TriObject::QuadsToTris(bool KeepBad)
 
     cerr << "Converting from " << (int(verts.size()) / 4) << " quads.\n";
 
-    vector<f3Vector> verts_, normals_, texcoords_, dcolors_;
+    vector<f3vec> verts_, normals_, texcoords_, dcolors_;
 
     bool DoNormals = false, DoTexcoords = false, DoDColors = false;
 
@@ -230,22 +230,22 @@ void TriObject::Dump() const
 
 void TriObject::RebuildBBox()
 {
-    Box.Reset();
+    Box.reset();
 
-    for (int i = 0; i < (int)verts.size(); i++) Box += verts[i];
+    for (int i = 0; i < (int)verts.size(); i++) Box.grow(verts[i]);
 }
 
 // Transform every vertex in the model.
 // Transform every normal and tangent by using ProjectDirection, which is not
 // the inverse transpose, but merely the upper 3x3.
-void TriObject::ApplyTransform(Matrix44<typename f3Vector::ElType>& Mat)
+void TriObject::ApplyTransform(Matrix44<f3vec>& Mat)
 {
-    Box.Reset();
+    Box.reset();
 
     int i;
     for (i = 0; i < (int)verts.size(); i++) {
         verts[i] = Mat * verts[i];
-        Box += verts[i];
+        Box.grow(verts[i]);
     }
 
     for (i = 0; i < (int)normals.size(); i++) { normals[i] = Mat.ProjectDirection(normals[i]); }
@@ -254,4 +254,4 @@ void TriObject::ApplyTransform(Matrix44<typename f3Vector::ElType>& Mat)
     for (i = 0; i < (int)tangents.size(); i++) { tangents[i] = Mat.ProjectDirection(tangents[i]); }
 }
 
-void TriObject::ApplyTextureTransform(Matrix44<typename f3Vector::ElType>& Mat) { ASSERT_R(0); }
+void TriObject::ApplyTextureTransform(Matrix44<f3vec>& Mat) { ASSERT_R(0); }

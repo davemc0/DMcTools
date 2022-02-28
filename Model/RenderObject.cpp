@@ -9,32 +9,41 @@
 
 void RenderObject::Dump() const
 {
-#if 0
-    cerr << "Name: " << Name << " ObjID: " << ObjID << endl;
-    cerr << "Vertex count: " << verts.size() << endl;
+#if 1
+    std::cerr << "Name: " << Name << " ObjID: " << ObjID << std::endl;
+    std::cerr << "Vertex count: " << verts.size() << std::endl;
 
-    cerr << "Specular color: " << scolor << endl
-        << "Emissive color: " << ecolor << endl
-        << "Ambient color: " << acolor << endl
-        << "Shininess: " << shininess << " PrimType: " << PrimType << endl
-        << "RenderObject BBox: " << Box << "\n\nVertex \t\tNormal\t\tTexcoord\t\tDColor\n";
+    std::cerr << "Specular color: " << scolor << std::endl
+              << "Emissive color: " << ecolor << std::endl
+              << "Ambient color: " << acolor << std::endl
+              << "Shininess: " << shininess << " ObjectType: " << ObjectType << std::endl
+              << "RenderObject BBox: " << Box << "\n\nVertex \t\tNormal\t\tTexcoord\t\tDColor\n";
 
-    for(int i=0; i<verts.size(); i++) {
-        cerr << verts[i] << "\t";
-        if(i<normals.size()) cerr << normals[i] << "\t"; else cerr << "xxxxxxxxxxxxxxxxxxx\t";
-        if(i<texcoords.size()) cerr << texcoords[i] << "\t"; else cerr << "xxxxxxxxxxxxxxxxxxx\t";
-        if(i<dcolors.size()) cerr << dcolors[i] << "\t"; else cerr << "xxxxxxxxxxxxxxxxxxx\t";
-        if(i<alphas.size()) cerr << alphas[i];
-        cerr << endl;
+    for (int i = 0; i < verts.size(); i++) {
+        std::cerr << verts[i] << "\t";
+        if (i < normals.size())
+            std::cerr << normals[i] << "\t";
+        else
+            std::cerr << "xxxxxxxxxxxxxxxxxxx\t";
+        if (i < texcoords.size())
+            std::cerr << texcoords[i] << "\t";
+        else
+            std::cerr << "xxxxxxxxxxxxxxxxxxx\t";
+        if (i < dcolors.size())
+            std::cerr << dcolors[i] << "\t";
+        else
+            std::cerr << "xxxxxxxxxxxxxxxxxxx\t";
+        // if (i < alphas.size()) std::cerr << alphas[i];
+        std::cerr << std::endl;
     }
-    cerr << endl << endl;
+    std::cerr << std::endl << std::endl;
 #endif
 }
 
 void RenderObject::RebuildBBox()
 {
 #if 0
-    Box.Reset();
+    Box.reset();
 
     for(int i=0; i<verts.size(); i++)
         Box += verts[i];
@@ -44,11 +53,11 @@ void RenderObject::RebuildBBox()
 // Transform every vertex in the model.
 // Transform every normal and tangent by using ProjectDirection, which is not
 // the inverse transpose, but merely the upper 3x3.
-void RenderObject::ApplyTransform(Matrix44<typename f3Vector::ElType>& Mat)
+void RenderObject::ApplyTransform(Matrix44<f3vec>& Mat)
 {
     ASSERT_R(0);
 #if 0
-    Box.Reset();
+    Box.reset();
 
     int i;
     for(i=0; i<verts.size(); i++) {
@@ -67,7 +76,7 @@ void RenderObject::ApplyTransform(Matrix44<typename f3Vector::ElType>& Mat)
 #endif
 }
 
-void RenderObject::ApplyTextureTransform(Matrix44<typename f3Vector::ElType>& Mat)
+void RenderObject::ApplyTextureTransform(Matrix44<f3vec>& Mat)
 {
     ASSERT_R(VertexType & OBJ_TEXCOORDS);
 

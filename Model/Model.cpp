@@ -10,8 +10,6 @@
 #include "Model/Mesh.h"
 #include "Model/RenderObject.h"
 
-using namespace std;
-
 // Define this static dude.
 TextureDB Model::TexDB;
 LightDB LitDB;
@@ -23,13 +21,13 @@ bool Model::Save(const char* fname)
     ASSERT_RM(fname, "NULL filename");
     bool status = true;
 
-    cerr << "Model has " << int(Objs.size()) << " objects.\n";
+    std::cerr << "Model has " << int(Objs.size()) << " objects.\n";
 
     const char* extc = strrchr(fname, '.');
     extc++;
 
     if (strlen(extc) != 3) {
-        cerr << "Can't grok filename " << fname << endl;
+        std::cerr << "Can't grok filename " << fname << std::endl;
         return status;
     }
 
@@ -39,16 +37,14 @@ bool Model::Save(const char* fname)
     extp[1] |= 0x20;
     extp[2] |= 0x20;
 
-    if (!strcmp(extp, "wrl"))
-        status = SaveVRML(fname);
-    else if (!strcmp(extp, "obj"))
+    if (!strcmp(extp, "obj"))
         status = SaveOBJ(fname);
     else if (!strcmp(extp, "tri"))
         status = true; // SaveTRI(fname);
     else if (!strcmp(extp, "ply"))
         status = true; // SavePLY(fname);
     else {
-        cerr << "Can't grok filename " << fname << endl;
+        std::cerr << "Can't grok filename " << fname << std::endl;
         status = true;
     }
 
@@ -80,7 +76,7 @@ bool Model::Load(const char* fname, const unsigned int RequiredAttribs, const un
     extc++;
 
     if (strlen(extc) != 3) {
-        cerr << "Can't grok filename " << fname << endl;
+        std::cerr << "Can't grok filename " << fname << std::endl;
         return status;
     }
 
@@ -90,22 +86,16 @@ bool Model::Load(const char* fname, const unsigned int RequiredAttribs, const un
     extp[1] |= 0x20;
     extp[2] |= 0x20;
 
-    if (!strcmp(extp, "wrl"))
-        status = LoadVRML(fname, RequiredAttribs, AcceptedAttribs);
-    else if (!strcmp(extp, "obj"))
+    if (!strcmp(extp, "obj"))
         status = LoadOBJ(fname, RequiredAttribs, AcceptedAttribs);
     else if (!strcmp(extp, "tri"))
         status = true; // LoadTRI(fname, RequiredAttribs, AcceptedAttribs);
     else if (!strcmp(extp, "ply"))
         status = true; // LoadPLY(fname, RequiredAttribs, AcceptedAttribs);
     else {
-        cerr << "Can't grok filename " << fname << endl;
+        std::cerr << "Can't grok filename " << fname << std::endl;
         status = true;
     }
-
-    // SaveVRML("foo.wrl");
-    // ((Mesh*)Objs[0])->CheckIntegrity();
-    // RemoveNormals(); // XXX
 
     if (!status) ModifyAttribs(RequiredAttribs, AcceptedAttribs);
 
@@ -117,7 +107,7 @@ bool Model::Load(const char* fname, const unsigned int RequiredAttribs, const un
 void Model::ObjectConvert(ObjectTypes DestType, unsigned int AcceptedAttribs)
 {
     for (int i = 0; i < (int)Objs.size(); i++) {
-        // cerr << i << endl;
+        // std::cerr << i << std::endl;
         if (Objs[i]->ObjectType == DMC_MESH_OBJECT) {
             BaseObject* Ob;
             switch (DestType) {
@@ -171,7 +161,7 @@ void Model::Flatten()
 
         if ((int)NOb->dcolors.size() == 1 && ((TOb->dcolors.size() == 1 && TOb->dcolors[0] != NOb->dcolors[0]) || TOb->dcolors.size() > 1)) {
             // NOb was doing per-object color, but TOb doesn't match it, so convert NOb to per-vertex color.
-            f3Vector col = NOb->dcolors[0];
+            f3vec col = NOb->dcolors[0];
             NOb->dcolors.clear();
             NOb->dcolors.insert(NOb->dcolors.begin(), NOb->verts.size(), col);
         }
@@ -179,12 +169,12 @@ void Model::Flatten()
         if ((int)NOb->dcolors.size() != 1) {
             if ((int)TOb->dcolors.size() == 1) {
                 // Expand its colors.
-                f3Vector col = TOb->dcolors[0];
+                f3vec col = TOb->dcolors[0];
                 NOb->dcolors.insert(NOb->dcolors.end(), TOb->verts.size(), col);
             } else if ((int)TOb->dcolors.size() == 0) {
                 if ((int)NOb->dcolors.size()) {
                     // Have to synthesize a bunch of them.
-                    f3Vector col(0, 1, 0);
+                    f3vec col(0, 1, 0);
                     NOb->dcolors.insert(NOb->dcolors.end(), TOb->verts.size(), col);
                 }
             } else {
@@ -195,7 +185,7 @@ void Model::Flatten()
 
         if ((int)NOb->normals.size() == 1 && ((TOb->normals.size() == 1 && TOb->normals[0] != NOb->normals[0]) || TOb->normals.size() > 1)) {
             // Expand my normals.
-            f3Vector col = NOb->normals[0];
+            f3vec col = NOb->normals[0];
             NOb->normals.clear();
             NOb->normals.insert(NOb->normals.begin(), NOb->verts.size(), col);
         }
@@ -203,12 +193,12 @@ void Model::Flatten()
         if ((int)NOb->normals.size() != 1) {
             if ((int)TOb->normals.size() == 1) {
                 // Expand its normals.
-                f3Vector col = TOb->normals[0];
+                f3vec col = TOb->normals[0];
                 NOb->normals.insert(NOb->normals.end(), TOb->verts.size(), col);
             } else if ((int)TOb->normals.size() == 0) {
                 if ((int)NOb->normals.size()) {
                     // Have to synthesize a bunch of them.
-                    f3Vector col(0, 1, 0);
+                    f3vec col(0, 1, 0);
                     NOb->normals.insert(NOb->normals.end(), TOb->verts.size(), col);
                 }
             } else {
@@ -219,7 +209,7 @@ void Model::Flatten()
 
         if ((int)NOb->texcoords.size() == 1 && ((TOb->texcoords.size() == 1 && TOb->texcoords[0] != NOb->texcoords[0]) || TOb->texcoords.size() > 1)) {
             // Expand my texcoords.
-            f3Vector col = NOb->texcoords[0];
+            f3vec col = NOb->texcoords[0];
             NOb->texcoords.clear();
             NOb->texcoords.insert(NOb->texcoords.begin(), NOb->verts.size(), col);
         }
@@ -227,12 +217,12 @@ void Model::Flatten()
         if ((int)NOb->texcoords.size() != 1) {
             if ((int)TOb->texcoords.size() == 1) {
                 // Expand its texcoords.
-                f3Vector col = TOb->texcoords[0];
+                f3vec col = TOb->texcoords[0];
                 NOb->texcoords.insert(NOb->texcoords.end(), TOb->verts.size(), col);
             } else if (TOb->texcoords.size() == 0) {
                 if (NOb->texcoords.size()) {
                     // Have to synthesize a bunch of them.
-                    f3Vector col(0, 1, 0);
+                    f3vec col(0, 1, 0);
                     NOb->texcoords.insert(NOb->texcoords.end(), TOb->verts.size(), col);
                 }
             } else {
@@ -260,31 +250,31 @@ void Model::Flatten()
 
 void Model::Dump() const
 {
-    cerr << "Dumping Model ObjId: " << ObjID << "\nModel BBox: " << Box << endl << "NumObjects: " << int(Objs.size()) << endl << endl;
+    std::cerr << "Dumping Model ObjId: " << ObjID << "\nModel BBox: " << Box << std::endl << "NumObjects: " << int(Objs.size()) << std::endl << std::endl;
     for (int i = 0; i < (int)Objs.size(); i++) {
-        cerr << "Object index: " << i << endl;
+        std::cerr << "Object index: " << i << std::endl;
         Objs[i]->Dump();
     }
 }
 
 void Model::RebuildBBox()
 {
-    Box.Reset();
+    Box.reset();
 
     for (int i = 0; i < (int)Objs.size(); i++) {
         Objs[i]->RebuildBBox();
-        Box += Objs[i]->Box;
+        Box.grow(Objs[i]->Box);
     }
 }
 
 // Also rebuilds the BBox.
-void Model::ApplyTransform(Matrix44<typename f3Vector::ElType>& Mat)
+void Model::ApplyTransform(Matrix44<f3vec>& Mat)
 {
-    Box.Reset();
+    Box.reset();
 
     for (int i = 0; i < (int)Objs.size(); i++) {
         Objs[i]->ApplyTransform(Mat);
-        Box += Objs[i]->Box;
+        Box.grow(Objs[i]->Box);
     }
 }
 

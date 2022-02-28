@@ -15,7 +15,7 @@ struct Edge;
 struct Face;
 
 struct Vertex {
-    f3Vector V;
+    f3vec V;
 
     Vertex *next, *prev;
 

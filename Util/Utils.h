@@ -1,11 +1,11 @@
 //////////////////////////////////////////////////////////////////////
-// Utils.h - convert endian, random numbers, other random stuff
+// Utils.h - convert endian, cpuid stuff, other random stuff
 //
 // Copyright David K. McAllister, 1998.
 
 #pragma once
 
-#include "toolconfig.h"
+#include "Util/toolconfig.h"
 
 #ifdef DMC_MACHINE_win
 #include <intrin.h>

@@ -11,8 +11,6 @@
 #define SQRT2PI 2.506628274631000502415765284811045253006
 #define ONEOVERSQRT2PI (1. / SQRT2PI)
 
-// Note: SRand() is in Utils.cpp
-
 // True approximately n out of out_of times
 DMC_DECL bool chance(int n, int out_of) { return (out_of > 0) ? ((rand() % out_of) < n) : false; }
 
@@ -106,4 +104,5 @@ DMC_DECL float NRandf(const float mu, const float sigma) { return TNRand<float>(
 DMC_DECL bool chance(float frac) { return frac > DRandf(); }
 
 // Seeds the random number generator based on time and/or process ID, if seed is zero (default).
+// Implementation of SRand() is in Utils.cpp.
 extern unsigned int SRand(unsigned int seed = 0);

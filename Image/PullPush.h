@@ -9,7 +9,7 @@
 // Some day I should try unsigned short or something.
 //
 // Data_T is the type of the data. This is usually float.
-// Should also work with Pixel, t3Vector, unsigned int, etc.
+// Should also work with Pixel, t3vec, unsigned int, etc.
 
 #pragma once
 

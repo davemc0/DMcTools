@@ -42,25 +42,25 @@ static int EGApalette[16][3] = {{0, 0, 0},       {0, 0, 128},     {0, 128, 0},  
 
 /*****************************/
 
-// info structure filled in by ReadGIF()
+// Info structure filled in by ReadGIF()
 struct GIFInfo {
-    unsigned char* pic; // image data
+    unsigned char* pic; // Image data
     int chan;
-    unsigned char r[256], g[256], b[256]; // colormap
+    unsigned char r[256], g[256], b[256]; // Colormap
 
     int BitOffset,       // Bit Offset of next code
         XC, YC,          // Output X and Y coords of current pixel
         Pass,            // Used by output routine if interlaced pic
         OutCount,        // Decompressor output 'stack count'
-        LeftOfs, TopOfs, // image offset
+        LeftOfs, TopOfs, // Image offset
         Width, Height,
         BitsPerPixel,             // Bits per pixel, read from GIF header
-        ColorMapSize,             // number of colors
-        Background,               // background color
+        ColorMapSize,             // Number of colors
+        Background,               // Background color
         CodeSize,                 // Code size, read from GIF header
         InitCodeSize,             // Starting code size, used during Clear
         Code,                     // Value returned by ReadCode
-        MaxCode,                  // limiting value for current code size
+        MaxCode,                  // Limiting value for current code size
         ClearCode,                // GIF clear code
         EOFCode,                  // GIF end-of-information code
         CurCode, OldCode, InCode, // Decompressor variables
@@ -69,7 +69,7 @@ struct GIFInfo {
         FinChar,                  // Decompressor variable
         BitMask,                  // AND mask for data size
         ReadMask,                 // Code AND mask for current code size
-        Misc,                     // miscellaneous bits (interlace, local cmap)
+        Misc,                     // Miscellaneous bits (interlace, local cmap)
         filesize;                 // Length of the input file.
 
     const char* fname;
@@ -194,7 +194,7 @@ struct GIFInfo {
 
         npixels = maxpixels = 0;
 
-        // read in values from the image descriptor
+        // Read in values from the image descriptor
 
         ch = NEXTBYTE;
         LeftOfs = ch + 0x100 * NEXTBYTE;
@@ -230,7 +230,7 @@ struct GIFInfo {
         chan = GrayColormap ? 1 : 3;
 
         if (!HasColormap && !(Misc & 0x80)) {
-            // no global or local colormap */
+            // No global or local colormap */
             gifWarning(": No colormap in this GIF file. Assuming EGA colors.\n");
         }
 
@@ -310,7 +310,7 @@ struct GIFInfo {
             } else {
                 // If not a clear code, must be data: save same as CurCode and InCode
 
-                // if we're at maxcode and didn't get a clear, stop loading
+                // If we're at maxcode and didn't get a clear, stop loading
                 if (FreeCode >= 4096) {
                     gifWarning("freecode blew up");
                     break;
@@ -334,7 +334,7 @@ struct GIFInfo {
                 // chain puts its associated output code on the output queue.
 
                 while (CurCode > BitMask) {
-                    if (OutCount > 4096) break; // corrupt file
+                    if (OutCount > 4096) break; // Corrupt file
                     OutCode[OutCount++] = Suffix[CurCode];
                     CurCode = Prefix[CurCode];
                 }
@@ -398,7 +398,7 @@ struct GIFInfo {
                 memset((char*)pic8 + npixels, 0, (size_t)(maxpixels - npixels));
         }
 
-        // fill in the GIFInfo structure */
+        // Fill in the GIFInfo structure */
         pic = pic8;
 
         return 1;
@@ -407,13 +407,13 @@ struct GIFInfo {
     //////////////////////////////////////////////////////////////////////
     int ReadGIF()
     {
-        // returns '1' if successful
+        // Returns '1' if successful
 
         byte ch, *origptr;
         int i, block;
         bool gotimage;
 
-        // initialize variables
+        // Initialize variables
         BitOffset = XC = YC = Pass = OutCount = 0;
         gotimage = false;
         RawGIF = Raster = pic8 = NULL;
@@ -424,12 +424,12 @@ struct GIFInfo {
         FILE* fp = fopen(fname, "rb");
         if (!fp) return (gifError("can't open file"));
 
-        // find the size of the file
+        // Find the size of the file
         fseek(fp, 0L, 2);
         filesize = (int)ftell(fp);
         fseek(fp, 0L, 0);
 
-        // the +256's are so we can read truncated GIF files without fear of seg violation
+        // The +256's are so we can read truncated GIF files without fear of seg violation
         dataptr = RawGIF = new byte[filesize + 256];
         ASSERT_RM(dataptr, "memory alloc failed");
         memset(dataptr, 0, filesize + 256);
@@ -466,7 +466,7 @@ struct GIFInfo {
         ColorMapSize = 1 << BitsPerPixel;
         BitMask = ColorMapSize - 1;
 
-        Background = NEXTBYTE; // background color... not used.
+        Background = NEXTBYTE; // Background color... not used.
 
         EATBYTE;
 
@@ -486,8 +486,8 @@ struct GIFInfo {
                 // cerr << i << " " << int(r[i]) << " " << int(g[i]) << " " << int(b[i]) << endl;
                 GrayColormap = GrayColormap && (r[i] == g[i] && r[i] == b[i]);
             }
-        } else { // no colormap in GIF file
-            // put std EGA palette (repeated 16 times) into colormap, for lack of anything better to do
+        } else { // No colormap in GIF file
+            // Put std EGA palette (repeated 16 times) into colormap, for lack of anything better to do
 
             GrayColormap = false;
             for (i = 0; i < 256; i++) {
@@ -512,9 +512,9 @@ struct GIFInfo {
 
         while (1) {
             block = NEXTBYTE;
-            if (block == EXTENSION) { // parse extension blocks
+            if (block == EXTENSION) { // Parse extension blocks
                 int i, fn, blocksize;
-                fn = NEXTBYTE; // read extension block
+                fn = NEXTBYTE; // Read extension block
 #ifdef DMC_DEBUG
                 cerr << "GIF extension type 0x%02x\n", fn;
 #endif
@@ -527,7 +527,7 @@ struct GIFInfo {
                         for (i = 0; i < blocksize; i++) EATBYTE;
                     }
                     int sbsize;
-                    while ((sbsize = NEXTBYTE) > 0) { // eat any following data subblocks
+                    while ((sbsize = NEXTBYTE) > 0) { // Eat any following data subblocks
                         for (i = 0; i < sbsize; i++) EATBYTE;
                     }
                 } else if (fn == 0xFE) { // Comment Extension
@@ -536,15 +536,15 @@ struct GIFInfo {
                     char* sp;
 
                     cmtlen = 0;
-                    ptr1 = dataptr; // remember start of comments
+                    ptr1 = dataptr; // Remember start of comments
 
-                    do { // figure out length of comment
+                    do { // Figure out length of comment
                         sbsize = NEXTBYTE;
                         cmtlen += sbsize;
                         for (j = 0; j < sbsize; j++) ch = NEXTBYTE;
                     } while (sbsize);
 
-                    if (cmtlen > 0) { // build into one un-blocked comment
+                    if (cmtlen > 0) { // Build into one un-blocked comment
                         char* cmt = new char[cmtlen + 1];
                         ASSERT_RM(cmt, "memory alloc failed");
 
@@ -575,12 +575,12 @@ struct GIFInfo {
                     fg = NEXTBYTE;
                     bg = NEXTBYTE;
                     i = 12;
-                    for (; i < sbsize; i++) EATBYTE; // read rest of first subblock
+                    for (; i < sbsize; i++) EATBYTE; // Read rest of first subblock
 #ifdef DMC_DEBUG
                     cerr << "PlainText: tgrid=" << tgLeft << "," << tgTop << " " << tgWidth << "x" << tgHeight << " cell=" << cWidth << "x" << cHeight
                          << " col=" << fg << "," << bg << endl;
 #endif
-                    // read (and ignore) data sub-blocks
+                    // Read (and ignore) data sub-blocks
                     do {
                         j = 0;
                         sbsize = NEXTBYTE;
@@ -599,7 +599,7 @@ struct GIFInfo {
                     int j, sbsize;
 
                     gifWarning("Graphic Control Extension in GIF file. Ignored.\n");
-                    // read (and ignore) data sub-blocks
+                    // Read (and ignore) data sub-blocks
                     do {
                         j = 0;
                         sbsize = NEXTBYTE;
@@ -611,7 +611,7 @@ struct GIFInfo {
                 } else if (fn == 0xFF) { // Application Extension
                     int j, sbsize;
                     gifWarning("Application extension");
-                    // read (and ignore) data sub-blocks
+                    // Read (and ignore) data sub-blocks
                     do {
                         j = 0;
                         sbsize = NEXTBYTE;
@@ -620,12 +620,12 @@ struct GIFInfo {
                             j++;
                         }
                     } while (sbsize);
-                } else { // unknown extension
+                } else { // Unknown extension
                     int j, sbsize;
 
                     gifWarning("unknown GIF extension 0x%02x");
 
-                    // read (and ignore) data sub-blocks
+                    // Read (and ignore) data sub-blocks
                     do {
                         j = 0;
                         sbsize = NEXTBYTE;
@@ -642,21 +642,21 @@ struct GIFInfo {
                 cerr << "imagesep (got=" << gotimage << ") at start: offset=" << long(dataptr - RawGIF) << endl;
 #endif
 
-                if (gotimage) { // just skip over remaining images
+                if (gotimage) { // Just skip over remaining images
                     int i, misc, ch, ch1;
 
-                    // skip image header
+                    // Skip image header
                     EATBYTE;
-                    EATBYTE; // left position
+                    EATBYTE; // Left position
                     EATBYTE;
-                    EATBYTE; // top position
+                    EATBYTE; // Top position
                     EATBYTE;
-                    EATBYTE; // width
+                    EATBYTE; // Width
                     EATBYTE;
-                    EATBYTE;         // height
-                    misc = NEXTBYTE; // misc. bits
+                    EATBYTE;         // Height
+                    misc = NEXTBYTE; // Misc. bits
 
-                    if (misc & 0x80) { // image has local colormap. skip it
+                    if (misc & 0x80) { // Image has local colormap. skip it
                         for (i = 0; i < 1 << ((misc & 7) + 1); i++) {
                             EATBYTE;
                             EATBYTE;
@@ -664,9 +664,9 @@ struct GIFInfo {
                         }
                     }
 
-                    EATBYTE; // minimum code size
+                    EATBYTE; // Minimum code size
 
-                    // skip image data sub-blocks
+                    // Skip image data sub-blocks
                     do {
                         ch = ch1 = NEXTBYTE;
                         while (ch--) EATBYTE;
@@ -680,21 +680,21 @@ struct GIFInfo {
 #endif
             }
 
-            else if (block == TRAILER) { // stop reading blocks
+            else if (block == TRAILER) { // Stop reading blocks
 #ifdef DMC_DEBUG
                 cerr << "trailer ";
 #endif
                 break;
             }
 
-            else { // unknown block type
+            else { // Unknown block type
                 char str[128];
 
 #ifdef DMC_DEBUG
                 cerr << "block type " << block;
 #endif
 
-                // don't mention bad block if file was trunc'd, as it's all bogus
+                // Don't mention bad block if file was trunc'd, as it's all bogus
                 if ((dataptr - origptr) < filesize) {
                     sprintf(str, "Unknown block type (0x%02x) at offset 0x%lx", block, (long unsigned int)((dataptr - origptr) - 1));
 
@@ -839,7 +839,7 @@ struct GIFWriter {
 
     int free_ent; /* first unused entry */
 
-    // block compression parameters -- after all codes are used up,
+    // Block compression parameters -- after all codes are used up,
     // and compression rate changes, start over.
     int clear_flg;
 

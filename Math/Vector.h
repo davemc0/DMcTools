@@ -1,339 +1,930 @@
 //////////////////////////////////////////////////////////////////////
-// Vector.h - A standard 3-Vector with all the trimmings
+// Vector.h - Implements geometric vectors, esp. float three-vectors
 //
-// Changes Copyright David K. McAllister, July 1999.
+// Copyright David K. McAllister, July 1999, Feb. 2022.
+// Was patterned after Steve Parker's 1995 code, then on Timo Aila's 2010 code
 
 #pragma once
 
-#include "Math/MiscMath.h"
-#include "Math/Random.h"
-#include "Util/Assert.h"
+#include "Util/toolconfig.h"
 
-#include <string>
+#include <cmath>
+#include <iosfwd>
+
+#if defined(min) || defined(max)
+#error "Must #define NOMINMAX before #include <windows.h>."
+#endif
 
 #define ASSERTVEC(x)
 
-template <class Elem_T> class t3Vector {
+#ifndef CUDACC
+// Base types for storage come from CUDA, but if CUDA isn't used, define base types here
+struct int2 {
+    int x, y;
+};
+struct int3 {
+    int x, y, z;
+};
+struct int4 {
+    int x, y, z, w;
+};
+
+struct float2 {
+    float x, y;
+};
+struct float3 {
+    float x, y, z;
+};
+struct alignas(16) float4 {
+    float x, y, z, w;
+};
+
+struct double2 {
+    double x, y;
+};
+struct double3 {
+    double x, y, z;
+};
+struct alignas(32) double4 {
+    double x, y, z, w;
+};
+#endif
+
+////////////////////////////////////////////////
+// Scalar templatized min/max/clamp for any type
+
+#define SCALARTMPLMINMAX(TEMPLATE, T, MIN, MAX)                          \
+    TEMPLATE DMC_DECL T min(T a, T b) { return MIN; }                    \
+    TEMPLATE DMC_DECL T max(T a, T b) { return MAX; }                    \
+    TEMPLATE DMC_DECL T min(T a, T b, T c) { return min(min(a, b), c); } \
+    TEMPLATE DMC_DECL T max(T a, T b, T c) { return max(max(a, b), c); } \
+    TEMPLATE DMC_DECL T clamp(T v, T lo, T hi) { return min(max(v, lo), hi); }
+
+// This impl ensures that it will only return NaN if the 'b' is NaN; taken from: http://www.cs.utah.edu/~thiago/papers/robustBVH-v2.pdf
+SCALARTMPLMINMAX(template <class T>, T&, (a < b) ? a : b, (a > b) ? a : b)
+SCALARTMPLMINMAX(template <class T>, const T&, (a < b) ? a : b, (a > b) ? a : b)
+
+// TODO: These belong in MiscMath.h.
+template <class T> DMC_DECL T sqr(const T& a) { return a * a; }
+template <class T> DMC_DECL T rcp(const T& a) { return (a) ? (T)1 / a : (T)0; }
+
+////////////////////////////////////////////////
+
+template <class T, int L, class S> class tVector {
 public:
-    Elem_T x, y, z;
+    typedef typename T ElType; // The type of an element of the vector
+    static const int Chan = L; // The number of channels (dimensions) in the vector
 
-    typedef Elem_T ElType;     // The type of an element of the vector.
-    static const int Chan = 3; // The number of channels (dimensions) in the vector
+    DMC_DECL tVector() {}
 
-    t3Vector(Elem_T dx, Elem_T dy, Elem_T dz) : x(dx), y(dy), z(dz) {}
-
-    t3Vector() {}
-
-    template <class SrcElem_T> t3Vector(const t3Vector<SrcElem_T>& p)
+    DMC_DECL const T* getPtr() const { return ((S*)this)->getPtr(); }
+    DMC_DECL T* getPtr() { return ((S*)this)->getPtr(); }
+    DMC_DECL const T& get(int idx) const
     {
-        x = static_cast<Elem_T>(p.x);
-        y = static_cast<Elem_T>(p.y);
-        z = static_cast<Elem_T>(p.z);
+        ASSERTVEC(idx >= 0 && idx < L);
+        return getPtr()[idx];
+    }
+    DMC_DECL T& get(int idx)
+    {
+        ASSERTVEC(idx >= 0 && idx < L);
+        return getPtr()[idx];
+    }
+    DMC_DECL T set(int idx, const T& a)
+    {
+        T& slot = get(idx);
+        T old = slot;
+        slot = a;
+        return old;
     }
 
-    t3Vector(const Elem_T& p) { x = y = z = static_cast<Elem_T>(p); }
-
-    t3Vector operator-() const;
-    t3Vector operator+(const Elem_T) const;
-    t3Vector operator-(const Elem_T) const;
-    t3Vector operator*(const Elem_T) const;
-    t3Vector& operator*=(const Elem_T);
-    t3Vector operator/(const Elem_T) const;
-    t3Vector& operator/=(const Elem_T);
-
-    t3Vector operator+(const t3Vector<Elem_T>&) const;
-    t3Vector& operator+=(const t3Vector<Elem_T>&);
-    t3Vector operator-(const t3Vector<Elem_T>&) const;
-    t3Vector& operator-=(const t3Vector<Elem_T>&);
-
-    bool operator<(const t3Vector<Elem_T>&) const; // These were added to appease STL's vectors.
-    bool operator==(const t3Vector<Elem_T>&) const;
-    bool operator!=(const t3Vector<Elem_T>&) const;
-
-    // Return an element of this t3Vector.
-    Elem_T& operator[](int p)
+    DMC_DECL void set(const T& a)
     {
-        ASSERTVEC(p >= 0 && p < Chan);
-        return reinterpret_cast<Elem_T*>(this)[p];
+        T* tp = getPtr();
+        for (int i = 0; i < L; i++) tp[i] = a;
+    }
+    DMC_DECL void set(const T* ptr)
+    {
+        ASSERTVEC(ptr);
+        T* tp = getPtr();
+        for (int i = 0; i < L; i++) tp[i] = ptr[i];
+    }
+    DMC_DECL void setZero() { set((T)0); }
+    template <class V> DMC_DECL void set(const tVector<T, L, V>& v) { set(v.getPtr()); }
+
+    // Reduction operations
+    DMC_DECL T min() const
+    {
+        const T* tp = getPtr();
+        T r = tp[0];
+        for (int i = 1; i < L; i++) r = ::min(r, tp[i]); // Use min defined with above macro
+        return r;
+    }
+    DMC_DECL T max() const
+    {
+        const T* tp = getPtr();
+        T r = tp[0];
+        for (int i = 1; i < L; i++) r = ::max(r, tp[i]); // Use max defined with above macro
+        return r;
+    }
+    DMC_DECL T sum() const
+    {
+        const T* tp = getPtr();
+        T r = tp[0];
+        for (int i = 1; i < L; i++) r += tp[i];
+        return r;
+    }
+    DMC_DECL int minDim() const // Return index of min dimension
+    {
+        const T* tp = getPtr();
+        T r = tp[0];
+        int dim = 0;
+        for (int i = 1; i < L; i++)
+            if (tp[i] < r) {
+                r = tp[i];
+                dim = i;
+            }
+        return dim;
+    }
+    DMC_DECL int maxDim() const // Return index of max dimension
+    {
+        const T* tp = getPtr();
+        T r = tp[0];
+        int dim = 0;
+        for (int i = 1; i < L; i++)
+            if (tp[i] > r) {
+                r = tp[i];
+                dim = i;
+            }
+        return dim;
+    }
+    template <class V> DMC_DECL bool operator==(const tVector<T, L, V>& v) const
+    {
+        const T* tp = getPtr();
+        const T* vp = v.getPtr();
+        for (int i = 0; i < L; i++)
+            if (tp[i] != vp[i]) return false;
+        return true;
+    }
+    template <class V> DMC_DECL bool operator!=(const tVector<T, L, V>& v) const { return (!operator==(v)); }
+
+    // Returns true if the points are within D of each other
+    template <class V> friend DMC_DECL bool isNear(const tVector<T, L, V>& t, const tVector<T, L, V>& v, const T& DSqr = 0) { return (t - v).lenSqr() <= DSqr; }
+
+    DMC_DECL T lenSqr() const
+    {
+        const T* tp = getPtr();
+        T r = (T)0;
+        for (int i = 0; i < L; i++) r += sqr(tp[i]);
+        return r;
+    }
+    DMC_DECL T length() const { return sqrt(lenSqr()); }
+    DMC_DECL S normalized(T len = (T)1) const { return operator*(len* rcp(length())); }
+    DMC_DECL void normalize(T len = (T)1) { set(normalized(len)); }
+
+    DMC_DECL bool any_inf() const
+    {
+        const T* tp = getPtr();
+        for (int i = 0; i < L; i++)
+            if (std::isinf(tp[i])) return true;
+        return false;
+    }
+    DMC_DECL bool all_inf() const
+    {
+        const T* tp = getPtr();
+        for (int i = 0; i < L; i++)
+            if (!std::isinf(tp[i])) return false;
+        return true;
+    }
+    DMC_DECL bool any_nan() const
+    {
+        const T* tp = getPtr();
+        for (int i = 0; i < L; i++)
+            if (std::isnan(tp[i])) return true;
+        return false;
+    }
+    DMC_DECL bool all_nan() const
+    {
+        const T* tp = getPtr();
+        for (int i = 0; i < L; i++)
+            if (!std::isnan(tp[i])) return false;
+        return true;
+    }
+    DMC_DECL bool any_zero() const
+    {
+        const T* tp = getPtr();
+        for (int i = 0; i < L; i++)
+            if (tp[i] == (T)0) return true;
+        return false;
+    }
+    DMC_DECL bool all_zero() const
+    {
+        const T* tp = getPtr();
+        for (int i = 0; i < L; i++)
+            if (tp[i] != (T)0) return false;
+        return true;
     }
 
-    // Return a const element of this t3Vector.
-    const Elem_T& operator[](int p) const
+    // Vector-scalar operations
+    DMC_DECL const T& operator[](int idx) const { return get(idx); }
+    DMC_DECL T& operator[](int idx) { return get(idx); }
+
+    DMC_DECL S& operator=(const T& a)
     {
-        ASSERTVEC(p >= 0 && p < Chan);
-        return reinterpret_cast<Elem_T*>(this)[p];
+        set(a);
+        return *(S*)this;
+    }
+    DMC_DECL S& operator+=(const T& a)
+    {
+        set(operator+(a));
+        return *(S*)this;
+    }
+    DMC_DECL S& operator-=(const T& a)
+    {
+        set(operator-(a));
+        return *(S*)this;
+    }
+    DMC_DECL S& operator*=(const T& a)
+    {
+        set(operator*(a));
+        return *(S*)this;
+    }
+    DMC_DECL S& operator/=(const T& a)
+    {
+        set(operator/(a));
+        return *(S*)this;
+    }
+    DMC_DECL S& operator%=(const T& a)
+    {
+        set(operator%(a));
+        return *(S*)this;
+    }
+    DMC_DECL S& operator&=(const T& a)
+    {
+        set(operator&(a));
+        return *(S*)this;
+    }
+    DMC_DECL S& operator|=(const T& a)
+    {
+        set(operator|(a));
+        return *(S*)this;
+    }
+    DMC_DECL S& operator^=(const T& a)
+    {
+        set(operator^(a));
+        return *(S*)this;
+    }
+    DMC_DECL S& operator<<=(const T& a)
+    {
+        set(operator<<(a));
+        return *(S*)this;
+    }
+    DMC_DECL S& operator>>=(const T& a)
+    {
+        set(operator>>(a));
+        return *(S*)this;
     }
 
-    Elem_T length() const { return dmcm::Sqrt(x * x + y * y + z * z); }
-
-    Elem_T length2() const;
-
-    // Returns the previous length.
-    Elem_T normalize()
+    DMC_DECL S operator+() const { return *this; }
+    DMC_DECL S operator-() const
     {
-        Elem_T l2 = x * x + y * y + z * z;
-        ASSERTVEC(l2 >= 0.0);
-        Elem_T len = dmcm::Sqrt(l2);
-        ASSERTVEC(len > 0.0);
-        Elem_T linv = 1. / len;
-        x *= linv;
-        y *= linv;
-        z *= linv;
-        return len;
+        const T* tp = getPtr();
+        S r;
+        T* rp = r.getPtr();
+        for (int i = 0; i < L; i++) rp[i] = -tp[i];
+        return r;
+    }
+    DMC_DECL S operator~() const
+    {
+        const T* tp = getPtr();
+        S r;
+        T* rp = r.getPtr();
+        for (int i = 0; i < L; i++) rp[i] = ~tp[i];
+        return r;
+    }
+    DMC_DECL S operator+(const T& a) const
+    {
+        const T* tp = getPtr();
+        S r;
+        T* rp = r.getPtr();
+        for (int i = 0; i < L; i++) rp[i] = tp[i] + a;
+        return r;
+    }
+    DMC_DECL S operator-(const T& a) const
+    {
+        const T* tp = getPtr();
+        S r;
+        T* rp = r.getPtr();
+        for (int i = 0; i < L; i++) rp[i] = tp[i] - a;
+        return r;
+    }
+    DMC_DECL S operator*(const T& a) const
+    {
+        const T* tp = getPtr();
+        S r;
+        T* rp = r.getPtr();
+        for (int i = 0; i < L; i++) rp[i] = tp[i] * a;
+        return r;
+    }
+    DMC_DECL S operator/(const T& a) const
+    {
+        const T* tp = getPtr();
+        S r;
+        T* rp = r.getPtr();
+        for (int i = 0; i < L; i++) rp[i] = tp[i] / a;
+        return r;
+    }
+    DMC_DECL S operator%(const T& a) const
+    {
+        const T* tp = getPtr();
+        S r;
+        T* rp = r.getPtr();
+        for (int i = 0; i < L; i++) rp[i] = tp[i] % a;
+        return r;
+    }
+    DMC_DECL S operator&(const T& a) const
+    {
+        const T* tp = getPtr();
+        S r;
+        T* rp = r.getPtr();
+        for (int i = 0; i < L; i++) rp[i] = tp[i] & a;
+        return r;
+    }
+    DMC_DECL S operator|(const T& a) const
+    {
+        const T* tp = getPtr();
+        S r;
+        T* rp = r.getPtr();
+        for (int i = 0; i < L; i++) rp[i] = tp[i] | a;
+        return r;
+    }
+    DMC_DECL S operator^(const T& a) const
+    {
+        const T* tp = getPtr();
+        S r;
+        T* rp = r.getPtr();
+        for (int i = 0; i < L; i++) rp[i] = tp[i] ^ a;
+        return r;
+    }
+    DMC_DECL S operator<<(const T& a) const
+    {
+        const T* tp = getPtr();
+        S r;
+        T* rp = r.getPtr();
+        for (int i = 0; i < L; i++) rp[i] = tp[i] << a;
+        return r;
+    }
+    DMC_DECL S operator>>(const T& a) const
+    {
+        const T* tp = getPtr();
+        S r;
+        T* rp = r.getPtr();
+        for (int i = 0; i < L; i++) rp[i] = tp[i] >> a;
+        return r;
     }
 
-    // Return a new vector that is the normalized this vector.
-    // Doesn't modify this vector.
-    t3Vector<Elem_T> normal() const
+    // Component-wise operations
+    template <class V> DMC_DECL S& operator=(const tVector<T, L, V>& v)
     {
-        t3Vector<Elem_T> v(*this);
-        v.normalize();
-        return v;
+        set(v);
+        return *(S*)this;
+    }
+    template <class V> DMC_DECL S& operator+=(const tVector<T, L, V>& v)
+    {
+        set(operator+(v));
+        return *(S*)this;
+    }
+    template <class V> DMC_DECL S& operator-=(const tVector<T, L, V>& v)
+    {
+        set(operator-(v));
+        return *(S*)this;
+    }
+    template <class V> DMC_DECL S& operator*=(const tVector<T, L, V>& v)
+    {
+        set(operator*(v));
+        return *(S*)this;
+    }
+    template <class V> DMC_DECL S& operator/=(const tVector<T, L, V>& v)
+    {
+        set(operator/(v));
+        return *(S*)this;
+    }
+    template <class V> DMC_DECL S& operator%=(const tVector<T, L, V>& v)
+    {
+        set(operator%(v));
+        return *(S*)this;
+    }
+    template <class V> DMC_DECL S& operator&=(const tVector<T, L, V>& v)
+    {
+        set(operator&(v));
+        return *(S*)this;
+    }
+    template <class V> DMC_DECL S& operator|=(const tVector<T, L, V>& v)
+    {
+        set(operator|(v));
+        return *(S*)this;
+    }
+    template <class V> DMC_DECL S& operator^=(const tVector<T, L, V>& v)
+    {
+        set(operator^(v));
+        return *(S*)this;
+    }
+    template <class V> DMC_DECL S& operator<<=(const tVector<T, L, V>& v)
+    {
+        set(operator<<(v));
+        return *(S*)this;
+    }
+    template <class V> DMC_DECL S& operator>>=(const tVector<T, L, V>& v)
+    {
+        set(operator>>(v));
+        return *(S*)this;
     }
 
-    // Zeroes out this vector
-    void Zero() { x = y = z = Elem_T(0); }
-
-    // Find two vectors that, with this one, form an orthogonal frame
-    // this may not be normalized, but the other two are.
-    void find_orthogonal(t3Vector<Elem_T>& v1, t3Vector<Elem_T>& v2) const
+    // Component-wise const operations
+    DMC_DECL S abs() const
     {
-        t3Vector<Elem_T> v0(Cross(*this, t3Vector<Elem_T>(1, 0, 0)));
-        if (v0.length2() == 0) { v0 = Cross(*this, t3Vector<Elem_T>(0, 1, 0)); }
-        v1 = Cross(*this, v0);
-        v1.normalize();
-        v2 = Cross(*this, v1);
-        v2.normalize();
+        const T* tp = getPtr();
+        S r;
+        T* rp = r.getPtr();
+        for (int i = 0; i < L; i++) rp[i] = ::abs(tp[i]);
+        return r;
     }
-
-    // A member function declaration means three things:
-    // 1. The function can access private stuff in the class
-    // 2. The function is in the scope of the class
-    // 3. The function must be invoked with a this pointer
-    //
-    // static member functions remove the third property.
-    // friend member functions remove the second and third properties.
-
-    std::string string() const
+    template <class V> DMC_DECL T dot(const tVector<T, L, V>& v) const
     {
-        const int PRDIG = 8;
-        char xx[40], yy[40], zz[40];
-        return std::string("[") + gcvt(x, PRDIG, xx) + std::string(", ") + gcvt(y, PRDIG, yy) + std::string(", ") + gcvt(z, PRDIG, zz) + "]";
+        const T* tp = getPtr();
+        const T* vp = v.getPtr();
+        T r = (T)0;
+        for (int i = 0; i < L; i++) r += tp[i] * vp[i];
+        return r;
+    }
+    template <class V> DMC_DECL S min(const tVector<T, L, V>& v) const
+    {
+        const T* tp = getPtr();
+        const T* vp = v.getPtr();
+        S r;
+        T* rp = r.getPtr();
+        for (int i = 0; i < L; i++) rp[i] = ::min(tp[i], vp[i]); // Use min defined with above macro
+        return r;
+    }
+    template <class V> DMC_DECL S max(const tVector<T, L, V>& v) const
+    {
+        const T* tp = getPtr();
+        const T* vp = v.getPtr();
+        S r;
+        T* rp = r.getPtr();
+        for (int i = 0; i < L; i++) rp[i] = ::max(tp[i], vp[i]); // Use max defined with above macro
+        return r;
+    }
+    template <class V, class W> DMC_DECL S clamp(const tVector<T, L, V>& lo, const tVector<T, L, W>& hi) const
+    {
+        const T* tp = getPtr();
+        const T* lop = lo.getPtr();
+        const T* hip = hi.getPtr();
+        S r;
+        T* rp = r.getPtr();
+        for (int i = 0; i < L; i++) rp[i] = ::clamp(tp[i], lop[i], hip[i]);
+        return r;
+    }
+    template <class V> DMC_DECL S operator+(const tVector<T, L, V>& v) const
+    {
+        const T* tp = getPtr();
+        const T* vp = v.getPtr();
+        S r;
+        T* rp = r.getPtr();
+        for (int i = 0; i < L; i++) rp[i] = tp[i] + vp[i];
+        return r;
+    }
+    template <class V> DMC_DECL S operator-(const tVector<T, L, V>& v) const
+    {
+        const T* tp = getPtr();
+        const T* vp = v.getPtr();
+        S r;
+        T* rp = r.getPtr();
+        for (int i = 0; i < L; i++) rp[i] = tp[i] - vp[i];
+        return r;
+    }
+    template <class V> DMC_DECL S operator*(const tVector<T, L, V>& v) const
+    {
+        const T* tp = getPtr();
+        const T* vp = v.getPtr();
+        S r;
+        T* rp = r.getPtr();
+        for (int i = 0; i < L; i++) rp[i] = tp[i] * vp[i];
+        return r;
+    }
+    template <class V> DMC_DECL S operator/(const tVector<T, L, V>& v) const
+    {
+        const T* tp = getPtr();
+        const T* vp = v.getPtr();
+        S r;
+        T* rp = r.getPtr();
+        for (int i = 0; i < L; i++) rp[i] = tp[i] / vp[i];
+        return r;
+    }
+    template <class V> DMC_DECL S operator%(const tVector<T, L, V>& v) const
+    {
+        const T* tp = getPtr();
+        const T* vp = v.getPtr();
+        S r;
+        T* rp = r.getPtr();
+        for (int i = 0; i < L; i++) rp[i] = tp[i] % vp[i];
+        return r;
+    }
+    template <class V> DMC_DECL S operator&(const tVector<T, L, V>& v) const
+    {
+        const T* tp = getPtr();
+        const T* vp = v.getPtr();
+        S r;
+        T* rp = r.getPtr();
+        for (int i = 0; i < L; i++) rp[i] = tp[i] & vp[i];
+        return r;
+    }
+    template <class V> DMC_DECL S operator|(const tVector<T, L, V>& v) const
+    {
+        const T* tp = getPtr();
+        const T* vp = v.getPtr();
+        S r;
+        T* rp = r.getPtr();
+        for (int i = 0; i < L; i++) rp[i] = tp[i] | vp[i];
+        return r;
+    }
+    template <class V> DMC_DECL S operator^(const tVector<T, L, V>& v) const
+    {
+        const T* tp = getPtr();
+        const T* vp = v.getPtr();
+        S r;
+        T* rp = r.getPtr();
+        for (int i = 0; i < L; i++) rp[i] = tp[i] ^ vp[i];
+        return r;
+    }
+    template <class V> DMC_DECL S operator<<(const tVector<T, L, V>& v) const
+    {
+        const T* tp = getPtr();
+        const T* vp = v.getPtr();
+        S r;
+        T* rp = r.getPtr();
+        for (int i = 0; i < L; i++) rp[i] = tp[i] << vp[i];
+        return r;
+    }
+    template <class V> DMC_DECL S operator>>(const tVector<T, L, V>& v) const
+    {
+        const T* tp = getPtr();
+        const T* vp = v.getPtr();
+        S r;
+        T* rp = r.getPtr();
+        for (int i = 0; i < L; i++) rp[i] = tp[i] >> vp[i];
+        return r;
     }
 };
 
-/////////////////////////////////////////////////
-// Component-wise operations
+////////////////////////////////////////////////
 
-template <class Elem_T> DMC_DECL t3Vector<Elem_T> Abs(const t3Vector<Elem_T>& v)
+class i2vec : public tVector<int, 2, i2vec>, public int2 {
+public:
+    DMC_DECL i2vec() { setZero(); }
+    DMC_DECL i2vec(int a) { set(a); }
+    DMC_DECL i2vec(int xx, int yy)
+    {
+        x = xx;
+        y = yy;
+    }
+
+    DMC_DECL const int* getPtr() const { return &x; }
+    DMC_DECL int* getPtr() { return &x; }
+    static DMC_DECL i2vec fromPtr(const int* ptr) { return i2vec(ptr[0], ptr[1]); }
+
+    template <class V> DMC_DECL i2vec(const tVector<int, 2, V>& v) { set(v); }
+    template <class V> DMC_DECL i2vec& operator=(const tVector<int, 2, V>& v)
+    {
+        set(v);
+        return *this;
+    }
+};
+
+class f2vec : public tVector<float, 2, f2vec>, public float2 {
+public:
+    DMC_DECL f2vec() { setZero(); }
+    DMC_DECL f2vec(float a) { set(a); }
+    DMC_DECL f2vec(float xx, float yy)
+    {
+        x = xx;
+        y = yy;
+    }
+
+    DMC_DECL const float* getPtr() const { return &x; }
+    DMC_DECL float* getPtr() { return &x; }
+    static DMC_DECL f2vec fromPtr(const float* ptr) { return f2vec(ptr[0], ptr[1]); }
+
+    template <class V> DMC_DECL f2vec(const tVector<float, 2, V>& v) { set(v); }
+    template <class V> DMC_DECL f2vec& operator=(const tVector<float, 2, V>& v)
+    {
+        set(v);
+        return *this;
+    }
+};
+
+class d2vec : public tVector<double, 2, d2vec>, public double2 {
+public:
+    DMC_DECL d2vec() { setZero(); }
+    DMC_DECL d2vec(double a) { set(a); }
+    DMC_DECL d2vec(double xx, double yy)
+    {
+        x = xx;
+        y = yy;
+    }
+
+    DMC_DECL const double* getPtr() const { return &x; }
+    DMC_DECL double* getPtr() { return &x; }
+    static DMC_DECL d2vec fromPtr(const double* ptr) { return d2vec(ptr[0], ptr[1]); }
+
+    template <class V> DMC_DECL d2vec(const tVector<double, 2, V>& v) { set(v); }
+    template <class V> DMC_DECL d2vec& operator=(const tVector<double, 2, V>& v)
+    {
+        set(v);
+        return *this;
+    }
+};
+
+////////////////////////////////////////////////
+
+class i3vec : public tVector<int, 3, i3vec>, public int3 {
+public:
+    DMC_DECL i3vec() { setZero(); }
+    DMC_DECL i3vec(int a) { set(a); }
+    DMC_DECL i3vec(int xx, int yy, int zz)
+    {
+        x = xx;
+        y = yy;
+        z = zz;
+    }
+
+    DMC_DECL const int* getPtr() const { return &x; }
+    DMC_DECL int* getPtr() { return &x; }
+    static DMC_DECL i3vec fromPtr(const int* ptr) { return i3vec(ptr[0], ptr[1], ptr[2]); }
+
+    template <class V> DMC_DECL i3vec(const tVector<int, 3, V>& v) { set(v); }
+    template <class V> DMC_DECL i3vec& operator=(const tVector<int, 3, V>& v)
+    {
+        set(v);
+        return *this;
+    }
+};
+
+class f3vec : public tVector<float, 3, f3vec>, public float3 {
+public:
+    DMC_DECL f3vec() { setZero(); }
+    DMC_DECL f3vec(float a) { set(a); }
+    DMC_DECL f3vec(i3vec v)
+    {
+        x = (float)v.x;
+        y = (float)v.y;
+        z = (float)v.z;
+    }
+    DMC_DECL f3vec(float xx, float yy, float zz)
+    {
+        x = xx;
+        y = yy;
+        z = zz;
+    }
+    DMC_DECL f3vec(const float* const v)
+    {
+        x = v[0];
+        y = v[1];
+        z = v[2];
+    }
+
+    DMC_DECL const float* getPtr() const { return &x; }
+    DMC_DECL float* getPtr() { return &x; }
+    static DMC_DECL f3vec fromPtr(const float* ptr) { return f3vec(ptr[0], ptr[1], ptr[2]); }
+    DMC_DECL operator i3vec() const { return i3vec((int)x, (int)y, (int)z); }
+
+    template <class V> DMC_DECL f3vec(const tVector<float, 3, V>& v) { set(v); }
+    template <class V> DMC_DECL f3vec(const tVector<float, 4, V>& v) { set(v.getPtr()); }
+    template <class V> DMC_DECL f3vec& operator=(const tVector<float, 3, V>& v)
+    {
+        set(v);
+        return *this;
+    }
+};
+
+DMC_DECL f3vec Cross(const f3vec& v1, const f3vec& v2) { return f3vec(v1.y * v2.z - v1.z * v2.y, v1.z * v2.x - v1.x * v2.z, v1.x * v2.y - v1.y * v2.x); }
+
+class d3vec : public tVector<double, 3, d3vec>, public double3 {
+public:
+    DMC_DECL d3vec() { setZero(); }
+    DMC_DECL d3vec(double xx, double yy, double zz)
+    {
+        x = xx;
+        y = yy;
+        z = zz;
+    }
+    DMC_DECL d3vec(float xx, float yy, float zz)
+    {
+        x = double(xx);
+        y = double(yy);
+        z = double(zz);
+    }
+    DMC_DECL d3vec(f3vec v)
+    {
+        x = double(v.x);
+        y = double(v.y);
+        z = double(v.z);
+    }
+    DMC_DECL const double* getPtr() const { return &x; }
+    DMC_DECL double* getPtr() { return &x; }
+    static DMC_DECL d3vec fromPtr(const double* ptr) { return d3vec(ptr[0], ptr[1], ptr[2]); }
+
+    template <class V> DMC_DECL d3vec(const tVector<double, 3, V>& v) { set(v); }
+    template <class V> DMC_DECL d3vec& operator=(const tVector<double, 3, V>& v)
+    {
+        set(v);
+        return *this;
+    }
+};
+
+DMC_DECL d3vec Cross(const d3vec& v1, const d3vec& v2) { return d3vec(v1.y * v2.z - v1.z * v2.y, v1.z * v2.x - v1.x * v2.z, v1.x * v2.y - v1.y * v2.x); }
+
+////////////////////////////////////////////////
+
+class i4vec : public tVector<int, 4, i4vec>, public int4 {
+public:
+    DMC_DECL i4vec() { setZero(); }
+    DMC_DECL i4vec(int a) { set(a); }
+    DMC_DECL i4vec(int xx, int yy, int zz, int ww)
+    {
+        x = xx;
+        y = yy;
+        z = zz;
+        w = ww;
+    }
+    DMC_DECL i4vec(const i3vec& xyz, int ww)
+    {
+        x = xyz.x;
+        y = xyz.y;
+        z = xyz.z;
+        w = ww;
+    }
+
+    DMC_DECL const int* getPtr() const { return &x; }
+    DMC_DECL int* getPtr() { return &x; }
+    static DMC_DECL i4vec fromPtr(const int* ptr) { return i4vec(ptr[0], ptr[1], ptr[2], ptr[3]); }
+
+    DMC_DECL i3vec getXYZ() const { return i3vec(x, y, z); }
+    DMC_DECL i3vec getXYW() const { return i3vec(x, y, w); }
+
+    template <class V> DMC_DECL i4vec(const tVector<int, 4, V>& v) { set(v); }
+    template <class V> DMC_DECL i4vec& operator=(const tVector<int, 4, V>& v)
+    {
+        set(v);
+        return *this;
+    }
+};
+
+class f4vec : public tVector<float, 4, f4vec>, public float4 {
+public:
+    DMC_DECL f4vec() { setZero(); }
+    DMC_DECL f4vec(float a) { set(a); }
+    DMC_DECL f4vec(float xx, float yy, float zz, float ww)
+    {
+        x = xx;
+        y = yy;
+        z = zz;
+        w = ww;
+    }
+    DMC_DECL f4vec(const f3vec& xyz, float ww)
+    {
+        x = xyz.x;
+        y = xyz.y;
+        z = xyz.z;
+        w = ww;
+    }
+
+    DMC_DECL const float* getPtr() const { return &x; }
+    DMC_DECL float* getPtr() { return &x; }
+    static DMC_DECL f4vec fromPtr(const float* ptr) { return f4vec(ptr[0], ptr[1], ptr[2], ptr[3]); }
+
+    DMC_DECL f3vec getXYZ() const { return f3vec(x, y, z); }
+    DMC_DECL f3vec getXYW() const { return f3vec(x, y, w); }
+
+    template <class V> DMC_DECL f4vec(const tVector<float, 4, V>& v) { set(v); }
+    template <class V> DMC_DECL f4vec& operator=(const tVector<float, 4, V>& v)
+    {
+        set(v);
+        return *this;
+    }
+};
+
+class d4vec : public tVector<double, 4, d4vec>, public double4 {
+public:
+    DMC_DECL d4vec() { setZero(); }
+    DMC_DECL d4vec(double a) { set(a); }
+    DMC_DECL d4vec(double xx, double yy, double zz, double ww)
+    {
+        x = xx;
+        y = yy;
+        z = zz;
+        w = ww;
+    }
+    DMC_DECL d4vec(const d3vec& xyz, double ww)
+    {
+        x = xyz.x;
+        y = xyz.y;
+        z = xyz.z;
+        w = ww;
+    }
+
+    DMC_DECL const double* getPtr() const { return &x; }
+    DMC_DECL double* getPtr() { return &x; }
+    static DMC_DECL d4vec fromPtr(const double* ptr) { return d4vec(ptr[0], ptr[1], ptr[2], ptr[3]); }
+
+    DMC_DECL d3vec getXYZ() const { return d3vec(x, y, z); }
+    DMC_DECL d3vec getXYW() const { return d3vec(x, y, w); }
+
+    template <class V> DMC_DECL d4vec(const tVector<double, 4, V>& v) { set(v); }
+    template <class V> DMC_DECL d4vec& operator=(const tVector<double, 4, V>& v)
+    {
+        set(v);
+        return *this;
+    }
+};
+
+////////////////////////////////////////////////
+// Bare functions, mostly operating on a vector and a scalar
+
+template <class T, int L, class S> DMC_DECL T min(const tVector<T, L, S>& v) { return v.min(); }
+template <class T, int L, class S> DMC_DECL T max(const tVector<T, L, S>& v) { return v.max(); }
+template <class T, int L, class S> DMC_DECL T sum(const tVector<T, L, S>& v) { return v.sum(); }
+template <class T, int L, class S> DMC_DECL S abs(const tVector<T, L, S>& v) { return v.abs(); }
+template <class T, int L, class S> DMC_DECL S normalize(const tVector<T, L, S>& v, T len = (T)1) { return v.normalized(len); }
+template <class T, int L, class S> DMC_DECL T lenSqr(const tVector<T, L, S>& v) { return v.lenSqr(); }
+template <class T, int L, class S> DMC_DECL T length(const tVector<T, L, S>& v) { return v.length(); }
+template <class T, int L, class S, class V> DMC_DECL T dot(const tVector<T, L, S>& a, const tVector<T, L, V>& b) { return a.dot(b); }
+
+template <class T, int L, class S> DMC_DECL S operator+(const T& a, const tVector<T, L, S>& b) { return b + a; }
+template <class T, int L, class S> DMC_DECL S operator-(const T& a, const tVector<T, L, S>& b) { return -b + a; }
+template <class T, int L, class S> DMC_DECL S operator*(const T& a, const tVector<T, L, S>& b) { return b * a; }
+template <class T, int L, class S> DMC_DECL S operator/(const T& a, const tVector<T, L, S>& b)
 {
-    Elem_T x = dmcm::Abs(v.x);
-    Elem_T y = dmcm::Abs(v.y);
-    Elem_T z = dmcm::Abs(v.z);
-    return t3Vector<Elem_T>(x, y, z);
+    const T* bp = b.getPtr();
+    S r;
+    T* rp = r.getPtr();
+    for (int i = 0; i < L; i++) rp[i] = a / bp[i];
+    return r;
+}
+template <class T, int L, class S> DMC_DECL S operator%(const T& a, const tVector<T, L, S>& b)
+{
+    const T* bp = b.getPtr();
+    S r;
+    T* rp = r.getPtr();
+    for (int i = 0; i < L; i++) rp[i] = a % bp[i];
+    return r;
+}
+template <class T, int L, class S> DMC_DECL S operator&(const T& a, const tVector<T, L, S>& b) { return b & a; }
+template <class T, int L, class S> DMC_DECL S operator|(const T& a, const tVector<T, L, S>& b) { return b | a; }
+template <class T, int L, class S> DMC_DECL S operator^(const T& a, const tVector<T, L, S>& b) { return b ^ a; }
+template <class T, int L, class S> DMC_DECL S operator<<(const T& a, const tVector<T, L, S>& b)
+{
+    const T* bp = b.getPtr();
+    S r;
+    T* rp = r.getPtr();
+    for (int i = 0; i < L; i++) rp[i] = a << bp[i];
+    return r;
+}
+template <class T, int L, class S> DMC_DECL S operator>>(const T& a, const tVector<T, L, S>& b)
+{
+    const T* bp = b.getPtr();
+    S r;
+    T* rp = r.getPtr();
+    for (int i = 0; i < L; i++) rp[i] = a >> bp[i];
+    return r;
 }
 
-template <class Elem_T> DMC_DECL t3Vector<Elem_T> CompMin(const t3Vector<Elem_T>& v1, const t3Vector<Elem_T>& v2)
-{
-    return t3Vector<Elem_T>(std::min(v1.x, v2.x), std::min(v1.y, v2.y), std::min(v1.z, v2.z));
-}
+// Component-wise vector-vector min/max/clamp
+#define VECCOMPMINMAX(V)                                                                              \
+    DMC_DECL V min(const V& a, const V& b) { return a.min(b); }                                       \
+    DMC_DECL V min(V& a, V& b) { return a.min(b); }                                                   \
+    DMC_DECL V max(const V& a, const V& b) { return a.max(b); }                                       \
+    DMC_DECL V max(V& a, V& b) { return a.max(b); }                                                   \
+    DMC_DECL V min(const V& a, const V& b, const V& c) { return a.min(b).min(c); }                    \
+    DMC_DECL V min(V& a, V& b, V& c) { return a.min(b).min(c); }                                      \
+    DMC_DECL V max(const V& a, const V& b, const V& c) { return a.max(b).max(c); }                    \
+    DMC_DECL V max(V& a, V& b, V& c) { return a.max(b).max(c); }                                      \
+    DMC_DECL V min(const V& a, const V& b, const V& c, const V& d) { return a.min(b).min(c).min(d); } \
+    DMC_DECL V min(V& a, V& b, V& c, V& d) { return a.min(b).min(c).min(d); }                         \
+    DMC_DECL V max(const V& a, const V& b, const V& c, const V& d) { return a.max(b).max(c).max(d); } \
+    DMC_DECL V max(V& a, V& b, V& c, V& d) { return a.max(b).max(c).max(d); }                         \
+    DMC_DECL V clamp(const V& v, const V& lo, const V& hi) { return v.clamp(lo, hi); }                \
+    DMC_DECL V clamp(V& v, V& lo, V& hi) { return v.clamp(lo, hi); }
 
-template <class Elem_T> DMC_DECL t3Vector<Elem_T> CompMax(const t3Vector<Elem_T>& v1, const t3Vector<Elem_T>& v2)
-{
-    return t3Vector<Elem_T>(std::max(v1.x, v2.x), std::max(v1.y, v2.y), std::max(v1.z, v2.z));
-}
+VECCOMPMINMAX(i2vec)
+VECCOMPMINMAX(f2vec)
+VECCOMPMINMAX(d2vec)
+VECCOMPMINMAX(i3vec)
+VECCOMPMINMAX(f3vec)
+VECCOMPMINMAX(d3vec)
+VECCOMPMINMAX(i4vec)
+VECCOMPMINMAX(f4vec)
+VECCOMPMINMAX(d4vec)
+#undef VECCOMPMINMAX
 
-template <class Elem_T> DMC_DECL t3Vector<Elem_T> CompMult(const t3Vector<Elem_T>& v1, const t3Vector<Elem_T>& v2)
-{
-    return t3Vector<Elem_T>(v1.x * v2.x, v1.y * v2.y, v1.z * v2.z);
-}
-
-template <class Elem_T> DMC_DECL t3Vector<Elem_T> CompDiv(const t3Vector<Elem_T>& v1, const t3Vector<Elem_T>& v2)
-{
-    return t3Vector<Elem_T>(v1.x / v2.x, v1.y / v2.y, v1.z / v2.z);
-}
-
-/////////////////////////////////////////////////
-// Utility operations
-
-template <class Elem_T> DMC_DECL std::ostream& operator<<(std::ostream& os, const t3Vector<Elem_T>& v)
-{
-    os << '[' << v.x << ", " << v.y << ", " << v.z << ']';
-
-    return os;
-}
-
-template <class Elem_T> DMC_DECL std::istream& operator>>(std::istream& is, t3Vector<Elem_T>& v)
-{
-    Elem_T x, y, z;
-    char st;
-    is >> st >> x >> st >> y >> st >> z >> st;
-    v = t3Vector<Elem_T>(x, y, z);
-    return is;
-}
-
-/////////////////////////////////////////////////
-// Multi-vector math operations
-
-template <class Elem_T> DMC_DECL Elem_T Dot(const t3Vector<Elem_T>& v1, const t3Vector<Elem_T>& v2) { return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z; }
-
-template <class Elem_T> DMC_DECL t3Vector<Elem_T> Cross(const t3Vector<Elem_T>& v1, const t3Vector<Elem_T>& v2)
-{
-    return t3Vector<Elem_T>(v1.y * v2.z - v1.z * v2.y, v1.z * v2.x - v1.x * v2.z, v1.x * v2.y - v1.y * v2.x);
-}
-
-// Find the point p in terms of the u,v,w basis.
-template <class Elem_T>
-DMC_DECL t3Vector<Elem_T> Solve(const t3Vector<Elem_T>& p, const t3Vector<Elem_T>& u, const t3Vector<Elem_T>& v, const t3Vector<Elem_T>& w)
-{
-    Elem_T det = 1 / (w.z * u.x * v.y - w.z * u.y * v.x - u.z * w.x * v.y - u.x * v.z * w.y + v.z * w.x * u.y + u.z * v.x * w.y);
-
-    return t3Vector<Elem_T>(((v.x * w.y - w.x * v.y) * p.z + (v.z * w.x - v.x * w.z) * p.y + (w.z * v.y - v.z * w.y) * p.x) * det,
-                            -((u.x * w.y - w.x * u.y) * p.z + (u.z * w.x - u.x * w.z) * p.y + (u.y * w.z - u.z * w.y) * p.x) * det,
-                            ((u.x * v.y - u.y * v.x) * p.z + (v.z * u.y - u.z * v.y) * p.x + (u.z * v.x - u.x * v.z) * p.y) * det);
-}
-
-template <class Elem_T> DMC_DECL t3Vector<Elem_T> LinearInterp(const t3Vector<Elem_T>& v1, const t3Vector<Elem_T>& v2, Elem_T t)
-{
-    return t3Vector<Elem_T>(v1.x + (v2.x - v1.x) * t, v1.y + (v2.y - v1.y) * t, v1.z + (v2.z - v1.z) * t);
-}
-
-template <class Elem_T> DMC_DECL t3Vector<Elem_T> CubicInterp(const t3Vector<Elem_T>& v1, const t3Vector<Elem_T>& v2, Elem_T f)
-{
-    Elem_T t = f * f * (3 - 2 * f);
-    return t3Vector<Elem_T>(v1.x + (v2.x - v1.x) * t, v1.y + (v2.y - v1.y) * t, v1.z + (v2.z - v1.z) * t);
-}
-
-// Given three points, find the plane (N and D) that they lie on.
-template <class Elem_T>
-DMC_DECL void ComputePlane(const t3Vector<Elem_T>& V0, const t3Vector<Elem_T>& V1, const t3Vector<Elem_T>& V2, t3Vector<Elem_T>& N, Elem_T& D)
-{
-    t3Vector<Elem_T> E0 = V1 - V0;
-    E0.normalize();
-    t3Vector<Elem_T> E1 = V2 - V0;
-    E1.normalize();
-    N = Cross(E0, E1);
-    N.normalize();
-    D = -Dot(V0, N);
-}
-
-// Get area of this triangle
-template <class Elem_T> DMC_DECL Elem_T TriangleArea(const t3Vector<Elem_T>& P0, const t3Vector<Elem_T>& P1, const t3Vector<Elem_T>& P2)
-{
-    t3Vector<Elem_T> E1 = P1 - P0;
-    t3Vector<Elem_T> E2 = P2 - P1;
-
-    return fabs(Cross(E1, E2).length() * Elem_T(0.5));
-}
-
-// Return a uniformly distributed random point in the domain
-template <class Elem_T> DMC_DECL t3Vector<Elem_T> MakeDRand(const Elem_T low = 0, const Elem_T high = 1)
-{
-    return t3Vector<Elem_T>(TRand<Elem_T>(low, high), TRand<Elem_T>(low, high), TRand<Elem_T>(low, high));
-}
-
-// Return a uniformly distributed random point in the domain
-template <class Elem_T> DMC_DECL t3Vector<Elem_T> MakeDRand(const t3Vector<Elem_T> low, const t3Vector<Elem_T> high)
-{
-    return t3Vector<Elem_T>(TRand<Elem_T>(low.x, high.x), TRand<Elem_T>(low.y, high.y), TRand<Elem_T>(low.z, high.z));
-}
-
-// Return a normally distributed random point
-template <class Elem_T> DMC_DECL t3Vector<Elem_T> MakeNRand(const Elem_T sigma = 1)
-{
-    return t3Vector<Elem_T>(NRand(0, sigma), NRand(0, sigma), NRand(0, sigma));
-}
-
-// Return a uniformly distributed random point on a unit sphere
-template <class Elem_T> t3Vector<Elem_T> MakeRandOnSphere()
-{
-    t3Vector<Elem_T> RVec;
-    do {
-        RVec = MakeDRand<Elem_T>(-1, 1);
-    } while (RVec.length2() > static_cast<Elem_T>(1) || RVec.length2() == static_cast<Elem_T>(0));
-
-    RVec.normalize();
-
-    return RVec;
-}
-
-// Given the X and Y of a unit normal compute the Z and return the normal
-template <class Elem_T> t3Vector<Elem_T> norm2d(const Elem_T x, const Elem_T y)
-{
-    t3Vector<Elem_T> RVec(x, y, sqrt(1 - x * x - y * y));
-
-    return RVec;
-}
-
-template <class Elem_T> DMC_DECL bool length2_less(const t3Vector<Elem_T>& v1, const t3Vector<Elem_T>& v2) { return v1.length2() < v2.length2(); }
-
-// Returns true if the points are within D of eachother.
-template <class Elem_T> DMC_DECL bool VecEq(const t3Vector<Elem_T>& V0, const t3Vector<Elem_T>& V1, const Elem_T& DSqr = 0.0)
-{
-    return (V0 - V1).length2() <= DSqr;
-}
-
-//////////////////////////////////////////////////////////////////////
-// Implementation of all DMC_INLINE functions.
-
-template <class Elem_T> DMC_DECL Elem_T t3Vector<Elem_T>::length2() const { return x * x + y * y + z * z; }
-
-template <class Elem_T> DMC_DECL t3Vector<Elem_T> t3Vector<Elem_T>::operator*(const Elem_T s) const { return t3Vector<Elem_T>(x * s, y * s, z * s); }
-
-template <class Elem_T> DMC_DECL t3Vector<Elem_T> t3Vector<Elem_T>::operator/(const Elem_T d) const { return t3Vector<Elem_T>(x / d, y / d, z / d); }
-
-template <class Elem_T> DMC_DECL t3Vector<Elem_T> t3Vector<Elem_T>::operator+(const Elem_T d) const { return t3Vector<Elem_T>(x + d, y + d, z + d); }
-
-template <class Elem_T> DMC_DECL t3Vector<Elem_T> t3Vector<Elem_T>::operator-(const Elem_T d) const { return t3Vector<Elem_T>(x - d, y - d, z - d); }
-
-template <class Elem_T> DMC_DECL t3Vector<Elem_T> t3Vector<Elem_T>::operator+(const t3Vector<Elem_T>& v) const
-{
-    return t3Vector<Elem_T>(x + v.x, y + v.y, z + v.z);
-}
-
-template <class Elem_T> DMC_DECL t3Vector<Elem_T> t3Vector<Elem_T>::operator-(const t3Vector<Elem_T>& v) const
-{
-    return t3Vector<Elem_T>(x - v.x, y - v.y, z - v.z);
-}
-
-template <class Elem_T> DMC_DECL t3Vector<Elem_T>& t3Vector<Elem_T>::operator+=(const t3Vector<Elem_T>& v)
-{
-    x += v.x;
-    y += v.y;
-    z += v.z;
-    return *this;
-}
-
-template <class Elem_T> DMC_DECL t3Vector<Elem_T>& t3Vector<Elem_T>::operator-=(const t3Vector<Elem_T>& v)
-{
-    x -= v.x;
-    y -= v.y;
-    z -= v.z;
-    return *this;
-}
-
-template <class Elem_T> DMC_DECL t3Vector<Elem_T> t3Vector<Elem_T>::operator-() const { return t3Vector<Elem_T>(-x, -y, -z); }
-
-template <class Elem_T> DMC_DECL t3Vector<Elem_T>& t3Vector<Elem_T>::operator*=(const Elem_T d)
-{
-    x *= d;
-    y *= d;
-    z *= d;
-    return *this;
-}
-
-template <class Elem_T> DMC_DECL t3Vector<Elem_T>& t3Vector<Elem_T>::operator/=(const Elem_T d)
-{
-    Elem_T dinv = 1.0 / d;
-    x *= dinv;
-    y *= dinv;
-    z *= dinv;
-    return *this;
-}
-
-template <class Elem_T> DMC_DECL bool t3Vector<Elem_T>::operator==(const t3Vector<Elem_T>& v) const { return v.x == x && v.y == y && v.z == z; }
-
-template <class Elem_T> DMC_DECL bool t3Vector<Elem_T>::operator!=(const t3Vector<Elem_T>& v) const { return v.x != x || v.y != y || v.z != z; }
-
-typedef t3Vector<float> f3Vector;
-typedef t3Vector<double> d3Vector;
+template <class T, int L, class S> DMC_DECL std::ostream& operator<<(std::ostream& os, const tVector<T, L, S>& b);
+template <class T, int L, class S> DMC_DECL std::istream& operator>>(std::istream& is, tVector<T, L, S>& b);

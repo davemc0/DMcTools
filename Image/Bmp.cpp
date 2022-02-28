@@ -352,7 +352,7 @@ void ImageLoadSave::LoadBMP(const char* fname)
     FILE* fp = fopen(fname, "rb");
     if (!fp) bmpError(fname, "couldn't open file");
 
-    // figure out the file size
+    // Figure out the file size
     // fseek(fp, 0L, 2);
     // long filesize = ftell(fp);
     // fseek(fp, 0L, 0);
@@ -487,7 +487,7 @@ void ImageLoadSave::LoadBMP(const char* fname)
     // From ImageLoadSave.cpp
     Pix = ImageAlloc();
 
-    // load up the image
+    // Load up the image
     if (biBitCount == 1)
         rv = loadBMP1(fp, Pix, biWidth, biHeight); // Bloats into 1 byte per channel.
     else if (biBitCount == 4)

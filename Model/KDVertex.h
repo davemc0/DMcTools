@@ -3,6 +3,8 @@
 //
 // Copyright David K. McAllister, Aug. 1999.
 
+// TODO: This doesn't require a subclass; just provide these capabilities as bare functions for Vertex.
+
 #pragma once
 
 #include "Math/KDBoxTree.h"
@@ -95,5 +97,5 @@ struct KDVertex {
         return *this;
     }
 
-    DMC_DECL f3Vector& vector() const { return Vert->V; }
+    DMC_DECL f3vec& vector() const { return Vert->V; }
 };

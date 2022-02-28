@@ -1,8 +1,14 @@
+//////////////////////////////////////////////////////////////////////
+// PerlinImproved.h - Implements Improved Perlin Noise
+//
+// Changes copyright David K. McAllister, 2018.
+
+// TODO: This code is not fully integrated or tested in DMcTools yet.
+
 // http://www.fundza.com/c4serious/noise/perlin/perlin.html
 // http://mrl.nyu.edu/~perlin/noise/
 
-#include <math.h>
-// #include <stdio.h>
+#include <cmath>
 
 static int p[512];
 static int permutation[] = {151, 160, 137, 91,  90,  15,  131, 13,  201, 95,  96,  53,  194, 233, 7,   225, 140, 36,  103, 30,  69,  142, 8,   99,  37,  240,

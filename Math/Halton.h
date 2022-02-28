@@ -5,6 +5,9 @@
 
 #pragma once
 
+#include "Util/Assert.h"
+#include "Util/toolconfig.h"
+
 #include <vector>
 
 // The Hammersley Sequence has low discrepancy.

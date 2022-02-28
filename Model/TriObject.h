@@ -33,12 +33,12 @@
 struct TriObject : public BaseObject {
     int PrimType; // GL_TRIANGLE_STRIP, etc.
 
-    std::vector<f3Vector> verts;
-    std::vector<f3Vector> normals;        // Must have a length of 0, 1, or verts.size().
-    std::vector<f3Vector> tangents;       // Must have a length of 0, 1, or verts.size().
-    std::vector<f3Vector> texcoords;      // Must have a length of 0, 1, or verts.size().
-    std::vector<f3Vector> dcolors;        // Must have a length of 0, 1, or verts.size().
-    std::vector<f3Vector::ElType> alphas; // Must have a length of 0 or dcolors.size().
+    std::vector<f3vec> verts;
+    std::vector<f3vec> normals;        // Must have a length of 0, 1, or verts.size().
+    std::vector<f3vec> tangents;       // Must have a length of 0, 1, or verts.size().
+    std::vector<f3vec> texcoords;      // Must have a length of 0, 1, or verts.size().
+    std::vector<f3vec> dcolors;        // Must have a length of 0, 1, or verts.size().
+    std::vector<f3vec::ElType> alphas; // Must have a length of 0 or dcolors.size().
 
     DMC_DECL TriObject()
     {
@@ -84,10 +84,10 @@ struct TriObject : public BaseObject {
 
     // Transform all vertices by this matrix.
     // Also rebuilds the BBox.
-    virtual void ApplyTransform(Matrix44<typename f3Vector::ElType>& Mat);
+    virtual void ApplyTransform(Matrix44<f3vec>& Mat);
 
     // Transform all texcoords by this matrix.
-    virtual void ApplyTextureTransform(Matrix44<typename f3Vector::ElType>& Mat);
+    virtual void ApplyTextureTransform(Matrix44<f3vec>& Mat);
 
     virtual size_t FaceCount() const
     {
