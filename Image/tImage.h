@@ -181,18 +181,10 @@ public:
     // Copy constructor.
     // Converts images from other pixel types to this pixel type.
     // Generates a full cross product of hard-wired image conversions.
-    template <class SrcPixel_T> tImage(const tImage<SrcPixel_T>& SrcIm)
-    {
-        // std::cerr << "Copy constructor\n";
-        do_copy(SrcIm);
-    }
+    template <class SrcPixel_T> tImage(const tImage<SrcPixel_T>& SrcIm) { do_copy(SrcIm); }
 
     // Prevent member-wise copy if SrcPixel_T == Pixel_T.
-    tImage(const tImage<Pixel_T>& SrcIm)
-    {
-        // std::cerr << "Specific Copy constructor\n";
-        do_copy(SrcIm);
-    }
+    tImage(const tImage<Pixel_T>& SrcIm) { do_copy(SrcIm); }
 
     // Copy assignment.
     // Converts images from other pixel types to this pixel type.
@@ -541,17 +533,15 @@ public:
     // Load an image from a file.
     void Load(const char* fname)
     {
-        // You actually use the specialized versions of this function
-        // at the end of this file.
+        // You actually use the specialized versions of this function at the end of this file.
         ASSERT_R(0);
     }
 
     // Detects type from filename. Won't modify number of channels.
     void Save(const char* fname, saveParams SP = saveParams()) const
     {
-        // You actually use the specialized versions of this function
-        // at the end of this file.
-        ASSERT_R(0);
+        // You actually use the specialized versions of this function at the end of this file.
+        ASSERT_RM(0, "Image save is disabled for this image type.");
     }
 
     //////////////////////////////////////////////////////////////////////
@@ -889,10 +879,18 @@ template <> DMC_HDECL void ui1Image::Load(const char* fname) { tLoad(fname, this
 template <> DMC_HDECL void f1Image::Load(const char* fname) { tLoad(fname, this); }
 // template<> DMC_HDECL void  f2Image::Load(const char* fname) {tLoad(fname, this);}
 template <> DMC_HDECL void f3Image::Load(const char* fname) { tLoad(fname, this); }
-// template<> DMC_HDECL void  f4Image::Load(const char* fname) {tLoad(fname, this);}
+template <> DMC_HDECL void f4Image::Load(const char* fname) { tLoad(fname, this); }
 
 // List here the image types for which tSave is instantiated.
 // This avoids the templated tSave being wanted for types for which it doesn't exist.
+template <> DMC_HDECL void h1Image::Save(const char* fname, saveParams SP) const { tSave(fname, *this, SP); }
+// template <> DMC_HDECL void h2Image::Save(const char* fname, saveParams SP) const { tSave(fname, *this, SP); }
+template <> DMC_HDECL void h3Image::Save(const char* fname, saveParams SP) const { tSave(fname, *this, SP); }
+// template <> DMC_HDECL void h4Image::Save(const char* fname, saveParams SP) const { tSave(fname, *this, SP); }
+template <> DMC_HDECL void f1Image::Save(const char* fname, saveParams SP) const { tSave(fname, *this, SP); }
+// template <> DMC_HDECL void f2Image::Save(const char* fname, saveParams SP) const { tSave(fname, *this, SP); }
+template <> DMC_HDECL void f3Image::Save(const char* fname, saveParams SP) const { tSave(fname, *this, SP); }
+template <> DMC_HDECL void f4Image::Save(const char* fname, saveParams SP) const { tSave(fname, *this, SP); }
 template <> DMC_HDECL void uc1Image::Save(const char* fname, saveParams SP) const { tSave(fname, *this, SP); }
 template <> DMC_HDECL void uc2Image::Save(const char* fname, saveParams SP) const { tSave(fname, *this, SP); }
 template <> DMC_HDECL void uc3Image::Save(const char* fname, saveParams SP) const { tSave(fname, *this, SP); }
@@ -902,14 +900,6 @@ template <> DMC_HDECL void us2Image::Save(const char* fname, saveParams SP) cons
 template <> DMC_HDECL void us3Image::Save(const char* fname, saveParams SP) const { tSave(fname, *this, SP); }
 template <> DMC_HDECL void us4Image::Save(const char* fname, saveParams SP) const { tSave(fname, *this, SP); }
 template <> DMC_HDECL void ui1Image::Save(const char* fname, saveParams SP) const { tSave(fname, *this, SP); }
-// template<> DMC_HDECL void ui2Image::Save(const char* fname, saveParams SP) const {tSave(fname, *this, SP);}
-// template<> DMC_HDECL void ui3Image::Save(const char* fname, saveParams SP) const {tSave(fname, *this, SP);}
-// template<> DMC_HDECL void ui4Image::Save(const char* fname, saveParams SP) const {tSave(fname, *this, SP);}
-template <> DMC_HDECL void h1Image::Save(const char* fname, saveParams SP) const { tSave(fname, *this, SP); }
-// template<> DMC_HDECL void  h2Image::Save(const char* fname, saveParams SP) const {tSave(fname, *this, SP);}
-template <> DMC_HDECL void h3Image::Save(const char* fname, saveParams SP) const { tSave(fname, *this, SP); }
-// template<> DMC_HDECL void  h4Image::Save(const char* fname, saveParams SP) const {tSave(fname, *this, SP);}
-template <> DMC_HDECL void f1Image::Save(const char* fname, saveParams SP) const { tSave(fname, *this, SP); }
-// template<> DMC_HDECL void  f2Image::Save(const char* fname, saveParams SP) const {tSave(fname, *this, SP);}
-template <> DMC_HDECL void f3Image::Save(const char* fname, saveParams SP) const { tSave(fname, *this, SP); }
-// template<> DMC_HDECL void  f4Image::Save(const char* fname, saveParams SP) const {tSave(fname, *this, SP);}
+// template <> DMC_HDECL void ui2Image::Save(const char* fname, saveParams SP) const { tSave(fname, *this, SP); }
+// template <> DMC_HDECL void ui3Image::Save(const char* fname, saveParams SP) const { tSave(fname, *this, SP); }
+// template <> DMC_HDECL void ui4Image::Save(const char* fname, saveParams SP) const { tSave(fname, *this, SP); }

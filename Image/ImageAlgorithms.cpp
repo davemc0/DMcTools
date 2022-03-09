@@ -240,6 +240,8 @@ void CopyRect(tImage<DstPixel_T>& DstIm, const tImage<SrcPixel_T>& SrcIm, const 
     int srcxmax = bsx + bw;
     int srcymax = bsy + bh;
 
+    int chan = Key[0];
+
     for (int sy = bsy, dy = bdy; sy < srcymax; sy++, dy++) {
         for (int sx = bsx, dx = bdx; sx < srcxmax; sx++, dx++) {
             if (mode == 0) // Pixel Copy
@@ -262,6 +264,8 @@ void CopyRect(tImage<DstPixel_T>& DstIm, const tImage<SrcPixel_T>& SrcIm, const 
                 DstIm(dx, dy) = LinearInterp(DstIm(dx, dy), SrcIm(sx, sy), alpha);
             } else if (mode == 5) { // Adding pixels
                 DstIm(dx, dy) = DstIm(dx, dy) + SrcIm(sx, sy);
+            } else if (mode == 6) { // Copy one channel
+                DstIm(dx, dy)[chan] = SrcIm(sx, sy)[chan];
             }
         }
     }

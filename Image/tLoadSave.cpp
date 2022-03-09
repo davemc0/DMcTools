@@ -56,7 +56,7 @@ template <class Image_T> void tLoad(const char* fname, Image_T* outImg)
     baseImage* base = loader.baseImg;
 
     if (typeid(*base) == typeid(Image_T)) {
-        // Don't call the operator= if the types match. Instead member-wise copy the tImage class, i.e. copy the Pix pointer.
+        // Don't call the operator= if the types match. Instead shallow copy the tImage class, i.e. copy the Pix pointer.
         // This means that sometimes we just need to detach the old Pix, rather than delete [] it.
         outImg->SetImage(static_cast<typename Image_T::PixType*>(base->pv_virtual()), base->w_virtual(), base->h_virtual());
         base->ownPix_virtual(false);
@@ -64,6 +64,10 @@ template <class Image_T> void tLoad(const char* fname, Image_T* outImg)
         // Convert from the type of the loaded image to type of outImg.
         // I must do it this way instead of calling a virtual function of the base class to assign it
         // because member function templates cannot be virtual.
+        if (f1Image* loadedImg = dynamic_cast<f1Image*>(base)) { *outImg = *loadedImg; }
+        // if(f2Image  *loadedImg = dynamic_cast<f2Image  *>(base)) { *outImg = *loadedImg; }
+        if (f3Image* loadedImg = dynamic_cast<f3Image*>(base)) { *outImg = *loadedImg; }
+        // if(f4Image  *loadedImg = dynamic_cast<f4Image  *>(base)) { *outImg = *loadedImg; }
         if (uc1Image* loadedImg = dynamic_cast<uc1Image*>(base)) { *outImg = *loadedImg; }
         if (uc2Image* loadedImg = dynamic_cast<uc2Image*>(base)) { *outImg = *loadedImg; }
         if (uc3Image* loadedImg = dynamic_cast<uc3Image*>(base)) { *outImg = *loadedImg; }
@@ -76,10 +80,6 @@ template <class Image_T> void tLoad(const char* fname, Image_T* outImg)
         // if(ui2Image *loadedImg = dynamic_cast<ui2Image *>(base)) { *outImg = *loadedImg; }
         // if(ui3Image *loadedImg = dynamic_cast<ui3Image *>(base)) { *outImg = *loadedImg; }
         // if(ui4Image *loadedImg = dynamic_cast<ui4Image *>(base)) { *outImg = *loadedImg; }
-        if (f1Image* loadedImg = dynamic_cast<f1Image*>(base)) { *outImg = *loadedImg; }
-        // if(f2Image  *loadedImg = dynamic_cast<f2Image  *>(base)) { *outImg = *loadedImg; }
-        if (f3Image* loadedImg = dynamic_cast<f3Image*>(base)) { *outImg = *loadedImg; }
-        // if(f4Image  *loadedImg = dynamic_cast<f4Image  *>(base)) { *outImg = *loadedImg; }
     }
 
     // Loader will still point to base and we allow the loader destructor to delete base.
@@ -87,6 +87,14 @@ template <class Image_T> void tLoad(const char* fname, Image_T* outImg)
 
 // Instantiations. Need a case for every kind of image that will
 // have the capability to load an image (all of them).
+// template void tLoad(const char *fname, h1Image *outImg);
+// template void tLoad(const char *fname, h2Image *outImg);
+// template void tLoad(const char *fname, h3Image *outImg);
+// template void tLoad(const char *fname, h4Image *outImg);
+template void tLoad(const char* fname, f1Image* outImg);
+// template void tLoad(const char *fname, f2Image *outImg);
+template void tLoad(const char* fname, f3Image* outImg);
+// template void tLoad(const char *fname, f4Image *outImg);
 template void tLoad(const char* fname, uc1Image* outImg);
 template void tLoad(const char* fname, uc2Image* outImg);
 template void tLoad(const char* fname, uc3Image* outImg);
@@ -99,26 +107,19 @@ template void tLoad(const char* fname, ui1Image* outImg);
 // template void tLoad(const char *fname, ui2Image *outImg);
 // template void tLoad(const char *fname, ui3Image *outImg);
 // template void tLoad(const char *fname, ui4Image *outImg);
-template void tLoad(const char* fname, f1Image* outImg);
-// template void tLoad(const char *fname, f2Image *outImg);
-template void tLoad(const char* fname, f3Image* outImg);
-// template void tLoad(const char *fname, f4Image *outImg);
-// template void tLoad(const char *fname, h1Image *outImg);
-// template void tLoad(const char *fname, h2Image *outImg);
-// template void tLoad(const char *fname, h3Image *outImg);
-// template void tLoad(const char *fname, h4Image *outImg);
 
 // Save a tImage. Need to know all the details about it.
 template <class Image_T> void tSave(const char* fname, const Image_T& Img, const saveParams SP)
 {
     const baseImage* OutImg = static_cast<const baseImage*>(&Img);
 
-    // XXX We should put this file format capability info in ImageLoadSave.
     // Put the image into a format that can be saved in the chosen file format
+    // TODO: Put this file format capability info in ImageLoadSave.
     int exts = GetExtensionVal(fname);
     const bool isUC = !Img.is_signed() && Img.is_integer() && Img.size_element() == 1;
     const int ch = Img.chan();
-    if (exts == GIF_ || exts == JPG_ || exts == BMP_) { // 1 3 uc
+
+    if (exts == GIF_ || exts == JPG_ || exts == JPE_ || exts == BMP_) { // 1 3 uc
         if (ch == 2 || (ch == 1 && !isUC))
             OutImg = new tImage<tPixel<unsigned char, 1>>(Img);
         else if (ch == 4 || (ch == 3 && !isUC))
@@ -159,11 +160,18 @@ template <class Image_T> void tSave(const char* fname, const Image_T& Img, const
     // If we had to create a converted image for saving, delete it.
     if (&Img != OutImg) delete OutImg;
 
-    // If an error occurs while saving, a heap-allocated OutImg will not be deleted.
+    // TODO: If an error is thrown while saving, a heap-allocated OutImg will not be deleted.
 }
 
-// Instantiations. Need a case for every kind of image that will
-// have the capability to save an image (all of them).
+// Instantiations. Need a case for every kind of image that will have the capability to save an image (all of them).
+template void tSave(const char* fname, const h1Image& outImg, const saveParams SP);
+// template void tSave(const char* fname, const h2Image& outImg, const saveParams SP);
+template void tSave(const char* fname, const h3Image& outImg, const saveParams SP);
+// template void tSave(const char* fname, const h4Image& outImg, const saveParams SP);
+template void tSave(const char* fname, const f1Image& outImg, const saveParams SP);
+// template void tSave(const char* fname, const f2Image& outImg, const saveParams SP);
+template void tSave(const char* fname, const f3Image& outImg, const saveParams SP);
+template void tSave(const char* fname, const f4Image& outImg, const saveParams SP);
 template void tSave(const char* fname, const uc1Image& outImg, const saveParams SP);
 template void tSave(const char* fname, const uc2Image& outImg, const saveParams SP);
 template void tSave(const char* fname, const uc3Image& outImg, const saveParams SP);
@@ -173,14 +181,6 @@ template void tSave(const char* fname, const us2Image& outImg, const saveParams 
 template void tSave(const char* fname, const us3Image& outImg, const saveParams SP);
 template void tSave(const char* fname, const us4Image& outImg, const saveParams SP);
 template void tSave(const char* fname, const ui1Image& outImg, const saveParams SP);
-// template void tSave(const char *fname, const ui2Image &outImg, const saveParams SP);
-// template void tSave(const char *fname, const ui3Image &outImg, const saveParams SP);
-// template void tSave(const char *fname, const ui4Image &outImg, const saveParams SP);
-template void tSave(const char* fname, const f1Image& outImg, const saveParams SP);
-// template void tSave(const char *fname, const  f2Image &outImg, const saveParams SP);
-template void tSave(const char* fname, const f3Image& outImg, const saveParams SP);
-// template void tSave(const char *fname, const  f4Image &outImg, const saveParams SP);
-template void tSave(const char* fname, const h1Image& outImg, const saveParams SP);
-// template void tSave(const char *fname, const  h2Image &outImg, const saveParams SP);
-template void tSave(const char* fname, const h3Image& outImg, const saveParams SP);
-// template void tSave(const char *fname, const  h4Image &outImg, const saveParams SP);
+// template void tSave(const char* fname, const ui2Image& outImg, const saveParams SP);
+template void tSave(const char* fname, const ui3Image& outImg, const saveParams SP);
+template void tSave(const char* fname, const ui4Image& outImg, const saveParams SP);

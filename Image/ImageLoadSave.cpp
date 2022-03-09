@@ -50,21 +50,21 @@ extern "C" {
 
 using namespace std;
 
-#define RAS_MAGIC 0x59a66a95
-#define GIF_MAGIC 0x47494638
-#define JPEG_MAGIC 0xffd8ffe0
-#define RGB_MAGIC 0x01da0101
-
 namespace {
 #ifdef DMC_DEBUG
 bool Verbose = true;
 #else
 bool Verbose = false;
 #endif
-}; // namespace
 
-// A back-door way to set this.
-bool dmcTGA_R5G6B5 = false;
+const int RAS_MAGIC = 0x59a66a95;
+const int GIF_MAGIC = 0x47494638;
+const int JPEG_MAGIC = 0xffd8ffe0;
+const int JPEG1_MAGIC = 0xffd8ffe1;
+const int RGB_MAGIC = 0x01da0101;
+
+bool dmcTGA_R5G6B5 = false; // A back-door way to set this.
+};                          // namespace
 
 // Return an int whose bytes equal the characters of the extension string
 // Used by tSave() and ImageLoadSave::Load().
@@ -101,7 +101,7 @@ void ImageLoadSave::Load(const char* fname)
         LoadRas(fname);
     } else if (Magic == GIF_MAGIC || eMagic == GIF_MAGIC || exts == GIF_) {
         LoadGIF(fname);
-    } else if (Magic == JPEG_MAGIC || eMagic == JPEG_MAGIC || exts == JPG_) {
+    } else if (Magic == JPEG_MAGIC || eMagic == JPEG_MAGIC || exts == JPG_ || exts == JPE_) {
         LoadJPEG(fname);
     } else if (Magic == RGB_MAGIC || eMagic == RGB_MAGIC || exts == RGB_) {
         LoadRGB(fname);
@@ -120,11 +120,10 @@ void ImageLoadSave::Load(const char* fname)
     } else if (exts == HDR_) {
         LoadRGBE(fname);
     } else {
-        stringstream er;
-        er << "Could not determine file type of `" << fname << "'.\n";
-        er << "Magic was " << Magic << " or " << eMagic << " or `" << Mag[0] << Mag[1] << Mag[2] << Mag[3] << "'.\n";
-        er << "Extension was " << exts << endl;
-        throw DMcError(er.str());
+        std::string er = std::string("Could not determine file type of `") + fname + "'.\n";
+        er += "Magic was " + std::to_string(Magic) + " or " + std::to_string(eMagic) + " or `" + Mag[0] + Mag[1] + Mag[2] + Mag[3] + "'.\n";
+        er += "Extension was " + std::to_string(exts) + '\n';
+        throw DMcError(er);
     }
     Pix = NULL; // When loading, Pix is only used by Load*(). baseImg carries the data when we return from here.
 }
@@ -286,23 +285,10 @@ void ImageLoadSave::LoadRas(const char* fname)
     hgt = Hedr.ras_height;
     chan = 3;
 
-    if (Hedr.ras_depth != 24) {
-        stringstream er;
-        er << "Take your " << Hedr.ras_depth << " bit image and go away!";
-        throw DMcError(er.str());
-    }
-
-    if (size_bytes() != Hedr.ras_length) {
-        stringstream er;
-        er << "Size was " << size_bytes() << ", but ras_length was " << Hedr.ras_length << ".\n";
-        throw DMcError(er.str());
-    }
-
-    if (wid > 4096) {
-        stringstream er;
-        er << "Too big! " << wid << endl;
-        throw DMcError(er.str());
-    }
+    if (Hedr.ras_depth != 24) throw DMcError("Take your " + std::to_string(Hedr.ras_depth) + " bit image and go away!");
+    if (size_bytes() != Hedr.ras_length)
+        throw DMcError("Size was " + std::to_string(size_bytes()) + ", but ras_length was " + ::to_string(Hedr.ras_length) + ".\n");
+    if (wid > 4096) throw DMcError("Too big! " + std::to_string(wid));
 
     is_uint = false;
     is_float = false;
@@ -788,7 +774,7 @@ void ImageLoadSave::SavePNG(const char* fname) const
 {
     if (Pix == NULL || chan < 1 || wid < 1 || hgt < 1) throw DMcError("Image is not defined. Not saving.");
     if (!fname || !fname[0]) throw DMcError("SavePNG: Filename not specified. Not saving.");
-    int success = stbi_write_jpg(fname, wid, hgt, chan, Pix, 90);
+    int success = stbi_write_png(fname, wid, hgt, chan, Pix, wid * chan);
     if (!success) throw DMcError("SavePNG() failed: " + string(fname));
 }
 

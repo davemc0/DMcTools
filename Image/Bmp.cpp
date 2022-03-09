@@ -8,8 +8,6 @@
 
 #include "Image/ImageLoadSave.h"
 
-#include <iostream>
-
 typedef unsigned char byte;
 
 #define BI_RGB 0
@@ -409,16 +407,14 @@ void ImageLoadSave::LoadBMP(const char* fname)
 
     /* error checking */
     if ((biBitCount != 1 && biBitCount != 4 && biBitCount != 8 && biBitCount != 24 && biBitCount != 32) || biPlanes != 1 || biCompression > BI_RLE4) {
-        std::stringstream er;
-        er << "Bogus BMP File '" << fname << "': bitCount=" << biBitCount << " Planes=" << biPlanes << " Compression=" << biCompression;
-        throw DMcError(er.str());
+        throw DMcError(std::string("Bogus BMP File '") + fname + "': bitCount=" + std::to_string(biBitCount) + " Planes=" + std::to_string(biPlanes) +
+                       " Compression=" + std::to_string(biCompression));
     }
 
     if (((biBitCount == 1 || biBitCount == 24) && biCompression != BI_RGB) || (biBitCount == 4 && biCompression == BI_RLE8) ||
         (biBitCount == 8 && biCompression == BI_RLE4)) {
-        std::stringstream er;
-        er << "Bogus BMP File '" << fname << "': bitCount=" << biBitCount << " Compression=" << biCompression;
-        throw DMcError(er.str());
+        throw DMcError(std::string("Bogus BMP File '") + fname + "': bitCount=" + std::to_string(biBitCount) + " Planes=" + std::to_string(biPlanes) +
+                       " Compression=" + std::to_string(biCompression));
     }
 
     bPad = 0;

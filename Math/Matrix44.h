@@ -89,15 +89,59 @@ public:
     }
 
     // Project a point, including the homogeneous divide. Uses p.w = 1.
-    Vec_T Project(const Vec_T& p) const;
+    Vec_T Project(const Vec_T& p) const
+    {
+        typename Vec_T::ElType xw = mat[0][0] * p.x + mat[0][1] * p.y + mat[0][2] * p.z + mat[0][3];
+        typename Vec_T::ElType yw = mat[1][0] * p.x + mat[1][1] * p.y + mat[1][2] * p.z + mat[1][3];
+        typename Vec_T::ElType zw = mat[2][0] * p.x + mat[2][1] * p.y + mat[2][2] * p.z + mat[2][3];
+
+        typename Vec_T::ElType rcpw = (typename Vec_T::ElType)1 / (mat[3][0] * p.x + mat[3][1] * p.y + mat[3][2] * p.z + mat[3][3]);
+        return Vec_T(xw * rcpw, yw * rcpw, zw * rcpw);
+    }
+
     // Project a homogeneous point, no divide. Replaces the incoming values.
-    void Project(ElType& x, ElType& y, ElType& z, ElType& w) const;
+    void Project(ElType& x, ElType& y, ElType& z, ElType& w) const
+    {
+        typename Vec_T::ElType x1 = mat[0][0] * x + mat[0][1] * y + mat[0][2] * z + mat[0][3] * w;
+        typename Vec_T::ElType y1 = mat[1][0] * x + mat[1][1] * y + mat[1][2] * z + mat[1][3] * w;
+        typename Vec_T::ElType z1 = mat[2][0] * x + mat[2][1] * y + mat[2][2] * z + mat[2][3] * w;
+        typename Vec_T::ElType w1 = mat[3][0] * x + mat[3][1] * y + mat[3][2] * z + mat[3][3] * w;
+        x = x1;
+        y = y1;
+        z = z1;
+        w = w1;
+    }
+
     // Project a homogeneous point, does divide. Returns the vector.
-    Vec_T Project(const Vec_T& p, const ElType w) const;
+    Vec_T Project(const Vec_T& p, const ElType w) const
+    {
+        typename Vec_T::ElType xw = mat[0][0] * p.x + mat[0][1] * p.y + mat[0][2] * p.z + mat[0][3] * w;
+        typename Vec_T::ElType yw = mat[1][0] * p.x + mat[1][1] * p.y + mat[1][2] * p.z + mat[1][3] * w;
+        typename Vec_T::ElType zw = mat[2][0] * p.x + mat[2][1] * p.y + mat[2][2] * p.z + mat[2][3] * w;
+
+        typename Vec_T::ElType rcpw = (typename Vec_T::ElType)1 / (mat[3][0] * p.x + mat[3][1] * p.y + mat[3][2] * p.z + mat[3][3] * w);
+        return Vec_T(xw * rcpw, yw * rcpw, zw * rcpw);
+    }
+
     // Project using the upper 3x3. Doesn't translate.
-    Vec_T ProjectDirection(const Vec_T& p) const;
+    Vec_T ProjectDirection(const Vec_T& p) const
+    {
+        return Vec_T(mat[0][0] * p.x + mat[0][1] * p.y + mat[0][2] * p.z, mat[1][0] * p.x + mat[1][1] * p.y + mat[1][2] * p.z,
+                     mat[2][0] * p.x + mat[2][1] * p.y + mat[2][2] * p.z);
+    }
+
     // Transform by the inverse. Uses p.w = 1.
-    Vec_T UnProject(const Vec_T& p);
+    Vec_T UnProject(const Vec_T& p)
+    {
+        if (!inverse_valid) compute_inverse();
+
+        typename Vec_T::ElType xw = imat[0][0] * p.x + imat[0][1] * p.y + imat[0][2] * p.z + imat[0][3];
+        typename Vec_T::ElType yw = imat[1][0] * p.x + imat[1][1] * p.y + imat[1][2] * p.z + imat[1][3];
+        typename Vec_T::ElType zw = imat[2][0] * p.x + imat[2][1] * p.y + imat[2][2] * p.z + imat[2][3];
+
+        typename Vec_T::ElType rcpw = (typename Vec_T::ElType)1 / (imat[3][0] * p.x + imat[3][1] * p.y + imat[3][2] * p.z + imat[3][3]);
+        return Vec_T(xw * rcpw, yw * rcpw, zw * rcpw);
+    }
 
     // Returns this * right. Includes the homogeneous divide. Uses p.w = 1.
     Vec_T operator*(const Vec_T& right) const { return Project(right); }

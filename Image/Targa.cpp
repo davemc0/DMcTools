@@ -320,14 +320,11 @@ void ImageLoadSave::LoadTGA(const char* fname, bool R5G6B5)
     unsigned char* encoded_pixels = color_map + cmapsize;
 
     char itype_names[16][16] = {"NULL", "MAP", "RGB", "MONO", "4", "5", "6", "7", "8", "RLE-MAP", "RLE-RGB", "RLE-MONO", "12", "13", "14", "15"};
-    // cerr << "Targa type " << itype_names[0xf & header->ImgType]
-    //  << " bpp = " << int(header->PixelSize) << endl;
+    // cerr << "Targa type " << itype_names[0xf & header->ImgType] << " bpp = " << int(header->PixelSize) << endl;
 
     if ((header->Desc & TGA_DESC_ORG_MASK) != TGA_ORG_TOP_LEFT && (header->Desc & TGA_DESC_ORG_MASK) != TGA_ORG_BOTTOM_LEFT) {
         delete[] fdata;
-        stringstream er;
-        er << "Not top/bottom left origin: image desc " << header->Desc;
-        throw DMcError(er.str());
+        throw DMcError("Not top/bottom left origin: image desc " + std::to_string((int)header->Desc));
     }
 
     wid = ((header->Width_hi) << 8) | header->Width_lo;
@@ -346,9 +343,7 @@ void ImageLoadSave::LoadTGA(const char* fname, bool R5G6B5)
             decode_map8(encoded_pixels, Pix, size(), chan, color_map);
         else {
             delete[] fdata;
-            stringstream er;
-            er << "Bad color mapped index size: " << header->PixelSize << " bits/pixel";
-            throw DMcError(er.str());
+            throw DMcError(std::string("Bad color mapped index size: ") + std::to_string((int)header->PixelSize) + " bits/pixel");
         }
         break;
     case TGA_MONO:
@@ -356,9 +351,7 @@ void ImageLoadSave::LoadTGA(const char* fname, bool R5G6B5)
             memcpy(Pix, encoded_pixels, size_bytes());
         else {
             delete[] fdata;
-            stringstream er;
-            er << "Bad pixel size: " << header->PixelSize << " bits/pixel";
-            throw DMcError(er.str());
+            throw DMcError("Bad pixel size: " + std::to_string(header->PixelSize) + " bits/pixel");
         }
         break;
     case TGA_RGB:
@@ -368,9 +361,8 @@ void ImageLoadSave::LoadTGA(const char* fname, bool R5G6B5)
         case 32: decode_rgb32(encoded_pixels, Pix, wid, hgt); break;
         default:
             delete[] fdata;
-            stringstream er;
-            er << "Bad pixel size: " << header->PixelSize << " bits/pixel";
-            throw DMcError(er.str());
+            throw DMcError("Bad pixel size: " + std::to_string(header->PixelSize) + " bits/pixel");
+            break;
         }
         break;
     case TGA_RLEMONO:
@@ -378,9 +370,7 @@ void ImageLoadSave::LoadTGA(const char* fname, bool R5G6B5)
             decode_rgb_rle8(encoded_pixels, Pix, wid, hgt);
         } else {
             delete[] fdata;
-            stringstream er;
-            er << "Bad pixel size: " << header->PixelSize << " bits/pixel";
-            throw DMcError(er.str());
+            throw DMcError("Bad pixel size: " + std::to_string(header->PixelSize) + " bits/pixel");
         }
         break;
     case TGA_RLERGB:
@@ -388,18 +378,12 @@ void ImageLoadSave::LoadTGA(const char* fname, bool R5G6B5)
         case 16: decode_rgb_rle16(encoded_pixels, Pix, wid, hgt, R5G6B5); break;
         case 24: decode_rgb_rle24(encoded_pixels, Pix, wid, hgt); break;
         case 32: decode_rgb_rle32(encoded_pixels, Pix, wid, hgt); break;
-        default:
-            delete[] fdata;
-            stringstream er;
-            er << "Bad pixel size: " << header->PixelSize << " bits/pixel";
-            throw DMcError(er.str());
+        default: delete[] fdata; throw DMcError("Bad pixel size: " + std::to_string(header->PixelSize) + " bits/pixel");
         }
         break;
     default:
         delete[] fdata;
-        stringstream er;
-        er << "Targa type " << itype_names[0xf & header->ImgType] << " bpp = " << int(header->PixelSize);
-        throw DMcError(er.str());
+        throw DMcError("Targa type " + std::string(itype_names[0xf & header->ImgType]) + " bpp = " + std::to_string(int(header->PixelSize)));
     }
 
     // Flip it vertically so that origin is always top left.
@@ -519,17 +503,11 @@ static int encode_rle(const unsigned char* src0, unsigned char* dest, const int 
 void ImageLoadSave::SaveTGA(const char* fname) const
 {
     if (wid > 65535 || wid <= 0 || hgt > 65535 || hgt <= 0) {
-        stringstream er;
-        er << "Write_targa_file " << wid << "x" << hgt << " too big.";
-        throw DMcError(er.str());
+        throw DMcError("Write_targa_file " + std::to_string(wid) + "x" + std::to_string(hgt) + " too big.");
     }
 
     FILE* ft = fopen(fname, "wb");
-    if (ft == NULL) {
-        stringstream er;
-        er << "Failed to open file `" << fname << "' for writing.";
-        throw DMcError(er.str());
-    }
+    if (ft == NULL) { throw DMcError(std::string("Failed to open file `") + fname + "' for writing."); }
 
     TGA_Header header;
     header.ImageIDLength = 0;
@@ -557,10 +535,7 @@ void ImageLoadSave::SaveTGA(const char* fname) const
         header.PixelSize = 32;
         header.Desc |= 8; // This many alpha bits.
         break;
-    default:
-        stringstream er;
-        er << "Cannot save file of " << chan << " channels.";
-        throw DMcError(er.str());
+    default: throw DMcError("Cannot save file of " + std::to_string(chan) + " channels.");
     }
 
     // Write the header

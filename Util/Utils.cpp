@@ -15,6 +15,7 @@
 #include <time.h>
 #endif
 
+// Declared in Random.h
 unsigned int SRand(unsigned int seed /* = 0 */)
 {
 #ifdef DMC_MACHINE_win

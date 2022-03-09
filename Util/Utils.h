@@ -17,7 +17,7 @@
 
 // Returns 0 on MIPS, PA-RISC, SPARC
 // Returns 1 on Intel x86
-static DMC_DECL bool AmLittleEndian()
+DMC_DECL bool AmLittleEndian()
 {
     typedef union {
         int integer;
@@ -29,7 +29,7 @@ static DMC_DECL bool AmLittleEndian()
 }
 
 // Swap endian-ness of the array. length is the number of 8-byte words to swap.
-static DMC_DECL void ConvertDouble(double* array, int length)
+DMC_DECL void ConvertDouble(double* array, int length)
 {
     unsigned char b0, b1, b2, b3, b4, b5, b6, b7;
     unsigned char* ptr = (unsigned char*)array;
@@ -57,7 +57,7 @@ static DMC_DECL void ConvertDouble(double* array, int length)
 }
 
 // Swap endian-ness of the array. length is the number of 4-byte words to swap.
-static DMC_DECL void ConvertLong(unsigned int* array, int length)
+DMC_DECL void ConvertLong(unsigned int* array, int length)
 {
     unsigned char b0, b1, b2, b3;
     unsigned char* ptr = (unsigned char*)array;
@@ -77,7 +77,7 @@ static DMC_DECL void ConvertLong(unsigned int* array, int length)
 }
 
 // Swap endian-ness of the array. length is the number of 2-byte shorts to swap.
-static DMC_DECL void ConvertShort(unsigned short* array, int length)
+DMC_DECL void ConvertShort(unsigned short* array, int length)
 {
     unsigned char b0, b1;
     unsigned char* ptr = (unsigned char*)array;
@@ -93,7 +93,7 @@ static DMC_DECL void ConvertShort(unsigned short* array, int length)
 }
 
 // Given an argument vector, remove NumDel strings from it, starting at i.
-static DMC_DECL void RemoveArgs(int& argc, char** argv, int& i, int NumDel = 1)
+DMC_DECL void RemoveArgs(int& argc, char** argv, int& i, int NumDel = 1)
 {
     argc -= NumDel;
     memmove(&(argv[i]), &(argv[i + NumDel]), (argc - i) * sizeof(char*));
@@ -127,7 +127,7 @@ DMC_DECL void ToUpper(char* str)
 }
 
 // Makes a fairly random 32-bit number from a string.
-extern int HashString(const char*);
+int HashString(const char*);
 
 // Used for setting up the floating point output the way I like it.
 DMC_HDECL void FloatFmt(std::ostream& os, int prec = 8)

@@ -104,5 +104,5 @@ DMC_DECL float NRandf(const float mu, const float sigma) { return TNRand<float>(
 DMC_DECL bool chance(float frac) { return frac > DRandf(); }
 
 // Seeds the random number generator based on time and/or process ID, if seed is zero (default).
-// Implementation of SRand() is in Utils.cpp.
+// Definition of SRand() is in Utils.cpp.
 extern unsigned int SRand(unsigned int seed = 0);

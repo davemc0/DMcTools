@@ -11,6 +11,7 @@
 const int BMP_ = 0x00706d62; // "bmp\0", etc.
 const int GIF_ = 0x00666967;
 const int HDR_ = 0x00726468;
+const int JPE_ = 0x0065706a;
 const int JPG_ = 0x0067706a;
 const int MAT_ = 0x0074616d;
 const int PAM_ = 0x006d6170;
@@ -88,6 +89,7 @@ private:
     void LoadRas(const char* fname);
     void LoadTGA(const char* fname, bool R5G6B5 = false); // If true, interprets incoming 16 bits as R5G6B5 instead of X1R5G5B5.
     void LoadTIFF(const char* fname);
+
     void SaveBMP(const char* fname) const;
     void SaveGIF(const char* fname, int MaxColorsWanted = 256) const;
     void SaveJPEG(const char* fname) const;

@@ -797,7 +797,7 @@ struct GIFWriter {
     }
 
     //////////////////////////////////////////////////////////////////////
-    // Crap used by the compress routine.
+    // Crap used by the compress routine
 
     unsigned long cur_accum;
     int cur_bits;
@@ -844,7 +844,7 @@ struct GIFWriter {
     int clear_flg;
 
     long int in_count;  /* length of input */
-    long int out_count; /* # of codes output (for DEBUGging) */
+    long int out_count; /* # of codes output (for debugging) */
 
     //////////////////////////////
     void cl_hash(count_int hsize)
@@ -1170,12 +1170,8 @@ void ImageLoadSave::SaveGIF(const char* fname, int MaxColorsWanted) const
 {
     if (Pix == NULL || chan < 1 || wid < 1 || hgt < 1) { throw DMcError("Image is empty. Not saving."); }
 
-    if (chan != 1 && chan != 3) {
-        std::stringstream er;
-        er << "Can't save a " << chan << " channel image as a GIF.";
-        throw DMcError(er.str());
-    }
+    if (chan != 1 && chan != 3) throw DMcError(std::string("Can't save a ") + std::to_string(chan) + " channel image as a GIF.");
 
-    GIFWriter gw;
+    GIFWriter gw; // TODO: gw uses a lot of stack
     gw.WriteGIF(fname, wid, hgt, (unsigned char*)Pix, MaxColorsWanted, (chan == 1), "Written using DaveMc Tools");
 }
