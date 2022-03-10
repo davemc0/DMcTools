@@ -848,35 +848,9 @@ struct GIFWriter {
     long int in_count;  /* length of input */
     long int out_count; /* # of codes output (for debugging) */
 
-    //////////////////////////////
     void cl_hash(count_int hsize)
     {
-        count_int* htab_p = htab + hsize;
-        long i;
-        long m1 = -1;
-
-        i = hsize - 16;
-        do { /* might use Sys V memset(3) here */
-            *(htab_p - 16) = m1;
-            *(htab_p - 15) = m1;
-            *(htab_p - 14) = m1;
-            *(htab_p - 13) = m1;
-            *(htab_p - 12) = m1;
-            *(htab_p - 11) = m1;
-            *(htab_p - 10) = m1;
-            *(htab_p - 9) = m1;
-            *(htab_p - 8) = m1;
-            *(htab_p - 7) = m1;
-            *(htab_p - 6) = m1;
-            *(htab_p - 5) = m1;
-            *(htab_p - 4) = m1;
-            *(htab_p - 3) = m1;
-            *(htab_p - 2) = m1;
-            *(htab_p - 1) = m1;
-            htab_p -= 16;
-        } while ((i -= 16) >= 0);
-
-        for (i += 16; i > 0; i--) *--htab_p = m1;
+        for (int i = 0; i < hsize; i++) htab[i] = -1;
     }
 
     /*
@@ -1094,22 +1068,23 @@ struct GIFWriter {
 
         fwrite(id89, (size_t)1, (size_t)6, fp); // The GIF magic number (can use id87 if no comment)
 
-        putword(wid, fp); /* screen descriptor */
+        putword(wid, fp); // Screen descriptor
         putword(hgt, fp);
 
-        int i = 0x80;            /* Yes, there is a color map */
-        i |= (8 - 1) << 4;       /* OR in the color resolution (hardwired 8) */
-        i |= (BitsPerPixel - 1); /* OR in the # of bits per pixel */
-        fputc(i, fp);
+        int code = 0x80;            // Yes, there is a color map
+        code |= (8 - 1) << 4;       // OR in the color resolution (hardwired 8)
+        code |= (BitsPerPixel - 1); // OR in the # of bits per pixel
+        fputc(code, fp);
 
         int Background = 0;
-        fputc(Background, fp); /* background color */
+        fputc(Background, fp); // Background color
 
-        fputc(0, fp); /* future expansion byte */
+        fputc(0, fp); // Future expansion byte
 
-        // Write the colormap.
-        i = 0;
-        for (i = 0; i < BitsPerPixel && i < ColorMapSize; i++) {
+        // Write the colormap
+        int i = 0;
+        for (i = 0; i < NumColors && i < ColorMapSize; i++) {
+            std::cerr << Qnt.GetColorMap()[i] << '\n';
             fputc(Qnt.GetColorMap()[i].r(), fp);
             fputc(Qnt.GetColorMap()[i].g(), fp);
             fputc(Qnt.GetColorMap()[i].b(), fp);
@@ -1121,25 +1096,24 @@ struct GIFWriter {
             fputc(0, fp);
         }
 
-        if (!SP.comment.empty()) { /* write comment blocks */
-            const char* sp;
-            int i, blen;
+        if (!SP.comment.empty()) { // Write comment blocks
+            int blen;
 
-            fputc(0x21, fp); /* EXTENSION block */
-            fputc(0xFE, fp); /* comment extension */
+            fputc(0x21, fp); // EXTENSION block
+            fputc(0xFE, fp); // Comment extension
 
-            sp = SP.comment.c_str();
+            const char* sp = SP.comment.c_str();
             while ((blen = int(strlen(sp))) > 0) {
                 if (blen > 255) blen = 255;
                 fputc(blen, fp);
-                for (i = 0; i < blen; i++, sp++) fputc(*sp, fp);
+                for (int j = 0; j < blen; j++, sp++) fputc(*sp, fp);
             }
-            fputc(0, fp); /* zero-length data subblock to end extension */
+            fputc(0, fp); // Zero-length data subblock to end extension
         }
 
-        fputc(',', fp); /* image separator */
+        fputc(',', fp); // Image separator
 
-        /* Write the Image header */
+        // Write the Image header
         putword(0, fp); // LeftOfs
         putword(0, fp); // TopOfs
         putword(wid, fp);
@@ -1149,10 +1123,10 @@ struct GIFWriter {
 
         fputc(InitCodeSize, fp);
         init_bits = InitCodeSize + 1;
-        compress(pic8, wid * hgt);
+        compress(pic8, wid * hgt); // Write the compressed pixel data
 
-        fputc(0, fp);   /* Write out a Zero-length packet (EOF) */
-        fputc(';', fp); /* Write GIF file terminator */
+        fputc(0, fp);   // Write out a Zero-length packet (EOF)
+        fputc(';', fp); // Write GIF file terminator
 
         delete[] pic8;
 
@@ -1165,7 +1139,6 @@ struct GIFWriter {
     }
 };
 
-// TODO: Move fname to LoadSaveParams
 void ImageLoadSave::SaveGIF(const char* fname) const
 {
     if (Pix == NULL || chan < 1 || wid < 1 || hgt < 1) { throw DMcError("Image is empty. Not saving."); }
