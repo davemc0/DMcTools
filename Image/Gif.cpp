@@ -48,12 +48,12 @@ struct GIFInfo {
     int chan;
     unsigned char r[256], g[256], b[256]; // Colormap
 
-    int BitOffset,       // Bit Offset of next code
-        XC, YC,          // Output X and Y coords of current pixel
-        Pass,            // Used by output routine if interlaced pic
-        OutCount,        // Decompressor output 'stack count'
-        LeftOfs, TopOfs, // Image offset
-        Width, Height,
+    int BitOffset,                // Bit Offset of next code
+        XC, YC,                   // Output X and Y coords of current pixel
+        Pass,                     // Used by output routine if interlaced pic
+        OutCount,                 // Decompressor output 'stack count'
+        LeftOfs, TopOfs,          // Image offset
+        Width, Height,            // Image dimensions
         BitsPerPixel,             // Bits per pixel, read from GIF header
         ColorMapSize,             // Number of colors
         Background,               // Background color
@@ -81,6 +81,7 @@ struct GIFInfo {
     byte* pic8;
     byte* dataptr;
 
+    // TODO: Allocate these on heap to save stack size
     // The hash table used by the decompressor
     int Prefix[4096];
     int Suffix[4096];
@@ -728,27 +729,28 @@ struct GIFInfo {
 };
 
 //////////////////////////////////////////////////////////////////////
-void ImageLoadSave::LoadGIF(const char* fname, bool WantPaletteInds)
+void ImageLoadSave::LoadGIF(const char* fname)
 {
-    GIFInfo pi;
+    GIFInfo gi;
 
-    pi.fname = fname;
-    pi.WantPaletteInds = WantPaletteInds;
-    int ret = pi.ReadGIF();
+    gi.fname = fname;
+    gi.WantPaletteInds = SP.wantPaletteInds;
+    int ret = gi.ReadGIF();
+
     if (ret == 0) {
         wid = hgt = chan = 0;
         Pix = NULL;
         throw DMcError("LoadGIF() failed: can't read GIF image file " + std::string(fname));
     }
 
-    wid = pi.Width;
-    hgt = pi.Height;
-    chan = pi.chan;
+    wid = gi.Width;
+    hgt = gi.Height;
+    chan = gi.chan;
     is_uint = false;
     is_float = false;
     Pix = ImageAlloc();
-    memcpy(Pix, pi.pic, size_bytes());
-    delete[] pi.pic;
+    memcpy(Pix, gi.pic, size_bytes());
+    delete[] gi.pic;
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -1064,7 +1066,7 @@ struct GIFWriter {
     }
 
     //////////////////////////////////////////////////////////////////////
-    void WriteGIF(const char* fname, int wid, int hgt, byte* Pix, int MaxColorsWanted = 256, bool GrayScale = false, const char* comment = NULL)
+    void WriteGIF(const char* fname, int wid, int hgt, byte* Pix, bool GrayScale, LoadSaveParams SP)
     {
         int size = wid * hgt;
 
@@ -1074,7 +1076,7 @@ struct GIFWriter {
 
         // Fill in the 8-bit image and the color map somehow.
         Quantizer<uc3Pixel, unsigned char> Qnt((uc3Pixel*)Pix, size, GrayScale);
-        Qnt.SetParams(MaxColorsWanted);
+        Qnt.SetParams(SP.maxColors);
         byte* pic8 = Qnt.GetIndexImage(); // I must now delete pic8.
         size_t NumColors = Qnt.GetColorMap().size();
 
@@ -1090,10 +1092,7 @@ struct GIFWriter {
         else
             InitCodeSize = BitsPerPixel;
 
-        if (comment && strlen(comment) > (size_t)0)
-            fwrite(id89, (size_t)1, (size_t)6, fp); /* the GIF magic number */
-        else
-            fwrite(id87, (size_t)1, (size_t)6, fp); /* the GIF magic number */
+        fwrite(id89, (size_t)1, (size_t)6, fp); // The GIF magic number (can use id87 if no comment)
 
         putword(wid, fp); /* screen descriptor */
         putword(hgt, fp);
@@ -1122,14 +1121,14 @@ struct GIFWriter {
             fputc(0, fp);
         }
 
-        if (comment && strlen(comment) > (size_t)0) { /* write comment blocks */
+        if (!SP.comment.empty()) { /* write comment blocks */
             const char* sp;
             int i, blen;
 
             fputc(0x21, fp); /* EXTENSION block */
             fputc(0xFE, fp); /* comment extension */
 
-            sp = comment;
+            sp = SP.comment.c_str();
             while ((blen = int(strlen(sp))) > 0) {
                 if (blen > 255) blen = 255;
                 fputc(blen, fp);
@@ -1166,12 +1165,13 @@ struct GIFWriter {
     }
 };
 
-void ImageLoadSave::SaveGIF(const char* fname, int MaxColorsWanted) const
+// TODO: Move fname to LoadSaveParams
+void ImageLoadSave::SaveGIF(const char* fname) const
 {
     if (Pix == NULL || chan < 1 || wid < 1 || hgt < 1) { throw DMcError("Image is empty. Not saving."); }
 
     if (chan != 1 && chan != 3) throw DMcError(std::string("Can't save a ") + std::to_string(chan) + " channel image as a GIF.");
 
     GIFWriter gw; // TODO: gw uses a lot of stack
-    gw.WriteGIF(fname, wid, hgt, (unsigned char*)Pix, MaxColorsWanted, (chan == 1), "Written using DaveMc Tools");
+    gw.WriteGIF(fname, wid, hgt, (unsigned char*)Pix, (chan == 1), SP);
 }

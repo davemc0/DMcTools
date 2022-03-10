@@ -5,39 +5,28 @@
 
 #pragma once
 
-#include "Image/tImage.h"
-#include "Util/Assert.h"
+#include <string>
 
-const int BMP_ = 0x00706d62; // "bmp\0", etc.
-const int GIF_ = 0x00666967;
-const int HDR_ = 0x00726468;
-const int JPE_ = 0x0065706a;
-const int JPG_ = 0x0067706a;
-const int MAT_ = 0x0074616d;
-const int PAM_ = 0x006d6170;
-const int PFM_ = 0x006d6670;
-const int PGM_ = 0x006d6770;
-const int PNG_ = 0x00676e70;
-const int PPM_ = 0x006d7070;
-const int PSM_ = 0x006d7370;
-const int PZM_ = 0x006d7a70;
-const int RAS_ = 0x00736172;
-const int RGB_ = 0x00626772;
-const int TGA_ = 0x00616774;
-const int TIF_ = 0x00666974;
+// TODO: Integrate this with the stuff in the Quant class.
+struct LoadSaveParams {
+    std::string comment = "Written using DMcTools";
+    int maxColors = 256;          // Max GIF palette size
+    float exposure = 1.0f;        // Set outgoing exposure for HDR/RGBE
+    bool wantPaletteInds = false; // If true, LoadGIF returns one channel image. No palette.
+    bool isR5G6B5 = false;        // If true, TGA interprets incoming 16 bits as R5G6B5 instead of X1R5G5B5.
+    bool verbose = false;
+};
 
-// Return an int whose bytes equal the characters of the extension string
-extern int GetExtensionVal(const char* fname);
+class baseImage;
 
 class ImageLoadSave {
 public:
     baseImage* baseImg; // This is actually a pointer to the tImage struct of a type matching the image file.
-    saveParams SP;
+    LoadSaveParams SP;
     unsigned char* Pix;
     int wid, hgt, chan;
     bool is_uint, is_float, is_ushort;
 
-    // Constructors
     ImageLoadSave()
     {
         Pix = NULL;
@@ -46,16 +35,7 @@ public:
         is_uint = is_float = is_ushort = false;
     }
 
-    // Destroy an ImageLoadSave.
-    ~ImageLoadSave()
-    {
-        // If LoadtImage() was called, it steals the baseImg and sets it to NULL.
-        // If tLoad() was called it lets this destructor destroy the baseImg, though it may steal baseImg's raster first.
-        // If an error gets thrown while loading, this destructor gets called and baseImg is not NULL.
-        // If an error gets thrown while saving, this destructor gets called and baseImg is NULL, so destroys nothing.
-        // The saver doesn't own any of the data it points to.
-        if (baseImg) delete baseImg;
-    }
+    ~ImageLoadSave();
 
     int size() const { return wid * hgt; }
     int size_bytes() const { return size() * chan * ((is_uint || is_float) ? 4 : is_ushort ? 2 : 1); }
@@ -73,13 +53,14 @@ public:
         is_float = is_float_;
     }
 
-    // All of these throw a DMcError on error.
     void Load(const char* fname);
     void Save(const char* fname) const;
 
+    template <class Image_T> const baseImage* ConvertToSaveFormat(const char* fname, const Image_T* srcImg);
+
 private:
     void LoadBMP(const char* fname);
-    void LoadGIF(const char* fname, bool WantPaletteInds = false); // If true, returns one channel image. No palette.
+    void LoadGIF(const char* fname);
     void LoadJPEG(const char* fname);
     void LoadMAT(const char* fname);
     void LoadPNG(const char* fname);
@@ -87,11 +68,11 @@ private:
     void LoadRGB(const char* fname);
     void LoadRGBE(const char* fname);
     void LoadRas(const char* fname);
-    void LoadTGA(const char* fname, bool R5G6B5 = false); // If true, interprets incoming 16 bits as R5G6B5 instead of X1R5G5B5.
+    void LoadTGA(const char* fname);
     void LoadTIFF(const char* fname);
 
     void SaveBMP(const char* fname) const;
-    void SaveGIF(const char* fname, int MaxColorsWanted = 256) const;
+    void SaveGIF(const char* fname) const;
     void SaveJPEG(const char* fname) const;
     void SaveMAT(const char* fname) const;
     void SavePNG(const char* fname) const;
@@ -102,4 +83,6 @@ private:
 
     // Called by Load*(). It creates a tImage that matches the is_* and chan args. Stores the pointer to the tImage in baseImg.
     unsigned char* ImageAlloc();
+
+    baseImage* ConvertToSaveFormat(const baseImage* srcImg);
 };

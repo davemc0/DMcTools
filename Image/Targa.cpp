@@ -4,6 +4,7 @@
 // Modified by David K. McAllister, Aug. 2000.
 
 #include "Image/ImageLoadSave.h"
+#include "Util/Assert.h"
 
 #include <fstream>
 
@@ -61,7 +62,6 @@ static int decode_map8(const unsigned char* src0, unsigned char* dest0, const in
 }
 
 // Make a 24-bit image out of the 16-bit RGB image
-// Works for X1R5G5B5 images.
 static int decode_rgb16(const unsigned char* src0, unsigned char* dest0, const int wid, const int hgt, const bool R5G6B5)
 {
     const unsigned char* src = src0;
@@ -75,7 +75,7 @@ static int decode_rgb16(const unsigned char* src0, unsigned char* dest0, const i
             src += 2;
             dest += 3;
         }
-    } else {
+    } else { // X1R5G5B5
         for (int i = 0; i < wid * hgt; i++) {
             dest[0] = (src[1] << 1) & 0xf8;
             dest[1] = ((src[1] << 6) | (src[0] >> 2)) & 0xf8;
@@ -288,8 +288,7 @@ static int decode_rgb_rle32(const unsigned char* src0, unsigned char* dest0, con
     return (0);
 }
 
-// Returns false on success.
-void ImageLoadSave::LoadTGA(const char* fname, bool R5G6B5)
+void ImageLoadSave::LoadTGA(const char* fname)
 {
     // Read whole file "fname" into array.
     ifstream InFile(fname, ios::in | ios::binary);
@@ -356,7 +355,7 @@ void ImageLoadSave::LoadTGA(const char* fname, bool R5G6B5)
         break;
     case TGA_RGB:
         switch (header->PixelSize) {
-        case 16: decode_rgb16(encoded_pixels, Pix, wid, hgt, R5G6B5); break;
+        case 16: decode_rgb16(encoded_pixels, Pix, wid, hgt, SP.isR5G6B5); break;
         case 24: decode_rgb24(encoded_pixels, Pix, wid, hgt); break;
         case 32: decode_rgb32(encoded_pixels, Pix, wid, hgt); break;
         default:
@@ -375,7 +374,7 @@ void ImageLoadSave::LoadTGA(const char* fname, bool R5G6B5)
         break;
     case TGA_RLERGB:
         switch (header->PixelSize) {
-        case 16: decode_rgb_rle16(encoded_pixels, Pix, wid, hgt, R5G6B5); break;
+        case 16: decode_rgb_rle16(encoded_pixels, Pix, wid, hgt, SP.isR5G6B5); break;
         case 24: decode_rgb_rle24(encoded_pixels, Pix, wid, hgt); break;
         case 32: decode_rgb_rle32(encoded_pixels, Pix, wid, hgt); break;
         default: delete[] fdata; throw DMcError("Bad pixel size: " + std::to_string(header->PixelSize) + " bits/pixel");

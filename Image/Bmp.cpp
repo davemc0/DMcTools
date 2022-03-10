@@ -1,12 +1,12 @@
 //////////////////////////////////////////////////////////////////////
-// Bmp.cpp - Read and Write Windows BMP images.
+// Bmp.cpp - Read and Write Windows BMP images
 //
 // Changes Copyright David K. McAllister, Dec. 1999.
 // Taken from XV v. 3.10, which probably stole the code without credit.
-// Also, don't worry about the unused variable warnings generated
-// during compile.
+// Also, don't worry about the unused variable warnings generated during compile.
 
 #include "Image/ImageLoadSave.h"
+#include "Image/tImage.h"
 
 typedef unsigned char byte;
 

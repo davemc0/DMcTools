@@ -75,7 +75,7 @@ public:
     unsigned char& e() { return (*this)[3]; }
 
     // Read-only.
-    unsigned char e() const { return (*this)[3]; }
+    const unsigned char e() const { return (*this)[3]; }
 
     // Luminance.
     unsigned char luminance() const

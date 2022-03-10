@@ -266,18 +266,18 @@ public:
     }
 
     // Read-only.
-    DMC_DECL Elem_T r() const { return (*this)[0]; }
-    DMC_DECL Elem_T g() const
+    DMC_DECL const Elem_T r() const { return (*this)[0]; }
+    DMC_DECL const Elem_T g() const
     {
         ASSERT_D(Chan_ > 1);
         return (*this)[1];
     }
-    DMC_DECL Elem_T b() const
+    DMC_DECL const Elem_T b() const
     {
         ASSERT_D(Chan_ > 2);
         return (*this)[2];
     }
-    DMC_DECL Elem_T a() const
+    DMC_DECL const Elem_T a() const
     {
         ASSERT_D(Chan_ > 3);
         return (*this)[3];
@@ -378,7 +378,7 @@ template <> DMC_DECL tPixel<float, 1>::operator float() const { return els[0]; }
 template <> DMC_DECL tPixel<double, 1>::operator double() const { return els[0]; }
 
 // Apply an arbitrary function to each channel.
-template <class Elem_T, int Chan_, class Pred_F> DMC_DECL tPixel<Elem_T, Chan_> func(const tPixel<Elem_T, Chan_>& p, Pred_F fnc)
+template <class Elem_T, int Chan_, class Func_T> DMC_DECL tPixel<Elem_T, Chan_> func(const tPixel<Elem_T, Chan_>& p, Func_T fnc)
 {
     tPixel<Elem_T, Chan_> r;
     for (int i = 0; i < Chan_; i++) r[i] = fnc(p[i]);

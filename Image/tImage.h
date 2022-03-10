@@ -17,7 +17,7 @@
 // and the loaded image will be converted to your tImage's type.
 
 // Copy constructor and assignment operator are templated on the argument type, creating a full cross-product of image
-// conversion functions. MSVC 2005 is pretty savvy about not doing slow conversions if the pixel types actually match.
+// conversion functions. MSVC is pretty savvy about not doing slow conversions if the pixel types actually match.
 
 // ImageAlgorithms.cpp has a lot of algorithms that operate on templated tImage types.
 // ImageLoadSave.cpp has most of the image loading/saving stuff. tLoadSave.cpp has the rest.
@@ -32,19 +32,10 @@
 
 #include "Image/RGBE.h"
 #include "Image/tPixel.h"
+#include "ImageLoadSave.h"
 
 #include <iostream>
-
-// Replace this with the stuff in the Quant class.
-struct saveParams {
-    saveParams()
-    {
-        maxColors = 256;
-        monochrome = false;
-    }
-    int maxColors;
-    bool monochrome;
-};
+#include <string>
 
 // BaseImage is used to give commonality to all images. This lets them be passed around as a baseImage*.
 // The functions in the base class should be sufficient to allow all operations that don't depend on the image's datatype.
@@ -97,16 +88,16 @@ public:
     // A pointer to the pixel data, without knowing its kind
     virtual const void* pv_virtual(const int x, const int y) const = 0;
 
-    // Specify whether this owns its raster and must delete it on destruction or not
+    // Set whether this owns its raster and must delete it on destruction or not
     virtual void ownPix_virtual(const bool ownPix_) = 0;
 
     // Load the file, convert its type to this one, and fill this tImage
-    virtual void Load(const char* fname) = 0;
+    virtual void Load(const char* fname, LoadSaveParams SP = LoadSaveParams()) = 0;
 
     // Save the image to a file
-    virtual void Save(const char* fname, saveParams SP = saveParams()) const { ASSERT_RM(0, "Save not defined for this subclass of tImage."); }
+    virtual void Save(const char* fname, LoadSaveParams SP = LoadSaveParams()) const { ASSERT_RM(0, "Save not defined for this tImage type."); }
 
-    // Make a Copy of the actual image and return a pointer to its baseImage.
+    // Make a copy of the actual image and return a pointer to its baseImage.
     virtual baseImage* Copy() const = 0;
 };
 
@@ -228,7 +219,7 @@ public:
         // std::cerr << "done deleting tImage\n";
     }
 
-    // Specify whether this owns its raster and must delete it on destruction or not
+    // Set whether this owns its raster and must delete it on destruction or not
     void ownPix_virtual(const bool ownPix_) { ownPix = ownPix_; }
 
     //////////////////////////////////////////////////////////////////////
@@ -446,22 +437,6 @@ public:
     // Returns the channel-wise average of all the pixels.
     Pixel_T mean_chan() const { return sum_chan() / Pixel_T::MathPixType(size()); }
 
-    // Transfer contents of Img to this image and vice-versa.
-    // This is a fast way to assign an image that avoids the huge memory allocate and copy.
-    void swap(tImage<Pixel_T>& Img)
-    {
-        // Squirrel away my old stuff.
-        int myw = w();
-        int myh = h();
-        Pixel_T* MyPix = Pix;
-
-        // Take on Img's stuff.
-        SetImage(Img.pp(), Img.w(), Img.h());
-
-        // Give Img my stuff.
-        Img.SetImage(MyPix, myw, myh);
-    }
-
     // Clear the image to the given color.
     void fill(const Pixel_T p = Pixel_T(0))
     {
@@ -482,19 +457,19 @@ public:
     }
 
     // Clear the image.
-    void clear() { SetSize(); }
+    void clear() { SetSize(0, 0, false); }
 
     // Change the size of this image.
-    // Call with no args to wipe the image to empty.
-    void SetSize(const int wid_ = 0, const int hgt_ = 0, const bool doFill = false)
+    // Call with w=h=0 to clear the image.
+    void SetSize(const int wid_, const int hgt_, const bool doFill = false)
     {
-        // std::cerr << this << ": " << w() << "x" << h() << " -> " << wid_ << "x" << hgt_ << std::endl;
         wid = wid_;
         hgt = hgt_;
         if (w() <= 0 || h() <= 0) wid = hgt = 0;
 
         if (Pix && ownPix) delete[] Pix;
         Pix = NULL;
+        ownPix = false;
 
         if (size() > 0) {
             // std::cerr << "Allocating\n";
@@ -506,17 +481,16 @@ public:
                 ASSERT_RM(0, "memory alloc failed");
             }
             ASSERT_RM(Pix, "memory alloc failed");
-            // std::cerr << "Pix = " << Pix << std::endl;
             if (doFill) fill();
         }
         ASSERT_D(size() == 0 || Pix != NULL);
     }
 
     // Hooks the given raster of pixels into this image object.
-    // This image class owns the data if ownPix is true. Call swapout() to later detach a raster without deleting it.
-    // WARNING: Doesn't delete [] its previous data (so that swap() works).
+    // This tImage owns the data if ownPix is true.
+    // WARNING: Doesn't delete [] its previous data.
     // WARNING: Image data must really be this pixel type to be deleted.
-    void SetImage(Pixel_T* p = NULL, const int wid_ = 0, const int hgt_ = 0, const bool ownPix_ = false)
+    void SetImage(Pixel_T* p, const int wid_, const int hgt_, const bool ownPix_)
     {
         ASSERT_D(wid_ >= 0 && hgt_ >= 0);
         Pix = p;
@@ -530,19 +504,8 @@ public:
         ASSERT_D(size() == 0 || Pix != NULL);
     }
 
-    // Load an image from a file.
-    void Load(const char* fname)
-    {
-        // You actually use the specialized versions of this function at the end of this file.
-        ASSERT_R(0);
-    }
-
-    // Detects type from filename. Won't modify number of channels.
-    void Save(const char* fname, saveParams SP = saveParams()) const
-    {
-        // You actually use the specialized versions of this function at the end of this file.
-        ASSERT_RM(0, "Image save is disabled for this image type.");
-    }
+    void Load(const char* fname, LoadSaveParams SP = LoadSaveParams());       // Load an image from a file.
+    void Save(const char* fname, LoadSaveParams SP = LoadSaveParams()) const; // Detects type from filename; won't modify this tImage.
 
     //////////////////////////////////////////////////////////////////////
     // Image Operators
@@ -618,7 +581,7 @@ public:
 };
 
 // Apply an arbitrary function to each channel of each pixel and put the result in image r.
-template <class Pixel_T, class Pred_T> DMC_HDECL void ifunc(tImage<Pixel_T>& r, const tImage<Pixel_T>& p, Pred_T fnc)
+template <class Pixel_T, class Func_T> DMC_HDECL void ifunc(tImage<Pixel_T>& r, const tImage<Pixel_T>& p, Func_T fnc)
 {
     r.SetSize(p.w(), p.h());
 
@@ -629,7 +592,7 @@ template <class Pixel_T, class Pred_T> DMC_HDECL void ifunc(tImage<Pixel_T>& r, 
 
 // Apply an arbitrary function to each channel of each pixel.
 // Modifies the image in place.
-template <class Pixel_T, class Pred_T> DMC_HDECL void func(tImage<Pixel_T>& p, Pred_T fnc)
+template <class Pixel_T, class Func_T> DMC_HDECL void func(tImage<Pixel_T>& p, Func_T fnc)
 {
     int sz = p.size();
     for (int i = 0; i < sz; i++)
@@ -824,6 +787,18 @@ template <class Pixel_T> DMC_HDECL void VFlip(tImage<Pixel_T>& p)
 //////////////////////////////////////////////////////////////////////////////
 // Specializations
 
+#ifdef DMC_USE_HALF_FLOAT
+typedef tImage<h1Pixel> h1Image;
+typedef tImage<h2Pixel> h2Image;
+typedef tImage<h3Pixel> h3Image;
+typedef tImage<h4Pixel> h4Image;
+#endif
+
+typedef tImage<f1Pixel> f1Image;
+typedef tImage<f2Pixel> f2Image;
+typedef tImage<f3Pixel> f3Image; // Overload this for tone mapping.
+typedef tImage<f4Pixel> f4Image;
+
 typedef tImage<uc1Pixel> uc1Image;
 typedef tImage<uc2Pixel> uc2Image;
 typedef tImage<uc3Pixel> uc3Image;
@@ -844,62 +819,5 @@ typedef tImage<ui2Pixel> ui2Image;
 typedef tImage<ui3Pixel> ui3Image;
 typedef tImage<ui4Pixel> ui4Image;
 
-#ifdef DMC_USE_HALF_FLOAT
-typedef tImage<h1Pixel> h1Image;
-typedef tImage<h2Pixel> h2Image;
-typedef tImage<h3Pixel> h3Image;
-typedef tImage<h4Pixel> h4Image;
-#endif
-
-typedef tImage<f1Pixel> f1Image;
-typedef tImage<f2Pixel> f2Image;
-typedef tImage<f3Pixel> f3Image; // Overload this for tone mapping.
-typedef tImage<f4Pixel> f4Image;
-
 typedef ui1Image zImage;
 typedef tImage<rgbePixel> rgbeImage; // Overload this to get a constructor.
-
-template <class Image_T> extern void tLoad(const char* fname, Image_T* out);
-template <class Image_T> extern void tSave(const char* fname, const Image_T& img, const saveParams SP = saveParams());
-
-// List here the image types for which tLoad is instantiated.
-// This avoids the templated tLoad being wanted for types for which it doesn't exist.
-template <> DMC_HDECL void uc1Image::Load(const char* fname) { tLoad(fname, this); }
-template <> DMC_HDECL void uc2Image::Load(const char* fname) { tLoad(fname, this); }
-template <> DMC_HDECL void uc3Image::Load(const char* fname) { tLoad(fname, this); }
-template <> DMC_HDECL void uc4Image::Load(const char* fname) { tLoad(fname, this); }
-template <> DMC_HDECL void us1Image::Load(const char* fname) { tLoad(fname, this); }
-template <> DMC_HDECL void us2Image::Load(const char* fname) { tLoad(fname, this); }
-template <> DMC_HDECL void us3Image::Load(const char* fname) { tLoad(fname, this); }
-template <> DMC_HDECL void us4Image::Load(const char* fname) { tLoad(fname, this); }
-template <> DMC_HDECL void ui1Image::Load(const char* fname) { tLoad(fname, this); }
-// template<> DMC_HDECL void ui2Image::Load(const char* fname) {tLoad(fname, this);}
-// template<> DMC_HDECL void ui3Image::Load(const char* fname) {tLoad(fname, this);}
-// template<> DMC_HDECL void ui4Image::Load(const char* fname) {tLoad(fname, this);}
-template <> DMC_HDECL void f1Image::Load(const char* fname) { tLoad(fname, this); }
-// template<> DMC_HDECL void  f2Image::Load(const char* fname) {tLoad(fname, this);}
-template <> DMC_HDECL void f3Image::Load(const char* fname) { tLoad(fname, this); }
-template <> DMC_HDECL void f4Image::Load(const char* fname) { tLoad(fname, this); }
-
-// List here the image types for which tSave is instantiated.
-// This avoids the templated tSave being wanted for types for which it doesn't exist.
-template <> DMC_HDECL void h1Image::Save(const char* fname, saveParams SP) const { tSave(fname, *this, SP); }
-// template <> DMC_HDECL void h2Image::Save(const char* fname, saveParams SP) const { tSave(fname, *this, SP); }
-template <> DMC_HDECL void h3Image::Save(const char* fname, saveParams SP) const { tSave(fname, *this, SP); }
-// template <> DMC_HDECL void h4Image::Save(const char* fname, saveParams SP) const { tSave(fname, *this, SP); }
-template <> DMC_HDECL void f1Image::Save(const char* fname, saveParams SP) const { tSave(fname, *this, SP); }
-// template <> DMC_HDECL void f2Image::Save(const char* fname, saveParams SP) const { tSave(fname, *this, SP); }
-template <> DMC_HDECL void f3Image::Save(const char* fname, saveParams SP) const { tSave(fname, *this, SP); }
-template <> DMC_HDECL void f4Image::Save(const char* fname, saveParams SP) const { tSave(fname, *this, SP); }
-template <> DMC_HDECL void uc1Image::Save(const char* fname, saveParams SP) const { tSave(fname, *this, SP); }
-template <> DMC_HDECL void uc2Image::Save(const char* fname, saveParams SP) const { tSave(fname, *this, SP); }
-template <> DMC_HDECL void uc3Image::Save(const char* fname, saveParams SP) const { tSave(fname, *this, SP); }
-template <> DMC_HDECL void uc4Image::Save(const char* fname, saveParams SP) const { tSave(fname, *this, SP); }
-template <> DMC_HDECL void us1Image::Save(const char* fname, saveParams SP) const { tSave(fname, *this, SP); }
-template <> DMC_HDECL void us2Image::Save(const char* fname, saveParams SP) const { tSave(fname, *this, SP); }
-template <> DMC_HDECL void us3Image::Save(const char* fname, saveParams SP) const { tSave(fname, *this, SP); }
-template <> DMC_HDECL void us4Image::Save(const char* fname, saveParams SP) const { tSave(fname, *this, SP); }
-template <> DMC_HDECL void ui1Image::Save(const char* fname, saveParams SP) const { tSave(fname, *this, SP); }
-// template <> DMC_HDECL void ui2Image::Save(const char* fname, saveParams SP) const { tSave(fname, *this, SP); }
-// template <> DMC_HDECL void ui3Image::Save(const char* fname, saveParams SP) const { tSave(fname, *this, SP); }
-// template <> DMC_HDECL void ui4Image::Save(const char* fname, saveParams SP) const { tSave(fname, *this, SP); }
