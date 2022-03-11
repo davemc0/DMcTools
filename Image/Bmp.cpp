@@ -567,16 +567,16 @@ void ImageLoadSave::SaveBMP(const char* fname) const
     FILE* fp = fopen(fname, "wb");
     if (!fp) return (bmpError(fname, "couldn't write file"));
 
-    int i, nc = 0, nbits = 0, bytesperline;
+    int i, ncolors = 0, nbits = 0, bytesperline;
 
     if (chan == 1) {
         // Grayscale
-        nc = 256;
+        ncolors = 256;
         nbits = 8;
     } else if (chan == 3) {
         // True color
+        ncolors = 0;
         nbits = 24;
-        nc = 0;
     } else {
         bmpError(fname, "Can only save a 1- or 3-channel BMP for now.");
     }
@@ -589,13 +589,13 @@ void ImageLoadSave::SaveBMP(const char* fname) const
     /* compute filesize and write it */
     i = 14 +                /* size of bitmap file header */
         40 +                /* size of bitmap info header */
-        (nc * 4) +          /* size of colormap */
+        (ncolors * 4) +     /* size of colormap */
         bytesperline * hgt; /* size of image data */
 
     putint(fp, i);
-    putshort(fp, 0);                /* reserved1 */
-    putshort(fp, 0);                /* reserved2 */
-    putint(fp, 14 + 40 + (nc * 4)); /* offset from BOfile to BObitmap */
+    putshort(fp, 0);                     /* reserved1 */
+    putshort(fp, 0);                     /* reserved2 */
+    putint(fp, 14 + 40 + (ncolors * 4)); /* offset from BOfile to BObitmap */
 
     putint(fp, 40);                 /* biSize: size of bitmap info header */
     putint(fp, wid);                /* biWidth */
@@ -606,12 +606,12 @@ void ImageLoadSave::SaveBMP(const char* fname) const
     putint(fp, bytesperline * hgt); /* biSizeImage: size of raw image data */
     putint(fp, 96 * 39);            /* biXPelsPerMeter: (96dpi * 39" per meter) */
     putint(fp, 96 * 39);            /* biYPelsPerMeter: (96dpi * 39" per meter) */
-    putint(fp, nc);                 /* biClrUsed: # of colors used in cmap */
-    putint(fp, nc);                 /* biClrImportant: same as above */
+    putint(fp, ncolors);            /* biClrUsed: # of colors used in cmap */
+    putint(fp, ncolors);            /* biClrImportant: same as above */
 
-    /* write out the colormap */
+    // Write out a gray scale colormap
     if (chan == 1) {
-        for (i = 0; i < nc; i++) {
+        for (i = 0; i < ncolors; i++) {
             putc(i, fp);
             putc(i, fp);
             putc(i, fp);

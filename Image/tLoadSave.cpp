@@ -28,9 +28,10 @@
 // Load an image file into whatever kind of tImage is most appropriate.
 // Returns a pointer to the baseImage. dynamic_cast will tell you what kind it really is.
 // Throws a DMcError on failure.
-baseImage* LoadtImage(const char* fname)
+baseImage* LoadtImage(const char* fname, LoadSaveParams SP)
 {
     ImageLoadSave loader;
+    loader.SP = SP;
     loader.Load(fname);
     ASSERT_R(loader.baseImg != NULL);
 
@@ -46,6 +47,7 @@ template <class Pixel_T> void tImage<Pixel_T>::Load(const char* fname, LoadSaveP
 
     // Load the image and keep it in its disk file format inside loader.baseImg.
     ImageLoadSave loader;
+    loader.SP = SP;
     loader.Load(fname);
     ASSERT_R(loader.baseImg != NULL); // Will get an exception before now if the load failed.
     baseImage* base = loader.baseImg;
@@ -75,6 +77,7 @@ template <class Pixel_T> void tImage<Pixel_T>::Load(const char* fname, LoadSaveP
     }
     // Loader will still point to base and we allow the loader destructor to delete base.
 }
+// TODO: Comment out unused ones to save compile time and executable size
 template void tImage<h1Pixel>::Load(const char* fname, LoadSaveParams SP);
 template void tImage<h2Pixel>::Load(const char* fname, LoadSaveParams SP);
 template void tImage<h3Pixel>::Load(const char* fname, LoadSaveParams SP);
@@ -120,7 +123,7 @@ template <class Pixel_T> void tImage<Pixel_T>::Save(const char* fname, LoadSaveP
     saver.wid = saver.hgt = saver.chan = 0;
     if (outImg != this) delete outImg; // If we had to create a converted image for saving, delete it.
 }
-
+// TODO: Comment out unused ones to save compile time and executable size
 template void tImage<h1Pixel>::Save(const char* fname, LoadSaveParams SP) const;
 template void tImage<h2Pixel>::Save(const char* fname, LoadSaveParams SP) const;
 template void tImage<h3Pixel>::Save(const char* fname, LoadSaveParams SP) const;

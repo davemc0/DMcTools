@@ -30,9 +30,9 @@
 
 #pragma once
 
+#include "Image/LoadSaveParams.h"
 #include "Image/RGBE.h"
 #include "Image/tPixel.h"
-#include "ImageLoadSave.h"
 
 #include <iostream>
 #include <string>
@@ -104,7 +104,7 @@ public:
 // Load an image file into whatever kind of tImage is most appropriate.
 // Returns a pointer to the baseImage. dynamic_cast will tell you what kind it really is.
 // Throws a DMcError on failure.
-baseImage* LoadtImage(const char* fname);
+baseImage* LoadtImage(const char* fname, LoadSaveParams SP = LoadSaveParams());
 
 template <class Pixel_T> class tImage : public baseImage {
     Pixel_T* Pix; // The actual pixels.

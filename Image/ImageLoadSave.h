@@ -5,17 +5,9 @@
 
 #pragma once
 
-#include <string>
+#include "Image/LoadSaveParams.h"
 
-// TODO: Integrate this with the stuff in the Quant class.
-struct LoadSaveParams {
-    std::string comment = "Written using DMcTools";
-    int maxColors = 256;          // Max GIF palette size
-    float exposure = 1.0f;        // Set outgoing exposure for HDR/RGBE
-    bool wantPaletteInds = false; // If true, LoadGIF returns one channel image. No palette.
-    bool isR5G6B5 = false;        // If true, TGA interprets incoming 16 bits as R5G6B5 instead of X1R5G5B5.
-    bool verbose = false;
-};
+#include <string>
 
 class baseImage;
 

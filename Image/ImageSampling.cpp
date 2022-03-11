@@ -1,15 +1,9 @@
 //////////////////////////////////////////////////////////////////////
-// ImageAlgorithms.cpp - Image filtering, sampling, etc.
+// ImageSampling.cpp - Image up-sampling and down-sampling
 //
 // Copyright David K. McAllister, 2001-2015.
 
 #include "Image/ImageAlgorithms.h"
-#include "Math/Random.h"
-
-#include <algorithm>
-#include <vector>
-
-using namespace std;
 
 template <class Image_T> void Downsample2x2(Image_T& Out, const Image_T& Img)
 {

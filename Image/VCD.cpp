@@ -7,6 +7,7 @@
 #include "Math/Random.h"
 
 #include <vector>
+
 using namespace std;
 
 namespace {

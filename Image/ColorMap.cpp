@@ -1,3 +1,10 @@
+//////////////////////////////////////////////////////////////////////
+// ColorMap.cpp - A color map implementation with templatized pixel type
+//
+// Maps a scalar to a color; uses arbitrary sized color maps
+//
+// Copyright David K. McAllister, 1998.
+
 #include "Image/ColorMap.h"
 
 #include "Image/tPixel.h"
@@ -123,6 +130,13 @@ template <class Pixel_T> void ColorMap<Pixel_T>::RealSetSpan(const size_t iLo, c
     }
 }
 template void ColorMap<f3Pixel>::RealSetSpan(const size_t iLo, const size_t iHi, const f3Pixel& vLo, const f3Pixel& vHi);
+
+template <class Pixel_T> void ColorMap<Pixel_T>::Dump()
+{
+    std::cerr << "CMap[" << size() << "]\n";
+    for (int i = 0; i < size(); i++) std::cerr << (*this)[i] << std::endl;
+}
+template void ColorMap<f3Pixel>::Dump();
 
 template <class Pixel_T> bool Equal(const ColorMap<Pixel_T>& Aa, const ColorMap<Pixel_T>& Bb)
 {

@@ -10,8 +10,6 @@
 #include <algorithm>
 #include <vector>
 
-using namespace std;
-
 template <class OutImage_T, class InImage_T>
 void ToneMapLinear(OutImage_T& Out, const InImage_T& Img, const typename InImage_T::PixType::ElType Scale, const typename InImage_T::PixType::ElType Bias)
 {
@@ -58,7 +56,7 @@ template void ToneMapFindExtrema(uc3Image& Out, const f3Image& Img);
 template void ToneMapFindExtrema(uc1Image& Out, const f3Image& Img);
 
 // If a pixel is outside bounding box of all its neighbors then clamp it into the box
-template <class Image_T> void DeSpeckle(Image_T& dstImg, const Image_T& srcImg)
+template <class Image_T> void Despeckle(Image_T& dstImg, const Image_T& srcImg)
 {
     dstImg.SetSize(srcImg.w(), srcImg.h());
 
@@ -85,56 +83,12 @@ template <class Image_T> void DeSpeckle(Image_T& dstImg, const Image_T& srcImg)
         }
     }
 }
-
-template void DeSpeckle(f1Image& dstImg, const f1Image& srcImg);
-template void DeSpeckle(f3Image& dstImg, const f3Image& srcImg);
-template void DeSpeckle(f4Image& dstImg, const f4Image& srcImg);
-template void DeSpeckle(uc1Image& dstImg, const uc1Image& srcImg);
-template void DeSpeckle(uc3Image& dstImg, const uc3Image& srcImg);
-template void DeSpeckle(uc4Image& dstImg, const uc4Image& srcImg);
-
-// If a pixel is brighter than at least N neighbors then set it to its brightest neighbor
-template <class Image_T> void DeSpeckleN(Image_T& Img, int N)
-{
-    Image_T NImg(Img.w(), Img.h());
-    NImg.fill(uc1Pixel(255)); // The 255 is a hack. The fill should be unnecessary.
-
-    for (int y = 1; y < Img.h() - 1; y++) {
-        for (int x = 1; x < Img.w() - 1; x++) {
-            typename Image_T::PixType MinP = Img(x - 1, y - 1), MaxP = Img(x - 1, y - 1);
-            MinP = Min(MinP, Img(x, y - 1));
-            MaxP = Max(MaxP, Img(x, y - 1));
-            MinP = Min(MinP, Img(x + 1, y - 1));
-            MaxP = Max(MaxP, Img(x + 1, y - 1));
-            MinP = Min(MinP, Img(x - 1, y));
-            MaxP = Max(MaxP, Img(x - 1, y));
-            MinP = Min(MinP, Img(x + 1, y));
-            MaxP = Max(MaxP, Img(x + 1, y));
-            MinP = Min(MinP, Img(x - 1, y + 1));
-            MaxP = Max(MaxP, Img(x - 1, y + 1));
-            MinP = Min(MinP, Img(x, y + 1));
-            MaxP = Max(MaxP, Img(x, y + 1));
-            MinP = Min(MinP, Img(x + 1, y + 1));
-            MaxP = Max(MaxP, Img(x + 1, y + 1));
-
-            typename Image_T::PixType Me = Img(x, y);
-            int c = 0;
-            c += Img(x - 1, y - 1) <= Me;
-            c += Img(x, y - 1) <= Me;
-            c += Img(x + 1, y - 1) <= Me;
-            c += Img(x - 1, y) <= Me;
-            c += Img(x + 1, y) <= Me;
-            c += Img(x - 1, y + 1) <= Me;
-            c += Img(x, y + 1) <= Me;
-            c += Img(x + 1, y + 1) <= Me;
-            NImg(x, y) = c >= N ? Me : MaxP;
-        }
-    }
-
-    Img = NImg;
-}
-
-template void DeSpeckleN(uc1Image& Img, int N);
+template void Despeckle(f1Image& dstImg, const f1Image& srcImg);
+template void Despeckle(f3Image& dstImg, const f3Image& srcImg);
+template void Despeckle(f4Image& dstImg, const f4Image& srcImg);
+template void Despeckle(uc1Image& dstImg, const uc1Image& srcImg);
+template void Despeckle(uc3Image& dstImg, const uc3Image& srcImg);
+template void Despeckle(uc4Image& dstImg, const uc4Image& srcImg);
 
 template <class Image_T> typename Image_T::PixType::ElType getApproxMedian(const Image_T& Img, const int NumSamples)
 {
@@ -145,7 +99,7 @@ template <class Image_T> typename Image_T::PixType::ElType getApproxMedian(const
         vals[k] = Img[i].luminance();
     }
 
-    sort(&vals[0], &vals[NumSamples]);
+    std::sort(&vals[0], &vals[NumSamples]);
 
     typename Image_T::PixType::ElType ret = vals[NumSamples / 2];
     delete[] vals;
@@ -156,9 +110,9 @@ template <class Image_T> typename Image_T::PixType::ElType getApproxMedian(const
 template float getApproxMedian(const f3Image& Img, const int NumSamples);
 
 template <class Pixel_T, class Image_T, class Elem_T>
-vector<Pixel_T> getHistogram(const Image_T& Img, const int NumBuckets, const Elem_T minc, const Elem_T maxc)
+std::vector<Pixel_T> getHistogram(const Image_T& Img, const int NumBuckets, const Elem_T minc, const Elem_T maxc)
 {
-    vector<Pixel_T> Hist(NumBuckets, Pixel_T(0));
+    std::vector<Pixel_T> Hist(NumBuckets, Pixel_T(0));
 
     float scale = float(NumBuckets) / float(maxc - minc);
     for (int k = 0; k < Img.size(); k++) {
@@ -172,11 +126,11 @@ vector<Pixel_T> getHistogram(const Image_T& Img, const int NumBuckets, const Ele
 }
 
 // When calling, make sure the last two args are actual floats.
-template vector<ui1Pixel> getHistogram(const uc1Image& Img, const int NumBuckets, const float minc, const float maxc);
-template vector<ui3Pixel> getHistogram(const uc3Image& Img, const int NumBuckets, const float minc, const float maxc);
-template vector<ui1Pixel> getHistogram(const us1Image& Img, const int NumBuckets, const float minc, const float maxc);
-template vector<ui3Pixel> getHistogram(const us3Image& Img, const int NumBuckets, const float minc, const float maxc);
-template vector<ui3Pixel> getHistogram(const f3Image& Img, const int NumBuckets, const float minc, const float maxc);
+template std::vector<ui1Pixel> getHistogram(const uc1Image& Img, const int NumBuckets, const float minc, const float maxc);
+template std::vector<ui3Pixel> getHistogram(const uc3Image& Img, const int NumBuckets, const float minc, const float maxc);
+template std::vector<ui1Pixel> getHistogram(const us1Image& Img, const int NumBuckets, const float minc, const float maxc);
+template std::vector<ui3Pixel> getHistogram(const us3Image& Img, const int NumBuckets, const float minc, const float maxc);
+template std::vector<ui3Pixel> getHistogram(const f3Image& Img, const int NumBuckets, const float minc, const float maxc);
 
 template <class DstPixel_T, class SrcPixel_T> void CopyChan(tImage<DstPixel_T>& DstIm, const int dst_ch, const tImage<SrcPixel_T>& SrcIm, const int src_ch)
 {
@@ -318,8 +272,8 @@ DMC_DECL typename Image_T::PixType sample_kernel_weighted(const Image_T& Img, co
     typename Image_T::PixType::MathPixType sum(0);
     typename KernelImage_T::PixType::MathType weight = 0;
 
-    int xl = max(xc - N2, 0), xh = min(xc + N2, Img.w() - 1);
-    int yl = max(yc - N2, 0), yh = min(yc + N2, Img.h() - 1);
+    int xl = std::max(xc - N2, 0), xh = std::min(xc + N2, Img.w() - 1);
+    int yl = std::max(yc - N2, 0), yh = std::min(yc + N2, Img.h() - 1);
     for (int y = yl; y <= yh; y++) {
         for (int x = xl; x <= xh; x++) {
             typename KernelImage_T::PixType::ElType K = Kernel(xc - x + N2, yc - y + N2);
@@ -478,8 +432,7 @@ template <class Image_T, class KernelImage_T> void ConvolveImage(Image_T& Out, c
         ConvolveMiddle(Out, In, Kernel); // If kernel size is not known at compile time.
 }
 
-// FiltWid x filtWid gaussian blur for any image type.
-// filtWid must be odd.
+// Gaussian blur for any image type; filtWid must be odd.
 template <class Image_T> void GaussianBlur(Image_T& Out, const Image_T& In, const int filtWid, const typename Image_T::PixType::MathType stdev)
 {
     ASSERT_R((filtWid & 1) && filtWid >= 3); // Filter must be an odd width so it can center on a pixel.

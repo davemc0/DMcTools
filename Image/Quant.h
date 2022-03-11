@@ -6,6 +6,7 @@
 #pragma once
 
 #include "Image/ColorMap.h"
+#include "Image/QuantParams.h"
 #include "Image/tPixel.h"
 
 // Color histogram stuff.
@@ -34,22 +35,18 @@ template <class Pixel_T, class Index_T> class Quantizer {
     const Pixel_T* Pix;     // The TrueColor image
     Index_T* IndexImg;      // The resulting Index image
     ColorMap<Pixel_T> CMap; // The resulting colormap
-    size_t size;            // How many pixels are in the image
-    bool IsGray;            // True if the source image is gray scale
 
-    MathType WorstErr;   // The amount of error at the worst pixel
-    Pixel_T WorstErrPix; // The index of the pixe with the worst pixel
+    QuantParams QP;
 
-    size_t MaxColors;         // Maximum colors allowed
-    bool MakeArtisticPalette; // True to make a palette that has more error, but includes the less-used but visibly important colors
-    int MaxIter;              // Max iterations in refinement steps
-    MathType StopEarlyOfs;    // The amount of difference between this and last iteration's error that allows the loop to still terminate
+    size_t size;         // How many pixels are in the image
+    bool isOneChan;      // True if the source image is gray scale
+    MathType worstErr;   // The amount of error at the worst pixel
+    Pixel_T worstPixInd; // The index of the pixel with the worst error
 
 public:
-    Quantizer(const Pixel_T* TrueColorImg, const size_t sz, const bool Gray = false) : Pix(TrueColorImg), size(sz), IsGray(Gray)
+    Quantizer(const Pixel_T* TrueColorImg, const size_t size_, bool isOneChan_, QuantParams QP_) :
+        Pix(TrueColorImg), IndexImg(NULL), QP(QP_), size(size_), isOneChan(isOneChan_)
     {
-        IndexImg = NULL;
-        SetParams();
     }
 
     ~Quantizer()
@@ -62,17 +59,6 @@ public:
     ColorMap<Pixel_T>& GetColorMap();                          // Return the chosen color map
     void GetQuantizedTrueColorImage(Pixel_T* NewTrueColorImg); // Fill NewTrueColorImg based on CMap's colors and used IndexImg
     float GetHistogramCount();                                 // Does MakeHist and returns the fraction of histogram boxes that had pixels
-
-    // If you want your quantization to behave differently than the defaults to this function then call this function before quantizing.
-    void SetParams(const size_t MaxCols = 256, const bool MakeArtistic = false, const int MaxIterat = 20, const MathType StopEarly = 0)
-    {
-        MaxColors = MaxCols;
-        MakeArtisticPalette = MakeArtistic;
-        MaxIter = MaxIterat;
-        StopEarlyOfs = StopEarly;
-        CMap.C.resize(0);
-        if (IndexImg != NULL) delete[] IndexImg;
-    }
 
 private:
     // Perform the quantization
@@ -107,6 +93,4 @@ private:
 
     // Make an associative histogram of pixel colors by hashing the color values to map similar colors to a histogram entry.
     void MakeHist(std::vector<CountedPixel<Pixel_T>>& CHist);
-
-    void DumpCMap(); // Print out the CMap.
 };

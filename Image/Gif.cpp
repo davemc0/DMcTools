@@ -1040,7 +1040,7 @@ struct GIFWriter {
     }
 
     //////////////////////////////////////////////////////////////////////
-    void WriteGIF(const char* fname, int wid, int hgt, byte* Pix, bool GrayScale, LoadSaveParams SP)
+    void WriteGIF(const char* fname, int wid, int hgt, byte* Pix, bool isOneChan, LoadSaveParams SP)
     {
         int size = wid * hgt;
 
@@ -1048,13 +1048,13 @@ struct GIFWriter {
 
         int ColorMapSize, InitCodeSize, BitsPerPixel;
 
-        // Fill in the 8-bit image and the color map somehow.
-        Quantizer<uc3Pixel, unsigned char> Qnt((uc3Pixel*)Pix, size, GrayScale);
-        Qnt.SetParams(SP.maxColors);
-        byte* pic8 = Qnt.GetIndexImage(); // I must now delete pic8.
+        // Fill in the 8-bit image and the color map somehow
+        Quantizer<uc3Pixel, unsigned char> Qnt((uc3Pixel*)Pix, size, isOneChan, SP.QP);
+
+        byte* pic8 = Qnt.GetIndexImage(); // It allocates pic8; I delete it.
         size_t NumColors = Qnt.GetColorMap().size();
 
-        // Compute 'BitsPerPixel'.
+        // Compute BitsPerPixel
         for (BitsPerPixel = 1; BitsPerPixel < 8; BitsPerPixel++) {
             if (size_t(1ull << BitsPerPixel) >= NumColors) break;
         }
@@ -1084,7 +1084,7 @@ struct GIFWriter {
         // Write the colormap
         int i = 0;
         for (i = 0; i < NumColors && i < ColorMapSize; i++) {
-            std::cerr << Qnt.GetColorMap()[i] << '\n';
+            // std::cerr << Qnt.GetColorMap()[i] << '\n';
             fputc(Qnt.GetColorMap()[i].r(), fp);
             fputc(Qnt.GetColorMap()[i].g(), fp);
             fputc(Qnt.GetColorMap()[i].b(), fp);
@@ -1146,5 +1146,5 @@ void ImageLoadSave::SaveGIF(const char* fname) const
     if (chan != 1 && chan != 3) throw DMcError(std::string("Can't save a ") + std::to_string(chan) + " channel image as a GIF.");
 
     GIFWriter gw; // TODO: gw uses a lot of stack
-    gw.WriteGIF(fname, wid, hgt, (unsigned char*)Pix, (chan == 1), SP);
+    gw.WriteGIF(fname, wid, hgt, (unsigned char*)Pix, chan == 1, SP);
 }

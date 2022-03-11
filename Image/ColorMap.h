@@ -1,7 +1,9 @@
 //////////////////////////////////////////////////////////////////////
-// ColorMap.h - A color map implementation
+// ColorMap.h - A color map implementation with templatized pixel type
 //
-// Maps a scalar to a color. Map can be arbitrary size. Pixel type is templated.
+// Maps a scalar to a color; uses arbitrary sized color maps
+//
+// Copyright David K. McAllister, 1998.
 
 #pragma once
 
@@ -42,6 +44,8 @@ public:
     size_t size() const { return C.size(); }
     const typename Pixel_T& operator[](const size_t i) const { return C[i]; }
     typename Pixel_T& operator[](const size_t i) { return C[i]; }
+
+    void Dump(); // Dumps ColorMap to stderr
 
 private:
     // Returns a linearly interpolated color.
