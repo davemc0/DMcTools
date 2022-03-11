@@ -8,14 +8,13 @@
 #include "Math/MiscMath.h"
 #include "Util/toolconfig.h"
 
-#include <algorithm>
-
 #ifdef DMC_MACHINE_win
 #include <sys/timeb.h>
 #define NOMINMAX
 #include <windows.h>
 
 #ifndef _WIN64
+// ASM not allowed on x64, so can't use this approach
 #define DMC_USE_PENTIUM_TIMER
 #endif
 
