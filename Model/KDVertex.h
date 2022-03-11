@@ -97,5 +97,5 @@ struct KDVertex {
         return *this;
     }
 
-    DMC_DECL f3vec& vector() const { return Vert->V; }
+    DMC_DECL f3vec& vec3() const { return Vert->V; }
 };

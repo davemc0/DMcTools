@@ -69,5 +69,5 @@ public:
             return a.y < b.y;
     }
 
-    const f3vec& vector() const { return *this; }
+    const f3vec& vec3() const { return *this; }
 };

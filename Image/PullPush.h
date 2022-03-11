@@ -9,32 +9,29 @@
 // Some day I should try unsigned short or something.
 //
 // Data_T is the type of the data. This is usually float.
-// Should also work with Pixel, t3vec, unsigned int, etc.
+// Should also work with tPixel, t3vec, unsigned int, etc.
+
+// TODO: Clean this up to use tImage classes
 
 #pragma once
 
-// #include "Util/Utils.h"
-// #include "Math/MiscMath.h"
+#include "Util/toolconfig.h"
 
-// #include <algorithm>
-// #include <cstdlib>
-// #include <cstdio>
+#include <iostream>
 
-template <class Weight_T> DMC_DECL Weight_T MIN1(Weight_T x) { return (x) < 1.0f ? (x) : 1.0f; }
+template <class Weight_T> DMC_DECL Weight_T clampTo1(Weight_T x) { return x < 1.0f ? x : 1.0f; }
 
 // Could special case W >= 1.
 template <class Data_T, class Weight_T> DMC_DECL void Composite(Data_T& R, Weight_T& W, Data_T tD, Weight_T tW)
 {
     R = tD + W * (R - tD);
-    W = MIN1(W + tW * (1 - W));
+    W = clampTo1(W + tW * (1 - W));
 }
 
-// Create an image smaller than the one I'm given, fill in as much of it
-// as I know how. Then call recursively to have the rest of it filled in.
-// Then use it to fill in the rest of me.
+// Create an image smaller than the one I'm given, fill in as much of it as I know how.
+// Then call recursively to have the rest of it filled in. Then use it to fill in the rest of me.
 //
 // All values of Weights must be <= 1.
-
 template <class Data_T, class Weight_T> void PullPush(Data_T* Data, Weight_T* Weights, int wid, int hgt)
 {
 #ifdef PP_DEBUG
@@ -125,7 +122,7 @@ template <class Data_T, class Weight_T> void PullPush(Data_T* Data, Weight_T* We
                 Dat = Dat / Wgt;
 
                 Data1[y * widp + x] = Dat;
-                Weights1[y * widp + x] = MIN1(Wgt);
+                Weights1[y * widp + x] = clampTo1(Wgt);
             } else {
                 Data1[y * widp + x] = 0;
                 Weights1[y * widp + x] = 0;
@@ -133,8 +130,7 @@ template <class Data_T, class Weight_T> void PullPush(Data_T* Data, Weight_T* We
         }
     }
 
-    // Now that I've splatted onto the smaller level,
-    // have the rest of it filled in.
+    // Now that I've splatted onto the smaller level, have the rest of it filled in.
     PullPush(Data1, Weights1, widp, hgtp);
 
     // Now use the smaller image to fill me in.

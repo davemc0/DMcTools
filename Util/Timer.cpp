@@ -251,13 +251,13 @@ float StatTimer::GetMin(int N)
 }
 
 /*
-
+TODO: Use chrono instead of my own internal timer
 #include <chrono>
-    startTime = std::chrono::high_resolution_clock::now();
-    auto curTime = std::chrono::high_resolution_clock::now();
-    elapsedTime += std::chrono::duration<double>(curTime - startTime).count();
-        return elapsedTime + std::chrono::duration<double>(std::chrono::high_resolution_clock::now() - startTime).count();
-    auto curTime = std::chrono::high_resolution_clock::now();
-    auto diff = elapsedTime + std::chrono::duration<double>(curTime - startTime).count();
-    std::chrono::time_point<std::chrono::high_resolution_clock> startTime; // The time the clock was most-recently started
+startTime = std::chrono::high_resolution_clock::now();
+auto curTime = std::chrono::high_resolution_clock::now();
+elapsedTime += std::chrono::duration<double>(curTime - startTime).count();
+return elapsedTime + std::chrono::duration<double>(std::chrono::high_resolution_clock::now() - startTime).count();
+auto curTime = std::chrono::high_resolution_clock::now();
+auto diff = elapsedTime + std::chrono::duration<double>(curTime - startTime).count();
+std::chrono::time_point<std::chrono::high_resolution_clock> startTime; // The time the clock was most-recently started
 */

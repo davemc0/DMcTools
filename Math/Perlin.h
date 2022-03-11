@@ -64,7 +64,7 @@ public:
     Perlin(double persist, int Oct);
 
 #if 0
-    DMC_INLINE ~Perlin() // XXX
+    DMC_DECL ~Perlin() // XXX
     {
         for(int i=0; i < 100; i++)
             printf("%f %d\n", (double(i)-10.0)/80.0, Histogram[i]);

@@ -7,6 +7,7 @@
 
 #include "Math/MiscMath.h"
 #include "Math/Vector.h"
+#include "Util/Assert.h"
 
 #include <iosfwd>
 
@@ -15,56 +16,77 @@ template <class Vec_T> struct tAABB {
 
     typedef Vec_T VecType; // The type of a vector low or high corner
 
-    Vec_T& lo() { return v[0]; }
-    Vec_T& hi() { return v[1]; }
-    const Vec_T& lo() const { return v[0]; }
-    const Vec_T& hi() const { return v[1]; }
+    DMC_DECL Vec_T& lo() { return v[0]; }
+    DMC_DECL Vec_T& hi() { return v[1]; }
+    DMC_DECL const Vec_T& lo() const { return v[0]; }
+    DMC_DECL const Vec_T& hi() const { return v[1]; }
 
-    tAABB()
+    DMC_DECL tAABB()
     {
         lo() = DMC_MAXFLOAT;
         hi() = -DMC_MAXFLOAT;
     }
-    tAABB(const Vec_T& v0, const Vec_T& v1)
+    DMC_DECL tAABB(const Vec_T& v0, const Vec_T& v1)
     {
         lo() = v0;
         hi() = v1;
     }
-    tAABB& operator=(const tAABB& a)
+    DMC_DECL tAABB& operator=(const tAABB& a)
     {
         lo() = a.lo();
         hi() = a.hi();
         return *this;
     }
 
-    bool operator!=(const tAABB& a) const { return !(*this == a); }
-    bool operator==(const tAABB& a) const { return lo() == a.lo() && hi() == a.hi(); }
-    bool valid() const { return lo().x <= hi().x && lo().y <= hi().y && lo().z <= hi().z; }
-    bool contains(const tAABB& a) const
+    DMC_DECL bool operator!=(const tAABB& a) const { return !(*this == a); }
+    DMC_DECL bool operator==(const tAABB& a) const { return lo() == a.lo() && hi() == a.hi(); }
+    DMC_DECL bool valid() const { return lo().x <= hi().x && lo().y <= hi().y && lo().z <= hi().z; }
+    DMC_DECL bool contains(const tAABB& a) const
     {
         return (lo().x <= a.lo().x && lo().y <= a.lo().y && lo().z <= a.lo().z) && (hi().x >= a.hi().x && hi().y >= a.hi().y && hi().z >= a.hi().z);
     }
-    bool contains(const Vec_T& a) const { return (lo().x <= a.x && lo().y <= a.y && lo().z <= a.z) && (hi().x >= a.x && hi().y >= a.y && hi().z >= a.z); }
-    void grow(const Vec_T& v)
+    DMC_DECL bool contains(const Vec_T& a) const
+    {
+        return (lo().x <= a.x && lo().y <= a.y && lo().z <= a.z) && (hi().x >= a.x && hi().y >= a.y && hi().z >= a.z);
+    }
+    DMC_DECL void grow(const Vec_T& v)
     {
         lo() = min(lo(), v);
         hi() = max(hi(), v);
     }
 
-    void grow(const tAABB& a)
+    DMC_DECL void grow(const tAABB& a)
     {
         lo() = min(lo(), a.lo());
         hi() = max(hi(), a.hi());
     }
-    void reset() { *this = tAABB<Vec_T>(); }
-    Vec_T extent() const { return hi() - lo(); }
-    Vec_T centroid() const { return (lo() + hi()) * (typename Vec_T::ElType)0.5; }
-    float volume() const { return valid() ? ((hi().x - lo().x) * (hi().y - lo().y) * (hi().z - lo().z)) : (typename Vec_T::ElType)0; }
-    float area() const
+    DMC_DECL void reset() { *this = tAABB<Vec_T>(); }
+    DMC_DECL Vec_T extent() const { return hi() - lo(); }
+    DMC_DECL Vec_T centroid() const { return (lo() + hi()) * (typename Vec_T::ElType)0.5; }
+    DMC_DECL float volume() const { return valid() ? ((hi().x - lo().x) * (hi().y - lo().y) * (hi().z - lo().z)) : (typename Vec_T::ElType)0; }
+    DMC_DECL float area() const
     {
         Vec_T e = extent();
         return valid() ? ((e.y * e.z + e.z * e.x + e.x * e.y) * (typename Vec_T::ElType)2) : (typename Vec_T::ElType)0;
     }
+
+    // True if the sphere and this AABB intersect
+    DMC_DECL bool intersectsSphere(const Vec_T& P, const typename Vec_T::ElType r) const
+    {
+        ASSERT_D(r >= (typename Vec_T::ElType)0);
+
+        typename Vec_T::ElType disSq = 0;
+        for (int c = 0; c < 3; c++)
+            if (P[c] < lo()[c])
+                disSq += sqr(P[c] - lo()[c]);
+            else if (P[c] > hi()[c])
+                disSq += sqr(P[c] - hi()[c]);
+
+        return disSq <= r * r;
+    }
+
+    // Returns nearest point to P in or on this AABB
+    DMC_DECL Vec_T nearest(const Vec_T& P) const { return clamp(P, lo(), hi()); }
 };
 
 /////////////////////////////////////////////////

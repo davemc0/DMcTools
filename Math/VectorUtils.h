@@ -10,6 +10,7 @@
 #include <intrin.h>
 #endif
 
+#include "Math/Random.h"
 #include "Math/Vector.h"
 
 DMC_DECL f4vec fromABGR(unsigned int abgr)
