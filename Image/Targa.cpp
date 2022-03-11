@@ -8,8 +8,6 @@
 
 #include <fstream>
 
-using namespace std;
-
 // Header definition.
 typedef struct TGA_Header_ {
     unsigned char ImageIDLength;        // Length of Identifier String.
@@ -291,12 +289,12 @@ static int decode_rgb_rle32(const unsigned char* src0, unsigned char* dest0, con
 void ImageLoadSave::LoadTGA(const char* fname)
 {
     // Read whole file "fname" into array.
-    ifstream InFile(fname, ios::in | ios::binary);
-    if (!InFile.is_open()) throw DMcError("Failed to open file " + string(fname));
+    std::ifstream InFile(fname, std::ios::in | std::ios::binary);
+    if (!InFile.is_open()) throw DMcError("Failed to open file " + std::string(fname));
 
-    InFile.seekg(0, ios::end);
+    InFile.seekg(0, std::ios::end);
     int fsize = InFile.tellg();
-    InFile.seekg(0, ios::beg);
+    InFile.seekg(0, std::ios::beg);
 
     unsigned char* fdata = new unsigned char[fsize];
     ASSERT_RM(fdata, "memory alloc failed");

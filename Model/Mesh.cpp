@@ -9,8 +9,6 @@
 
 #include <map>
 
-using namespace std;
-
 // The factory functions create an item of the correct type, but return it as the base class.
 Vertex* VertexFactory() { return new Vertex; }
 
@@ -43,7 +41,7 @@ DMC_DECL bool CompareVecs(const f3vec& V0, const f3vec& V1, f3vec::ElType Eps = 
 // The single-element interface.
 
 // Given a vertex, find a vertex in the edge list that should be adjacent.
-Vertex* Mesh::FindVertexInEdgeList(const vector<Edge*>& Edg, const f3vec& V, Edge*& e) const
+Vertex* Mesh::FindVertexInEdgeList(const std::vector<Edge*>& Edg, const f3vec& V, Edge*& e) const
 {
     for (int j = 0; j < (int)Edg.size(); j++) {
         if (isNear(Edg[j]->v0->V, V, dmcm::Sqr(MeshMaxDist))) {
@@ -324,7 +322,7 @@ void Mesh::ExportRenderObject(RenderObject& Ob, unsigned int AcceptedAttribs)
     if (Verts == NULL || Faces == NULL) return;
 
     // Create a map of vertex pointers to indices.
-    map<AVertex*, int> VIndMapper;
+    std::map<AVertex*, int> VIndMapper;
 
     int ind = 0;
     for (AVertex* V = (AVertex*)Verts; V; V = (AVertex*)V->next, ind++) {
@@ -379,7 +377,7 @@ void Mesh::ExportRenderObject(RenderObject& Ob, unsigned int AcceptedAttribs)
 }
 
 // This is recursive.
-int Mesh::FlipMe(Face* F, set<Face*>& Visited, Vertex* v0, Vertex* v1, Vertex* v2)
+int Mesh::FlipMe(Face* F, std::set<Face*>& Visited, Vertex* v0, Vertex* v1, Vertex* v2)
 {
     if (Visited.find(F) == Visited.end()) return 0;
 
@@ -426,7 +424,7 @@ void Mesh::FixFacing()
 {
     if (FacesAreFixed) return;
 
-    set<Face*> Visited;
+    std::set<Face*> Visited;
 
     int flipcnt = 0;
 

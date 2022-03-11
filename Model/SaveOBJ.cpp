@@ -8,8 +8,6 @@
 
 #include <cstdio>
 
-using namespace std;
-
 // Write an OBJ file for the model
 // The Model must consist only of TriObject objects, not Meshes.
 // If the Model contains more than one object it will create a flattened copy and save that.

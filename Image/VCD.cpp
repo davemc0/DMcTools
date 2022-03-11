@@ -8,8 +8,6 @@
 
 #include <vector>
 
-using namespace std;
-
 namespace {
 // Functor to evaluate gaussian(sqrt(c)).
 template <class Gauss_T> struct GaussSqFunc_t {
@@ -30,8 +28,8 @@ DMC_DECL typename Image_T::PixType sample_kernel_vcd_weighted(const Image_T& Img
     typename KernelImage_T::PixType::MathType weight = 0;
     const typename Image_T::PixType Pc = Img(xc, yc);
 
-    int xl = max(xc - N2, 0), xh = min(xc + N2, Img.w() - 1);
-    int yl = max(yc - N2, 0), yh = min(yc + N2, Img.h() - 1);
+    int xl = std::max(xc - N2, 0), xh = std::min(xc + N2, Img.w() - 1);
+    int yl = std::max(yc - N2, 0), yh = std::min(yc + N2, Img.h() - 1);
     for (int y = yl; y <= yh; y++) {
         for (int x = xl; x <= xh; x++) {
             const typename KernelImage_T::PixType::ElType K = Kernel(xc - x + N2, yc - y + N2);

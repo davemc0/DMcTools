@@ -7,8 +7,6 @@
 
 #include "Math/MiscMath.h"
 
-using namespace std;
-
 Matrix44<f3vec> CameraInfo::GetProjectionMatrix()
 {
     Matrix44<f3vec> M;

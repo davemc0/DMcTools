@@ -9,8 +9,6 @@
 
 #include <cstring>
 
-using namespace std;
-
 namespace {
 struct MatInfo {
     char* Name;
@@ -29,7 +27,7 @@ struct MatInfo {
 
 class MaterialDB {
 public:
-    vector<MatInfo> MatList;
+    std::vector<MatInfo> MatList;
 
     // Inserts if not found.
     DMC_DECL int FindByName(const char* name)
@@ -120,8 +118,8 @@ void LoadMTL(const char* fname)
     fclose(f);
 }
 
-DMC_DECL bool GetFace(char* OBuf, vector<f3vec>& tverts, vector<f3vec>& tnormals, vector<f3vec>& ttexcoords, vector<f3vec>& verts, vector<f3vec>& normals,
-                      vector<f3vec>& texcoords)
+DMC_DECL bool GetFace(char* OBuf, std::vector<f3vec>& tverts, std::vector<f3vec>& tnormals, std::vector<f3vec>& ttexcoords, std::vector<f3vec>& verts,
+                      std::vector<f3vec>& normals, std::vector<f3vec>& texcoords)
 {
 #define MAX_VERTS 128
 
@@ -259,7 +257,7 @@ bool Model::LoadOBJ(const char* fname, const unsigned int RequiredAttribs, const
     strcpy(Obj->Name, "default");
 
     // These are used over all the groups in the object.
-    vector<f3vec> ttexcoords, tnormals, tverts;
+    std::vector<f3vec> ttexcoords, tnormals, tverts;
 
     char TmpBuf[4096];
     while (fgets(TmpBuf, 4096, f)) {

@@ -7,8 +7,6 @@
 
 #include "Util/Utils.h"
 
-using namespace std;
-
 // Load this texture into memory if it's not yet.
 // If dir is specified, it replaces the path with dir.
 // If prepend is true it instead prepends dir to TexFName.

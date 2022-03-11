@@ -6,8 +6,6 @@
 #include "Model/Mesh.h"
 #include "Model/Model.h"
 
-using namespace std;
-
 // Generate normals for each vertex.
 // The smaller the crease angle, the more smoothing.
 // If normals already exist, does not regenerate.
@@ -122,7 +120,7 @@ void TriObject::QuadsToTris(bool KeepBad)
 
     std::cerr << "Converting from " << (int(verts.size()) / 4) << " quads.\n";
 
-    vector<f3vec> verts_, normals_, texcoords_, dcolors_;
+    std::vector<f3vec> verts_, normals_, texcoords_, dcolors_;
 
     bool DoNormals = false, DoTexcoords = false, DoDColors = false;
 

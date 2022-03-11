@@ -28,8 +28,6 @@ extern "C" {
 #include <fstream>
 #include <string>
 
-using namespace std;
-
 namespace {
 const int RAS_MAGIC = 0x59a66a95;
 const int GIF_MAGIC = 0x47494638;
@@ -87,8 +85,8 @@ void ImageLoadSave::Load(const char* fname)
 
     int exts = GetExtensionVal(fname);
 
-    ifstream InFile(fname, ios::in | ios::binary);
-    if (!InFile.is_open()) throw DMcError("Failed to open file '" + string(fname) + "'");
+    std::ifstream InFile(fname, std::ios::in | std::ios::binary);
+    if (!InFile.is_open()) throw DMcError("Failed to open file '" + std::string(fname) + "'");
 
     unsigned int Magic;
     char* Mag = (char*)&Magic;
@@ -218,7 +216,7 @@ void ImageLoadSave::Save(const char* fname_) const
     case PZM_:
         SavePPM(fname); // 1s 2s 3s 4s 1f 3f 1uc 3uc 4uc
         break;
-    default: throw DMcError("Saving file with unknown filename extension in filename '" + string(fname_) + "'"); break;
+    default: throw DMcError("Saving file with unknown filename extension in filename '" + std::string(fname_) + "'"); break;
     }
 
     if (fname) delete[] fname;
@@ -268,8 +266,8 @@ struct rasterfile {
 void ImageLoadSave::LoadRas(const char* fname)
 {
     // Read a Sun Raster File image.
-    ifstream InFile(fname, ios::in | ios::binary);
-    if (!InFile.is_open()) throw DMcError("Could not open file for LoadRas: " + string(fname));
+    std::ifstream InFile(fname, std::ios::in | std::ios::binary);
+    if (!InFile.is_open()) throw DMcError("Could not open file for LoadRas: " + std::string(fname));
 
     rasterfile Hedr;
     InFile.read((char*)&Hedr, sizeof(rasterfile));
@@ -284,7 +282,7 @@ void ImageLoadSave::LoadRas(const char* fname)
 
     if (Hedr.ras_depth != 24) throw DMcError("Take your " + std::to_string(Hedr.ras_depth) + " bit image and go away!");
     if (size_bytes() != Hedr.ras_length)
-        throw DMcError("Size was " + std::to_string(size_bytes()) + ", but ras_length was " + ::to_string(Hedr.ras_length) + ".\n");
+        throw DMcError("Size was " + std::to_string(size_bytes()) + ", but ras_length was " + ::std::to_string(Hedr.ras_length) + ".\n");
     if (wid > 4096) throw DMcError("Too big! " + std::to_string(wid));
 
     is_uint = false;
@@ -349,8 +347,8 @@ void ImageLoadSave::LoadRas(const char* fname)
 // PAM is four-channel PPM. PFM is one- or three-channel float. PGM is one-channel uchar.
 void ImageLoadSave::LoadPPM(const char* fname)
 {
-    ifstream InFile(fname, ios::in | ios::binary);
-    if (!InFile.is_open()) throw DMcError("Could not open file for LoadPPM: " + string(fname));
+    std::ifstream InFile(fname, std::ios::in | std::ios::binary);
+    if (!InFile.is_open()) throw DMcError("Could not open file for LoadPPM: " + std::string(fname));
 
     char Magic1, Magic2;
     InFile >> Magic1 >> Magic2;
@@ -358,7 +356,7 @@ void ImageLoadSave::LoadPPM(const char* fname)
     if (Magic1 != 'P' ||
         (Magic2 != '5' && Magic2 != '6' && Magic2 != '7' && Magic2 != '8' && Magic2 != 'Z' && Magic2 != 'S' && Magic2 != 'T' && Magic2 != 'U' && Magic2 != 'V')) {
         InFile.close();
-        throw DMcError("Not a known PPM file: " + string(fname));
+        throw DMcError("Not a known PPM file: " + std::string(fname));
     }
 
     InFile.get();
@@ -423,8 +421,8 @@ void ImageLoadSave::SavePPM(const char* fname) const
 
     ASSERT_RM(!(chan < 1 || chan > 4), "Can't save a X channel image as a PPM.");
 
-    ofstream OutFile(fname, ios::out | ios::binary);
-    if (!OutFile.is_open()) throw DMcError("Could not open file for SavePPM: " + string(fname));
+    std::ofstream OutFile(fname, std::ios::out | std::ios::binary);
+    if (!OutFile.is_open()) throw DMcError("Could not open file for SavePPM: " + std::string(fname));
 
     OutFile << 'P';
     if (is_ushort)
@@ -518,7 +516,7 @@ void ImageLoadSave::LoadRGB(const char* fname)
     bool swapFlag = AmLittleEndian();
 
     // Open the file
-    if ((raw.file = fopen(fname, "rb")) == NULL) throw DMcError("LoadRGB() failed: can't open image file " + string(fname));
+    if ((raw.file = fopen(fname, "rb")) == NULL) throw DMcError("LoadRGB() failed: can't open image file " + std::string(fname));
 
     fread(&raw, 1, 104, raw.file);
 
@@ -597,7 +595,7 @@ void ImageLoadSave::LoadRGB(const char* fname)
 void ImageLoadSave::LoadJPEG(const char* fname)
 {
     unsigned char* image = stbi_load(fname, &wid, &hgt, &chan, STBI_default);
-    if (!image) throw DMcError("Can't open JPEG file " + string(stbi_failure_reason()) + string(fname));
+    if (!image) throw DMcError("Can't open JPEG file " + std::string(stbi_failure_reason()) + std::string(fname));
 
     is_uint = false;
     is_float = false;
@@ -613,7 +611,7 @@ void ImageLoadSave::SaveJPEG(const char* fname) const
     // Note: A 2 or 4 channel image will have the alpha channel stripped out by the JPEG saver.
 
     int success = stbi_write_jpg(fname, wid, hgt, chan, Pix, 93);
-    if (!success) throw DMcError("SaveJPEG() failed: can't write to " + string(fname));
+    if (!success) throw DMcError("SaveJPEG() failed: can't write to " + std::string(fname));
 }
 
 //////////////////////////////////////////////////////
@@ -757,7 +755,7 @@ void ImageLoadSave::SaveTIFF(const char* fname) const { throw DMcError("TIFF Sup
 void ImageLoadSave::LoadPNG(const char* fname)
 {
     unsigned char* image = stbi_load(fname, &wid, &hgt, &chan, STBI_default);
-    if (!image) throw DMcError("Can't open PNG file " + string(stbi_failure_reason()) + string(fname));
+    if (!image) throw DMcError("Can't open PNG file " + std::string(stbi_failure_reason()) + std::string(fname));
 
     is_uint = false;
     is_float = false;
@@ -772,7 +770,7 @@ void ImageLoadSave::SavePNG(const char* fname) const
     if (Pix == NULL || chan < 1 || wid < 1 || hgt < 1) throw DMcError("Image is not defined. Not saving.");
     if (!fname || !fname[0]) throw DMcError("SavePNG: Filename not specified. Not saving.");
     int success = stbi_write_png(fname, wid, hgt, chan, Pix, wid * chan);
-    if (!success) throw DMcError("SavePNG() failed: " + string(fname));
+    if (!success) throw DMcError("SavePNG() failed: " + std::string(fname));
 }
 
 //////////////////////////////////////////////////////
@@ -872,7 +870,7 @@ void ImageLoadSave::SaveMAT(const char* fname) const { throw DMcError("MAT Suppo
 void ImageLoadSave::LoadRGBE(const char* fname)
 {
     FILE* filep = fopen(fname, "rb");
-    if (filep == NULL) throw DMcError("LoadRGBE: Unable to load HDR: " + string(fname));
+    if (filep == NULL) throw DMcError("LoadRGBE: Unable to load HDR: " + std::string(fname));
 
     int i, j, row;
     float exposure;
@@ -880,7 +878,7 @@ void ImageLoadSave::LoadRGBE(const char* fname)
     /*a very basic RADIANCE pic file header */
     char line[1000];
     fgets(line, 1000, filep);
-    if (!strcmp(line, "#?RADIANCE")) throw DMcError("LoadRGBE: Not a HDR file: " + string(fname));
+    if (!strcmp(line, "#?RADIANCE")) throw DMcError("LoadRGBE: Not a HDR file: " + std::string(fname));
 
     fgets(line, 1000, filep);
     fgets(line, 1000, filep);
@@ -925,9 +923,7 @@ void ImageLoadSave::SaveRGBE(const char* fname) const
     ASSERT_R(Pix);
 
     FILE* filep = fopen(fname, "wb");
-    if (filep == NULL) throw DMcError("SaveRGBE: Unable to save HDR: " + string(fname));
-
-    const char* comments = "no comment";
+    if (filep == NULL) throw DMcError("SaveRGBE: Unable to save HDR: " + std::string(fname));
 
     /*Allocate enough space for one row of COLOR at a time */
     COLOR* oneRow;
@@ -939,7 +935,7 @@ void ImageLoadSave::SaveRGBE(const char* fname) const
 
     /*a very basic RADIANCE pic file header */
     fprintf(filep, "#?RADIANCE\n");
-    fprintf(filep, "# %s\n", comments);
+    fprintf(filep, "# %s\n", SP.comment.c_str());
     fprintf(filep, "FORMAT=32-bit_rle_rgbe\n");
     fprintf(filep, "EXPOSURE=%25.13f\n", exposure);
     fprintf(filep, "\n");
