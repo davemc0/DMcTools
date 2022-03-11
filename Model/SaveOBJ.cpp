@@ -20,7 +20,7 @@ bool Model::SaveOBJ(const char* fname)
     if (dynamic_cast<TriObject*>(Objs[0])) {
         if (Objs.size() > 1) {
             // XXX What should I do about materials?
-            cerr << "Flattening a copy of your model and saving it as .OBJ\n";
+            std::cerr << "Flattening a copy of your model and saving it as .OBJ\n";
             Model copyModel(*this);
 
             copyModel.Flatten();

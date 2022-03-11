@@ -93,7 +93,7 @@ struct GIFInfo {
     DMC_DECL void gifWarning(const char* st)
     {
 #ifdef DMC_DEBUG
-        cerr << fname << ": " << st << endl;
+        std::cerr << fname << ": " << st << std::endl;
 #endif
     }
 
@@ -273,7 +273,7 @@ struct GIFInfo {
         } while (ch1);
 
 #ifdef DMC_DEBUG
-        cerr << "ReadGIF() - picture is " << Width << "x" << Height << ", " << BitsPerPixel << " bits, " << (Interlace ? "" : "non-") << "interlaced\n";
+        std::cerr << "ReadGIF() - picture is " << Width << "x" << Height << ", " << BitsPerPixel << " bits, " << (Interlace ? "" : "non-") << "interlaced\n";
 #endif
 
         // Allocate the 'pic' */
@@ -300,7 +300,7 @@ struct GIFInfo {
                 FinChar = CurCode & BitMask;
                 if (!Interlace) {
                     *picptr++ = r[FinChar];
-                    // cerr << int(FinChar) << '-';
+                    // std::cerr << int(FinChar) << '-';
                     if (!GrayColormap) {
                         *picptr++ = g[FinChar];
                         *picptr++ = b[FinChar];
@@ -359,7 +359,7 @@ struct GIFInfo {
                 if (!Interlace)
                     for (i = OutCount - 1; i >= 0; i--) {
                         *picptr++ = r[OutCode[i]];
-                        // cerr << OutCode[i] << '_';
+                        // std::cerr << OutCode[i] << '_';
                         if (!GrayColormap) {
                             *picptr++ = g[OutCode[i]];
                             *picptr++ = b[OutCode[i]];
@@ -475,7 +475,7 @@ struct GIFInfo {
 
         if (HasColormap) {
 #ifdef DMC_DEBUG
-            cerr << "Reading " << ColorMapSize << " element colormap.\n";
+            std::cerr << "Reading " << ColorMapSize << " element colormap.\n";
 #endif
 
             GrayColormap = true;
@@ -484,7 +484,7 @@ struct GIFInfo {
                 r[i] = NEXTBYTE;
                 g[i] = NEXTBYTE;
                 b[i] = NEXTBYTE;
-                // cerr << i << " " << int(r[i]) << " " << int(g[i]) << " " << int(b[i]) << endl;
+                // std::cerr << i << " " << int(r[i]) << " " << int(g[i]) << " " << int(b[i]) << std::endl;
                 GrayColormap = GrayColormap && (r[i] == g[i] && r[i] == b[i]);
             }
         } else { // No colormap in GIF file
@@ -517,7 +517,7 @@ struct GIFInfo {
                 int i, fn, blocksize;
                 fn = NEXTBYTE; // Read extension block
 #ifdef DMC_DEBUG
-                cerr << "GIF extension type 0x%02x\n", fn;
+                std::cerr << "GIF extension type 0x%02x\n", fn;
 #endif
                 if (fn == 'R') { // GIF87 aspect extension
                     blocksize = NEXTBYTE;
@@ -578,8 +578,8 @@ struct GIFInfo {
                     i = 12;
                     for (; i < sbsize; i++) EATBYTE; // Read rest of first subblock
 #ifdef DMC_DEBUG
-                    cerr << "PlainText: tgrid=" << tgLeft << "," << tgTop << " " << tgWidth << "x" << tgHeight << " cell=" << cWidth << "x" << cHeight
-                         << " col=" << fg << "," << bg << endl;
+                    std::cerr << "PlainText: tgrid=" << tgLeft << "," << tgTop << " " << tgWidth << "x" << tgHeight << " cell=" << cWidth << "x" << cHeight
+                              << " col=" << fg << "," << bg << std::endl;
 #endif
                     // Read (and ignore) data sub-blocks
                     do {
@@ -589,12 +589,12 @@ struct GIFInfo {
                             ch = NEXTBYTE;
                             j++;
 #ifdef DMC_DEBUG
-                            cerr << ch;
+                            std::cerr << ch;
 #endif
                         }
                     } while (sbsize);
 #ifdef DMC_DEBUG
-                    cerr << endl << endl;
+                    std::cerr << std::endl << std::endl;
 #endif
                 } else if (fn == 0xF9) { // Graphic Control Extension
                     int j, sbsize;
@@ -640,7 +640,7 @@ struct GIFInfo {
 
             else if (block == IMAGESEP) {
 #ifdef DMC_DEBUG
-                cerr << "imagesep (got=" << gotimage << ") at start: offset=" << long(dataptr - RawGIF) << endl;
+                std::cerr << "imagesep (got=" << gotimage << ") at start: offset=" << long(dataptr - RawGIF) << std::endl;
 #endif
 
                 if (gotimage) { // Just skip over remaining images
@@ -677,13 +677,13 @@ struct GIFInfo {
                     gotimage = true;
 
 #ifdef DMC_DEBUG
-                cerr << " at end: dataptr=0x" << long(dataptr - RawGIF) << endl;
+                std::cerr << " at end: dataptr=0x" << long(dataptr - RawGIF) << std::endl;
 #endif
             }
 
             else if (block == TRAILER) { // Stop reading blocks
 #ifdef DMC_DEBUG
-                cerr << "trailer ";
+                std::cerr << "trailer ";
 #endif
                 break;
             }
@@ -692,7 +692,7 @@ struct GIFInfo {
                 char str[128];
 
 #ifdef DMC_DEBUG
-                cerr << "block type " << block;
+                std::cerr << "block type " << block;
 #endif
 
                 // Don't mention bad block if file was trunc'd, as it's all bogus
@@ -709,7 +709,7 @@ struct GIFInfo {
             }
 
 #ifdef DMC_DEBUG
-            cerr << endl;
+            std::cerr << std::endl;
 #endif
         }
 
@@ -721,7 +721,7 @@ struct GIFInfo {
         if (!gotimage) return (gifError("no image data found in GIF file"));
 
 #ifdef DMC_DEBUG
-        cerr << endl << endl;
+        std::cerr << std::endl << std::endl;
 #endif
 
         return 1;

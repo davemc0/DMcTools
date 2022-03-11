@@ -171,13 +171,13 @@ int CameraInfo::ReadFromFile(FILE* fp, int& FrameNum) // RETURNS "1" IF SUCCESSF
         Cond = fscanf(fp, "%f[%f,%f,%f][%f,%f,%f][%f,%f,%f] %d", &FOV, &Orig.x, &Orig.y, &Orig.z, &Z.x, &Z.y, &Z.z, &Y.x, &Y.y, &Y.z, &FrameNum);
     }
 
-    if (Cond == EOF) { cerr << "Bad syntax in path file.\n"; }
+    if (Cond == EOF) { std::cerr << "Bad syntax in path file.\n"; }
 
     WorldToEye.LoadIdentity();
     ViewValid = true;
 
     WorldToEye.LookAt(Orig, Orig - Z, Y);
-    // cerr << DtoR(FOV) << endl;
+    // std::cerr << DtoR(FOV) << std::endl;
     ComputePerspective(dmcm::DtoR(FOV), wR / wT, Near, Far);
 
     return (Cond != EOF);

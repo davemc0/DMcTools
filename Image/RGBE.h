@@ -38,7 +38,7 @@ public:
             g() = (unsigned char)(p.g() * val);
             b() = (unsigned char)(p.b() * val);
             e() = ex + DMC_EXPON_BIAS; // To store the signed exponent in an unsigned char.
-            // cerr << "toRGBE "<<int(r()) << " " << int(g()) << " " << int(b()) << " " << int(e()) << endl;
+            // std::cerr << "toRGBE "<<int(r()) << " " << int(g()) << " " << int(b()) << " " << int(e()) << std::endl;
         }
     }
 

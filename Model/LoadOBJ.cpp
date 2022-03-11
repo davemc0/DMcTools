@@ -43,7 +43,7 @@ public:
 
     DMC_DECL void Dump()
     {
-        for (int i = 0; i < (int)MatList.size(); i++) cerr << i << ": " << MatList[i].D << " " << MatList[i].Name << endl;
+        for (int i = 0; i < (int)MatList.size(); i++) std::cerr << i << ": " << MatList[i].D << " " << MatList[i].Name << std::endl;
     }
 };
 
@@ -69,7 +69,7 @@ DMC_DECL f3vec Get3D(char* buf)
 // Add this file to the global material database.
 void LoadMTL(const char* fname)
 {
-    cerr << fname << endl;
+    std::cerr << fname << std::endl;
     FILE* f = fopen(fname, "r");
     ASSERT_RM(f, "Error opening material file");
     MatInfo M;
@@ -90,7 +90,7 @@ void LoadMTL(const char* fname)
             } else if (TmpBuf[1] == 'd') {
                 M.D = Get3D(&TmpBuf[2]);
                 M.DColorValid = true;
-                // cerr << "Diffuse = " << M.D << endl;
+                // std::cerr << "Diffuse = " << M.D << std::endl;
             } else if (TmpBuf[1] == 's') {
                 M.S = Get3D(&TmpBuf[2]);
                 M.SColorValid = true;
@@ -102,14 +102,14 @@ void LoadMTL(const char* fname)
             // Ns ranges from 0 to 200.0.
             M.Shininess = dmcm::Clamp(1.0, atof(&TmpBuf[3]), 200.0) * (127.0 / 200.0);
             M.ShininessValid = true;
-            // cerr << "Shininess = " << M.Shininess << endl;
+            // std::cerr << "Shininess = " << M.Shininess << std::endl;
         } else if (!strncmp(TmpBuf, "illum", 5)) {
-            // cerr << "Illum should be 2.\n";
+            // std::cerr << "Illum should be 2.\n";
         } else if (!strncmp(TmpBuf, "map_Kd", 6)) {
             // XXX Replace this: Just store the name and load all textures later.
             *strchr(&TmpBuf[7], '\n') = '\0';
             char* texFName = strdup(&TmpBuf[7]);
-            cerr << "Texture FName = " << texFName << endl;
+            std::cerr << "Texture FName = " << texFName << std::endl;
 
             M.TexPtr = Model::TexDB.FindByNameOrAdd(texFName);
         }
@@ -131,7 +131,7 @@ DMC_DECL bool GetFace(char* OBuf, vector<f3vec>& tverts, vector<f3vec>& tnormals
     bool HasNormals = true, HasTexcoords = true;
 
     while (3 == sscanf(buf, " %d/%d/%d%n", &v[i], &uv[i], &n[i], &j)) {
-        // cerr << "xx " << v[i] << " " << uv[i] << " " << n[i] << " XXX:" << buf << endl;
+        // std::cerr << "xx " << v[i] << " " << uv[i] << " " << n[i] << " XXX:" << buf << std::endl;
 
         v[i]--;
         uv[i]--;
@@ -149,11 +149,11 @@ DMC_DECL bool GetFace(char* OBuf, vector<f3vec>& tverts, vector<f3vec>& tnormals
         i++;
     }
 
-    // cerr << i << endl;
+    // std::cerr << i << std::endl;
 
     if (!i) {
         while (2 == sscanf(buf, " %d//%d%n", &v[i], &n[i], &j)) {
-            // cerr << "xx " << v[i] << " " << n[i] << " XXX:" << buf << endl;
+            // std::cerr << "xx " << v[i] << " " << n[i] << " XXX:" << buf << std::endl;
 
             v[i]--;
             n[i]--;
@@ -172,7 +172,7 @@ DMC_DECL bool GetFace(char* OBuf, vector<f3vec>& tverts, vector<f3vec>& tnormals
 
     if (!i) {
         while (2 == sscanf(buf, " %d/%d%n", &v[i], &uv[i], &j)) {
-            // cerr << "xx " << v[i] << " " << uv[i] << " XXX:" << buf << endl;
+            // std::cerr << "xx " << v[i] << " " << uv[i] << " XXX:" << buf << std::endl;
 
             v[i]--;
             uv[i]--;
@@ -191,7 +191,7 @@ DMC_DECL bool GetFace(char* OBuf, vector<f3vec>& tverts, vector<f3vec>& tnormals
 
     if (!i) {
         while (1 == sscanf(buf, " %d%n", &v[i], &j)) {
-            // cerr << "xx " << v[i] << " XXX:" << buf << endl;
+            // std::cerr << "xx " << v[i] << " XXX:" << buf << std::endl;
             v[i]--;
 
             ASSERT_RM(v[i] >= 0, "Vertex index underflow.");
@@ -275,7 +275,7 @@ bool Model::LoadOBJ(const char* fname, const unsigned int RequiredAttribs, const
             case ' ': // Vertex
             default:  // Vertex?
                 const f3vec& V = Get3D(&TmpBuf[2]);
-                // cerr << V << endl;
+                // std::cerr << V << std::endl;
                 tverts.push_back(V);
                 break;
             }
@@ -289,7 +289,7 @@ bool Model::LoadOBJ(const char* fname, const unsigned int RequiredAttribs, const
             GName[0] = '\0';
             sscanf(TmpBuf, "%s %s", X, GName);
             if (GName[0] == '\0') strcpy(GName, "default");
-            // cerr << "Group: " << GName << endl;
+            // std::cerr << "Group: " << GName << std::endl;
 
             // See if the group name exists.
             size_t ii;
@@ -299,7 +299,7 @@ bool Model::LoadOBJ(const char* fname, const unsigned int RequiredAttribs, const
 
             if (ii == Objs.size()) {
                 // Group is new. Set it up.
-                // cerr << "Another group.\n";
+                // std::cerr << "Another group.\n";
                 TriObject* Obj2 = new TriObject;
                 Objs.push_back(Obj2);
                 strncpy(Obj2->Name, GName, 64);
@@ -365,16 +365,16 @@ bool Model::LoadOBJ(const char* fname, const unsigned int RequiredAttribs, const
                     Obj->dcolors.push_back(M.D);
                 }
                 Obj->TexPtr = M.TexPtr;
-                // cerr << "Got material " << MatName << endl;
+                // std::cerr << "Got material " << MatName << std::endl;
             }
         } else if (TmpBuf[0] == 's') {
             // This is a smoothing group. It doesn't really fit our paradigm, except
             // for smoothing = off.
             // Hide the smoothing on/off flag in the name string. Scary!
             Obj->creaseAngle = atoi(&TmpBuf[2]) > 0 ? M_PI : 0;
-            // cerr << "Blah " << (Obj->Name[63] ? "Yes" : "No") << endl;
+            // std::cerr << "Blah " << (Obj->Name[63] ? "Yes" : "No") << std::endl;
         } else {
-            // cerr << "Unknown:" << TmpBuf;
+            // std::cerr << "Unknown:" << TmpBuf;
         }
     }
 

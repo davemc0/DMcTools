@@ -20,7 +20,7 @@ void TriObject::GenNormals()
         // Already have normals.
         return;
 
-    cerr << "dcolors.size = " << int(dcolors.size()) << endl;
+    std::cerr << "dcolors.size = " << int(dcolors.size()) << std::endl;
 
     // Build a mesh. XXX !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     Mesh Me(*this);
@@ -36,7 +36,7 @@ void TriObject::GenNormals()
     if (texcoords.size() != 1) texcoords = TmpOb.texcoords;
     if (dcolors.size() != 1) dcolors = TmpOb.dcolors;
 
-    // cerr << creaseAngle << " dcolors.size = " << dcolors.size() << endl;
+    // std::cerr << creaseAngle << " dcolors.size = " << dcolors.size() << std::endl;
 
     // First compute the facet normals.
     Face* F = Me.Faces;
@@ -85,8 +85,8 @@ void TriObject::GenNormals()
 
                     // If the angle < creaseAngle then Ang > CosCrease and we smooth.
                     if (AngDot > CosCrease) {
-                        // cerr << creaseAngle << " " << CosCrease << " " << AngDot << endl;
-                        // cerr << FN << FNT << endl;
+                        // std::cerr << creaseAngle << " " << CosCrease << " " << AngDot << std::endl;
+                        // std::cerr << FN << FNT << std::endl;
                         // Smooth with this face.
                         Accum += FNT;
                         cnt++;
@@ -120,7 +120,7 @@ void TriObject::QuadsToTris(bool KeepBad)
 
     ASSERT_RM(verts.size() % 4 == 0, "Must have a multiple of 4 vertices.");
 
-    cerr << "Converting from " << (int(verts.size()) / 4) << " quads.\n";
+    std::cerr << "Converting from " << (int(verts.size()) / 4) << " quads.\n";
 
     vector<f3vec> verts_, normals_, texcoords_, dcolors_;
 
@@ -194,38 +194,38 @@ void TriObject::QuadsToTris(bool KeepBad)
     if (DoTexcoords) ASSERT_RM(texcoords.size() == verts.size(), "Bad texcoords count.");
     if (DoDColors) ASSERT_RM(dcolors.size() == verts.size(), "Bad dcolors count.");
 
-    cerr << DoNormals << DoTexcoords << DoDColors << "Converted to " << (int(verts.size()) / 3) << " triangles.\n";
+    std::cerr << DoNormals << DoTexcoords << DoDColors << "Converted to " << (int(verts.size()) / 3) << " triangles.\n";
 }
 
 void TriObject::Dump() const
 {
-    cerr << "Name: " << Name << " ObjID: " << ObjID << endl;
-    cerr << "Vertex count: " << int(verts.size()) << endl;
+    std::cerr << "Name: " << Name << " ObjID: " << ObjID << std::endl;
+    std::cerr << "Vertex count: " << int(verts.size()) << std::endl;
 
-    cerr << "Specular color: " << scolor << endl
-         << "Emissive color: " << ecolor << endl
-         << "Ambient color: " << acolor << endl
-         << "Shininess: " << shininess << " PrimType: " << PrimType << endl
-         << "TriObject BBox: " << Box << "\n\nVertex \t\tNormal\t\tTexcoord\t\tDColor\n";
+    std::cerr << "Specular color: " << scolor << std::endl
+              << "Emissive color: " << ecolor << std::endl
+              << "Ambient color: " << acolor << std::endl
+              << "Shininess: " << shininess << " PrimType: " << PrimType << std::endl
+              << "TriObject BBox: " << Box << "\n\nVertex \t\tNormal\t\tTexcoord\t\tDColor\n";
 
     for (int i = 0; i < (int)verts.size(); i++) {
-        cerr << verts[i] << "\t";
+        std::cerr << verts[i] << "\t";
         if (i < (int)normals.size())
-            cerr << normals[i] << "\t";
+            std::cerr << normals[i] << "\t";
         else
-            cerr << "xxxxxxxxxxxxxxxxxxx\t";
+            std::cerr << "xxxxxxxxxxxxxxxxxxx\t";
         if (i < (int)texcoords.size())
-            cerr << texcoords[i] << "\t";
+            std::cerr << texcoords[i] << "\t";
         else
-            cerr << "xxxxxxxxxxxxxxxxxxx\t";
+            std::cerr << "xxxxxxxxxxxxxxxxxxx\t";
         if (i < (int)dcolors.size())
-            cerr << dcolors[i] << "\t";
+            std::cerr << dcolors[i] << "\t";
         else
-            cerr << "xxxxxxxxxxxxxxxxxxx\t";
-        if (i < (int)alphas.size()) cerr << alphas[i];
-        cerr << endl;
+            std::cerr << "xxxxxxxxxxxxxxxxxxx\t";
+        if (i < (int)alphas.size()) std::cerr << alphas[i];
+        std::cerr << std::endl;
     }
-    cerr << endl << endl;
+    std::cerr << std::endl << std::endl;
 }
 
 void TriObject::RebuildBBox()

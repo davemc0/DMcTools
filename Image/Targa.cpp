@@ -319,7 +319,7 @@ void ImageLoadSave::LoadTGA(const char* fname)
     unsigned char* encoded_pixels = color_map + cmapsize;
 
     char itype_names[16][16] = {"NULL", "MAP", "RGB", "MONO", "4", "5", "6", "7", "8", "RLE-MAP", "RLE-RGB", "RLE-MONO", "12", "13", "14", "15"};
-    // cerr << "Targa type " << itype_names[0xf & header->ImgType] << " bpp = " << int(header->PixelSize) << endl;
+    // std::cerr << "Targa type " << itype_names[0xf & header->ImgType] << " bpp = " << int(header->PixelSize) << std::endl;
 
     if ((header->Desc & TGA_DESC_ORG_MASK) != TGA_ORG_TOP_LEFT && (header->Desc & TGA_DESC_ORG_MASK) != TGA_ORG_BOTTOM_LEFT) {
         delete[] fdata;

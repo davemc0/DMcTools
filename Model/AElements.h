@@ -35,12 +35,12 @@ DMC_DECL bool VertexDataSame(const AVertex* V0, const AVertex* V1, const unsigne
 
 #if 0
     if(!IsSame) {
-        cerr << "Diff:\n";
-        cerr <<"V"<<V0->V << V1->V << endl;
-        if(VertData & OBJ_COLORS)    cerr <<"C"<<V0->Col << V1->Col << endl;
-        if(VertData & OBJ_NORMALS)   cerr <<"N"<<V0->Nor << V1->Nor << endl;
-        if(VertData & OBJ_TEXCOORDS) cerr <<"X"<<V0->Tex << V1->Tex << endl;
-        if(VertData & OBJ_TANGENTS)  cerr <<"T"<<V0->Tan << V1->Tan << endl;
+        std::cerr << "Diff:\n";
+        std::cerr <<"V"<<V0->V << V1->V << std::endl;
+        if(VertData & OBJ_COLORS)    std::cerr <<"C"<<V0->Col << V1->Col << std::endl;
+        if(VertData & OBJ_NORMALS)   std::cerr <<"N"<<V0->Nor << V1->Nor << std::endl;
+        if(VertData & OBJ_TEXCOORDS) std::cerr <<"X"<<V0->Tex << V1->Tex << std::endl;
+        if(VertData & OBJ_TANGENTS)  std::cerr <<"T"<<V0->Tan << V1->Tan << std::endl;
     }
 #endif
     return IsSame;

@@ -20,7 +20,7 @@ struct RenderObject : public BaseObject {
 
     DMC_DECL RenderObject()
     {
-        // cerr << "Making RenderObject.\n";
+        // std::cerr << "Making RenderObject.\n";
         ObjectType = DMC_RENDER_OBJECT;
     }
 

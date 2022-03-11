@@ -220,9 +220,9 @@ float StatTimer::GetMean(int N)
     int i = 0;
     for (i = 0; i < NN; i++) {
         AccT += EventTimes[i];
-        // cerr << i << "=" << EventTimes[i] << ' ';
+        // std::cerr << i << "=" << EventTimes[i] << ' ';
     }
-    // cerr << endl;
+    // std::cerr << std::endl;
 
     if (i)
         return AccT / float(NN);

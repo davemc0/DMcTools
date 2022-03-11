@@ -17,13 +17,13 @@
 
 template <class vec3_T> DMC_DECL vec3_T ParaboloidTo2DNN(const vec3_T& v3)
 {
-    vec3_T::ElType d = dmcm::Abs(v3.z) + v3.length();
+    typename vec3_T::ElType d = dmcm::Abs(v3.z) + v3.length();
     return vec3_T(v3.x / d, v3.y / d, v3.z < 0);
 }
 
 template <class vec3_T> DMC_DECL vec3_T ParaboloidTo2D(const vec3_T& v3)
 {
-    vec3_T::ElType d = dmcm::Abs(v3.z) + 1;
+    typename vec3_T::ElType d = dmcm::Abs(v3.z) + 1;
     return vec3_T(v3.x / d, v3.y / d, v3.z < 0);
 }
 
@@ -35,14 +35,14 @@ template <class vec3_T> DMC_DECL vec3_T ParaboloidTo3DNN(const vec3_T& v2)
 
 template <class vec3_T> DMC_DECL vec3_T ParaboloidTo3D(const vec3_T& v2)
 {
-    vec3_T::ElType d = v2.x * v2.x + v2.y * v2.y + 1;
+    typename vec3_T::ElType d = v2.x * v2.x + v2.y * v2.y + 1;
     // return vec3_T(2*v2.x/d, 2*v2.y/d, (1 - v2.x*v2.x - v2.y*v2.y) / dmcm::CopySign(d, 0.5-v2.z));
     return vec3_T(2 * v2.x / d, 2 * v2.y / d, (v2.z ? -(1 - v2.x * v2.x - v2.y * v2.y) : (1 - v2.x * v2.x - v2.y * v2.y)) / d); // Faster on Intel
 }
 
 template <class vec3_T> DMC_DECL vec3_T OctahedronTo2DNN(const vec3_T& v3)
 {
-    vec3_T::ElType d = dmcm::Abs(v3.x) + dmcm::Abs(v3.y) + dmcm::Abs(v3.z);
+    typename vec3_T::ElType d = dmcm::Abs(v3.x) + dmcm::Abs(v3.y) + dmcm::Abs(v3.z);
     if (v3.z >= 0)
         return vec3_T(v3.x / d, v3.y / d, 0); // +Z
     else
@@ -53,7 +53,7 @@ template <class vec3_T> DMC_DECL vec3_T OctahedronTo2D(const vec3_T& v3) { retur
 
 template <class vec3_T> DMC_DECL vec3_T OctahedronTo3DNN(const vec3_T& v2)
 {
-    vec3_T::ElType z = 1 - dmcm::Abs(v2.x) - dmcm::Abs(v2.y);
+    typename vec3_T::ElType z = 1 - dmcm::Abs(v2.x) - dmcm::Abs(v2.y);
     if (z >= 0)
         return vec3_T(v2.x, v2.y, z); // +Z
     else
@@ -64,7 +64,7 @@ template <class vec3_T> DMC_DECL vec3_T OctahedronTo3D(const vec3_T& v2) { retur
 
 template <class vec3_T> DMC_DECL vec3_T PyramidTo2DNN(const vec3_T& v3)
 {
-    vec3_T::ElType d = dmcm::Abs(v3.z) + std::max(dmcm::Abs(v3.x), dmcm::Abs(v3.y));
+    typename vec3_T::ElType d = dmcm::Abs(v3.z) + std::max(dmcm::Abs(v3.x), dmcm::Abs(v3.y));
     return vec3_T(v3.x / d, v3.y / d, v3.z < 0);
 }
 
@@ -72,7 +72,7 @@ template <class vec3_T> DMC_DECL vec3_T PyramidTo2D(const vec3_T& v3) { return P
 
 template <class vec3_T> DMC_DECL vec3_T PyramidTo3DNN(const vec3_T& v2)
 {
-    vec3_T::ElType d = 1 - std::max(dmcm::Abs(v2.x), dmcm::Abs(v2.y));
+    typename vec3_T::ElType d = 1 - std::max(dmcm::Abs(v2.x), dmcm::Abs(v2.y));
     // return vec3_T(v2.x, v2.y, CopySign(d, 0.5-v2.z));
     return vec3_T(v2.x, v2.y, v2.z > 0 ? -d : d); // Faster on Intel.
 }
@@ -115,8 +115,8 @@ template <class Fl_T> DMC_DECL void XYToUV(Fl_T& u, Fl_T& v, const int x, const 
 template <class vec3_T> DMC_DECL void UVToXY(int& x, int& y, const vec3_T& v2, const int imsize)
 {
     int z = static_cast<int>(v2.z) * imsize;
-    x = static_cast<int>((v2.x + 1) * 0.5 * static_cast<vec3_T::ElType>(imsize - 1) + 0.5) + z;
-    y = static_cast<int>((v2.y + 1) * 0.5 * static_cast<vec3_T::ElType>(imsize - 1) + 0.5);
+    x = static_cast<int>((v2.x + 1) * 0.5 * static_cast<typename vec3_T::ElType>(imsize - 1) + 0.5) + z;
+    y = static_cast<int>((v2.y + 1) * 0.5 * static_cast<typename vec3_T::ElType>(imsize - 1) + 0.5);
 }
 
 // Does the simple linear mapping from integer pixel coords to u,v
@@ -124,7 +124,7 @@ template <class vec3_T> DMC_DECL void UVToXY(int& x, int& y, const vec3_T& v2, c
 // Offsets the x value based on face number
 template <class vec3_T> DMC_DECL void XYToUV(vec3_T& v2, const int x, const int y, const int imsize)
 {
-    v2.x = static_cast<vec3_T::ElType>(x % imsize) * 2.0 / static_cast<vec3_T::ElType>(imsize - 1) - 1.0;
-    v2.y = static_cast<vec3_T::ElType>(y) * 2.0 / static_cast<vec3_T::ElType>(imsize - 1) - 1.0;
-    v2.z = static_cast<vec3_T::ElType>(x / imsize);
+    v2.x = static_cast<typename vec3_T::ElType>(x % imsize) * 2.0 / static_cast<typename vec3_T::ElType>(imsize - 1) - 1.0;
+    v2.y = static_cast<typename vec3_T::ElType>(y) * 2.0 / static_cast<typename vec3_T::ElType>(imsize - 1) - 1.0;
+    v2.z = static_cast<typename vec3_T::ElType>(x / imsize);
 }

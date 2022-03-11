@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////
 // ImageAlgorithms.cpp - Image filtering, sampling, etc.
 //
-// Copyright David K. McAllister, 2001-2015.
+// Copyright David K. McAllister, 2001-2022.
 
 #include "Image/ImageAlgorithms.h"
 

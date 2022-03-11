@@ -242,7 +242,7 @@ template <> int PixelHash(const f3Pixel& pp, const int keepBits)
 template <class Pixel_T, class Index_T> void Quantizer<Pixel_T, Index_T>::MakeHist(std::vector<CountedPixel<Pixel_T>>& CHist)
 {
 #ifdef DMC_DEBUG
-    cerr << "Making histogram.\n";
+    std::cerr << "Making histogram.\n";
 #endif
 
     int keepBits = QP.makeArtisticPalette ? 4 : 5;
@@ -282,7 +282,7 @@ template <class Pixel_T, class Index_T> void Quantizer<Pixel_T, Index_T>::MakeHi
     }
 
 #ifdef DMC_DEBUG
-    cerr << CHist.size() << " unique colors found.\n";
+    std::cerr << CHist.size() << " unique colors found.\n";
 #endif
 }
 
@@ -392,7 +392,7 @@ template <class Pixel_T, class Index_T> void Quantizer<Pixel_T, Index_T>::Median
     CentroidsToColorMap(Centroids);
 
 #ifdef DMC_DEBUG
-    cerr << "Finished median cut.\n";
+    std::cerr << "Finished median cut.\n";
 #endif
 }
 
@@ -414,7 +414,7 @@ template <class Pixel_T, class Index_T> void Quantizer<Pixel_T, Index_T>::DoQuan
     // 0) Trivial finish if one-channel
     if (isOneChan) {
 #ifdef DMC_DEBUG
-        cerr << "isOneChan\n";
+        std::cerr << "isOneChan\n";
 #endif
         // For one channel, just copy it.
         memcpy(IndexImg, Pix, size);
@@ -469,7 +469,7 @@ template <class Pixel_T, class Index_T> void Quantizer<Pixel_T, Index_T>::GetQua
     std::cerr << CMap.size() << std::endl;
     if (CMap.size() == 0 || IndexImg == NULL) DoQuant();
     for (size_t i = 0; i < size; i++) {
-        // cerr << i << " " << int(IndexImg[i]) << endl;
+        // std::cerr << i << " " << int(IndexImg[i]) << std::endl;
         NewTrueColorImg[i] = CMap[IndexImg[i]];
     }
 }

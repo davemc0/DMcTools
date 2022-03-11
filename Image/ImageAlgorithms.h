@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////
 // ImageAlgorithms.h - Image filtering, sampling, etc.
 //
-// Copyright David K. McAllister, 2001-2014.
+// Copyright David K. McAllister, 2001-2022.
 
 #pragma once
 

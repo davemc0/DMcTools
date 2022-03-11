@@ -153,11 +153,11 @@ template <class T, class Param> T DMC_DECL HermiteSpline<T, Param>::operator()(P
     int iP1 = i + 1;
     Param x = t - Param(i);
 
-    // cerr << "oper() i=" << i << " x=" << x << " t=" << t << endl;
+    // std::cerr << "oper() i=" << i << " x=" << x << " t=" << t << std::endl;
     ASSERT_D(nset >= 2);
     ASSERT_D(iP1 < nset);
     ASSERT_D(i >= 0);
-    // cerr << "d.size() = " << d.size() << " p.size() = " << p.size() << endl;
+    // std::cerr << "d.size() = " << d.size() << " p.size() = " << p.size() << std::endl;
 
     return (d[i] * ((2.0 * x + 1.0) * (x - 1.0) * (x - 1.0)) + d[iP1] * ((-2.0 * x + 3.0) * x * x) + p[i] * (x * (x - 1.0) * (x - 1.0)) +
             p[iP1] * (x * x * (x - 1.0)));

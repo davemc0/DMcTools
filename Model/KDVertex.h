@@ -20,8 +20,8 @@ struct KDVertex {
     static bool lessX(const KDVertex& a, const KDVertex& b)
     {
 #ifdef TMP_DEBUG
-        of << &a << " " << a.Vert->V << " lessX " << &b << " " << b.Vert->V << endl;
-        of << a.Vert << " " << b.Vert << endl;
+        of << &a << " " << a.Vert->V << " lessX " << &b << " " << b.Vert->V << std::endl;
+        of << a.Vert << " " << b.Vert << std::endl;
 #endif
         return a.Vert->V.x < b.Vert->V.x;
     }
@@ -29,7 +29,7 @@ struct KDVertex {
     static bool lessY(const KDVertex& a, const KDVertex& b)
     {
 #ifdef TMP_DEBUG
-        of << a.Vert->V << " lessY " << b.Vert->V << endl;
+        of << a.Vert->V << " lessY " << b.Vert->V << std::endl;
 #endif
         return a.Vert->V.y < b.Vert->V.y;
     }
@@ -37,7 +37,7 @@ struct KDVertex {
     static bool lessZ(const KDVertex& a, const KDVertex& b)
     {
 #ifdef TMP_DEBUG
-        of << a.Vert->V << " lessZ " << b.Vert->V << endl;
+        of << a.Vert->V << " lessZ " << b.Vert->V << std::endl;
 #endif
         return a.Vert->V.z < b.Vert->V.z;
     }
@@ -90,8 +90,8 @@ struct KDVertex {
     DMC_DECL KDVertex& operator=(const KDVertex& a)
     {
 #ifdef TMP_DEBUG
-        of << this << " assign " << &a << endl;
-        of << Vert << " asVVgn " << a.Vert << endl;
+        of << this << " assign " << &a << std::endl;
+        of << Vert << " asVVgn " << a.Vert << std::endl;
 #endif
         Vert = a.Vert;
         return *this;

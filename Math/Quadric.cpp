@@ -17,10 +17,10 @@ template <class Vec_T> bool Quadric3<Vec_T>::FindMin(Vec_T& p, typename Vec_T::E
     M(3, 2) = 0;
     M(3, 3) = 1;
 
-    // cerr << "M: " << M.Determinant() << endl << M << endl;
+    // std::cerr << "M: " << M.Determinant() << std::endl << M << std::endl;
 
     bool invertible = M.Invert();
-    // cerr << "Minv:\n" << M << endl;
+    // std::cerr << "Minv:\n" << M << std::endl;
 
     if (!invertible) return false;
 

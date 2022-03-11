@@ -296,7 +296,7 @@ void ImageLoadSave::LoadRas(const char* fname)
             // Now read the color values.
             for (int y = 0; y < hgt; y++) { InFile.read((char*)&Pix[y * wid * 3], wid * 3); }
         } else if (Hedr.ras_maptype == RMT_EQUAL_RGB) {
-            if (SP.verbose) cerr << "Reading color mapped image. Maplength = " << Hedr.ras_maplength << endl;
+            if (SP.verbose) std::cerr << "Reading color mapped image. Maplength = " << Hedr.ras_maplength << std::endl;
 
             unsigned char ColorMap[256][3];
             unsigned char Colors[4096];
@@ -318,7 +318,7 @@ void ImageLoadSave::LoadRas(const char* fname)
             throw DMcError("Strange color map scheme.");
         }
     } else if (Hedr.ras_type == RT_STANDARD) {
-        if (SP.verbose) cerr << "BGR ImageLoadSave (RT_STANDARD)\n";
+        if (SP.verbose) std::cerr << "BGR ImageLoadSave (RT_STANDARD)\n";
         if (Hedr.ras_maptype == RMT_NONE) {
             // Now read the color values.
             unsigned char Colors[4096][3];
@@ -366,7 +366,7 @@ void ImageLoadSave::LoadPPM(const char* fname)
     while (c == '#') {
         char line[999];
         InFile.getline(line, 1000);
-        if (SP.verbose) cerr << line << endl;
+        if (SP.verbose) std::cerr << line << std::endl;
         c = InFile.peek();
     }
 
@@ -413,7 +413,7 @@ void ImageLoadSave::LoadPPM(const char* fname)
     if (is_ushort) ConvertShort((unsigned short*)Pix, size() * chan);
 #endif
 
-    if (SP.verbose) cerr << "Loaded a PPM image.\n";
+    if (SP.verbose) std::cerr << "Loaded a PPM image.\n";
 }
 
 void ImageLoadSave::SavePPM(const char* fname) const
@@ -428,12 +428,12 @@ void ImageLoadSave::SavePPM(const char* fname) const
 
     OutFile << 'P';
     if (is_ushort)
-        OutFile << char('S' + chan - 1) << endl;
+        OutFile << char('S' + chan - 1) << std::endl;
     else if (is_float)
-        OutFile << (chan == 1 ? 'Z' : '7') << endl; // '7' is f3
+        OutFile << (chan == 1 ? 'Z' : '7') << std::endl; // '7' is f3
     else
-        OutFile << (chan == 1 ? '5' : (chan == 3 ? '6' : '8')) << endl;
-    OutFile << wid << " " << hgt << endl << 255 << endl;
+        OutFile << (chan == 1 ? '5' : (chan == 3 ? '6' : '8')) << std::endl;
+    OutFile << wid << " " << hgt << std::endl << 255 << std::endl;
 
 #ifdef DMC_LITTLE_ENDIAN
     if (is_uint || is_float || is_ushort) {
@@ -455,7 +455,7 @@ void ImageLoadSave::SavePPM(const char* fname) const
 
     OutFile.close();
 
-    if (SP.verbose) cerr << "Wrote PPM file " << fname << endl;
+    if (SP.verbose) std::cerr << "Wrote PPM file " << fname << std::endl;
 }
 
 //////////////////////////////////////////////////////
@@ -522,7 +522,7 @@ void ImageLoadSave::LoadRGB(const char* fname)
 
     fread(&raw, 1, 104, raw.file);
 
-    if (SP.verbose) cerr << "ImageLoadSave name is: `" << raw.name << "'\n";
+    if (SP.verbose) std::cerr << "ImageLoadSave name is: `" << raw.name << "'\n";
 
     if (swapFlag) { ConvertShort(&raw.imagic, 6); }
 
@@ -557,9 +557,9 @@ void ImageLoadSave::LoadRGB(const char* fname)
 
     Pix = ImageAlloc();
     if ((raw.type & 0xFF00) == 0x0100) {
-        if (SP.verbose) cerr << "Loading an rle compressed RGB image.\n";
+        if (SP.verbose) std::cerr << "Loading an rle compressed RGB image.\n";
     } else {
-        if (SP.verbose) cerr << "Loading a raw RGB image.\n";
+        if (SP.verbose) std::cerr << "Loading a raw RGB image.\n";
     }
 
     unsigned char* ptr = Pix;
@@ -638,8 +638,8 @@ void ImageLoadSave::LoadTIFF(const char* fname)
 
     TIFFSetErrorHandler(TiffErrHand);
 
-    if (SP.verbose) cerr << "Attempting to open " << fname << " as TIFF.\n";
-    if (SP.verbose) cerr << "TIFF version is " << TIFFGetVersion() << endl;
+    if (SP.verbose) std::cerr << "Attempting to open " << fname << " as TIFF.\n";
+    if (SP.verbose) std::cerr << "TIFF version is " << TIFFGetVersion() << std::endl;
 
     tif = TIFFOpen(fname, "r");
     if (!tif) throw DMcError("Could not open TIFF file '" + string(fname) + "'.");
@@ -655,16 +655,16 @@ void ImageLoadSave::LoadTIFF(const char* fname)
     bitspersample = bitspersample & 0xffff;
 
     if (SP.verbose) {
-        cerr << "size=" << wid << "x" << hgt << endl;
-        cerr << "TIFFTAG_SAMPLESPERPIXEL=" << chan << endl;
+        std::cerr << "size=" << wid << "x" << hgt << std::endl;
+        std::cerr << "TIFFTAG_SAMPLESPERPIXEL=" << chan << std::endl;
         int tmp = 0, tmp2 = 0;
         TIFFGetField(tif, TIFFTAG_EXTRASAMPLES, &tmp, &tmp2);
-        cerr << "TIFFTAG_EXTRASAMPLES " << tmp << ": " << tmp2 << endl;
-        cerr << "TIFFTAG_BITSPERSAMPLE " << bitspersample << endl;
+        std::cerr << "TIFFTAG_EXTRASAMPLES " << tmp << ": " << tmp2 << std::endl;
+        std::cerr << "TIFFTAG_BITSPERSAMPLE " << bitspersample << std::endl;
         TIFFGetField(tif, TIFFTAG_COMPRESSION, &tmp);
-        cerr << "TIFFTAG_COMPRESSION " << tmp << endl;
+        std::cerr << "TIFFTAG_COMPRESSION " << tmp << std::endl;
         TIFFGetField(tif, TIFFTAG_PHOTOMETRIC, &tmp);
-        cerr << "TIFFTAG_PHOTOMETRIC " << tmp << endl;
+        std::cerr << "TIFFTAG_PHOTOMETRIC " << tmp << std::endl;
 
         TIFFPrintDirectory(tif, stderr, 0);
     }
@@ -688,7 +688,7 @@ void ImageLoadSave::LoadTIFF(const char* fname)
         do {
             dircount++;
         } while (TIFFReadDirectory(tif));
-        if (dircount > 1) cerr << fname << "contains " << dircount << " directories!!!\n";
+        if (dircount > 1) std::cerr << fname << "contains " << dircount << " directories!!!\n";
     }
 
     TIFFClose(tif);
@@ -814,7 +814,7 @@ void ImageLoadSave::SaveMAT(const char* fname) const
     mxArray *pa;
     int status;
 
-    if(SP.verbose) cerr << "Saving " << fname << endl;
+    if(SP.verbose) std::cerr << "Saving " << fname << std::endl;
     pmat = matOpen(fname, "w");
     if(pmat == NULL)  throw DMcError("Error creating fname " +string(fname));
 
@@ -885,10 +885,10 @@ void ImageLoadSave::LoadRGBE(const char* fname)
     fgets(line, 1000, filep);
     fgets(line, 1000, filep);
     fscanf(filep, "EXPOSURE=%f\n", &exposure);
-    if (SP.verbose) cerr << "Reading HDR file with exposure " << exposure << endl;
+    if (SP.verbose) std::cerr << "Reading HDR file with exposure " << exposure << std::endl;
     // fgets(line, 1000, filep);
     fscanf(filep, "-Y %d +X %d\n", &hgt, &wid);
-    if (SP.verbose) cerr << wid << "x" << hgt << endl;
+    if (SP.verbose) std::cerr << wid << "x" << hgt << std::endl;
     is_uint = false;
     is_float = true;
     chan = 3;
@@ -968,7 +968,7 @@ void ImageLoadSave::SaveRGBE(const char* fname) const
     free(oneRow);
     delete[] helpit;
 
-    if (SP.verbose) cerr << "Wrote out HDR file with exposure " << exposure << endl;
+    if (SP.verbose) std::cerr << "Wrote out HDR file with exposure " << exposure << std::endl;
 }
 
 template <class Image_T> const baseImage* ImageLoadSave::ConvertToSaveFormat(const char* fname, const Image_T* srcImg)

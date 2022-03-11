@@ -95,7 +95,7 @@ template <class Vec_T> Vec_T MakeRandOnSphere()
 {
     Vec_T RVec;
     do {
-        RVec = MakeDRand<typename Vec_T::ElType>(-1, 1);
+        RVec = MakeDRand<Vec_T>(-1, 1);
     } while (RVec.lenSqr() > static_cast<typename Vec_T::ElType>(1) || RVec.lenSqr() == static_cast<typename Vec_T::ElType>(0));
 
     RVec.normalize();

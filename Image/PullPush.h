@@ -46,7 +46,7 @@ template <class Data_T, class Weight_T> void PullPush(Data_T* Data, Weight_T* We
     int widp = (wid + 1) >> 1;
     int hgtp = (hgt + 1) >> 1;
 
-    cerr << "Shrinking to " << widp << "x" << hgtp << endl;
+    std::cerr << "Shrinking to " << widp << "x" << hgtp << std::endl;
 
     // XXX What about initializing these?
     Data_T* Data1 = new Data_T[widp * hgtp];
@@ -236,5 +236,5 @@ template <class Data_T, class Weight_T> void PullPush(Data_T* Data, Weight_T* We
     DoDebug("Out", Data, Weights, wid, hgt);
 #endif
 
-    cerr << "Finished filling in the " << wid << "x" << hgt << endl;
+    std::cerr << "Finished filling in the " << wid << "x" << hgt << std::endl;
 }

@@ -38,7 +38,7 @@ bool TexInfo::LoadToAppMemory(char* dir, bool prepend)
     } else
         ishdr = false;
 
-    cerr << "Loading " << fname << endl;
+    std::cerr << "Loading " << fname << std::endl;
 
     if (ishdr) {
         f3Image HDR(fname);
@@ -53,10 +53,10 @@ bool TexInfo::LoadToAppMemory(char* dir, bool prepend)
     }
 
     if (Im->pv_virtual()) {
-        // cerr << "Succeeded.\n";
+        // std::cerr << "Succeeded.\n";
         return false;
     } else {
-        // cerr << "Failed.\n";
+        // std::cerr << "Failed.\n";
         delete Im;
         Im = NULL;
         return true;
@@ -65,8 +65,8 @@ bool TexInfo::LoadToAppMemory(char* dir, bool prepend)
 
 void TexInfo::Dump()
 {
-    cerr << TexID << " " << TexFName << " " << TextureTarget << " " << (IsMIPMap ? "Is MIP" : "NotMIP") << " Mult=" << MultiTexIDs[0] << "," << MultiTexIDs[1]
-         << "," << MultiTexIDs[2] << endl;
+    std::cerr << TexID << " " << TexFName << " " << TextureTarget << " " << (IsMIPMap ? "Is MIP" : "NotMIP") << " Mult=" << MultiTexIDs[0] << ","
+              << MultiTexIDs[1] << "," << MultiTexIDs[2] << std::endl;
 }
 
 // Returns -1 if not found.
@@ -107,7 +107,7 @@ TexInfo* TextureDB::FindByNameOrAdd(const char* name)
 void TextureDB::Dump()
 {
     for (int i = 0; i < (int)TexList.size(); i++) {
-        cerr << i << ": ";
+        std::cerr << i << ": ";
         TexList[i]->Dump();
     }
 }
