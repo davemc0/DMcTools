@@ -1,262 +1,56 @@
 //////////////////////////////////////////////////////////////////////
 // Timer.cpp - A wall clock timer
 //
-// Copyright David K. McAllister, Mar. 1998.
+// Copyright David K. McAllister, Mar. 1998, 2022.
 
 #include "Util/Timer.h"
 
-#include "Math/MiscMath.h"
-#include "Util/toolconfig.h"
+#include <chrono>
 
-#ifdef DMC_MACHINE_win
-#include <sys/timeb.h>
-#define NOMINMAX
-#include <windows.h>
+Timer::TimePoint Timer::GetCurTime() { return std::chrono::high_resolution_clock::now(); }
 
-#ifndef _WIN64
-// ASM not allowed on x64, so can't use this approach
-#define DMC_USE_PENTIUM_TIMER
-#endif
-
-#endif
-
-#define DMC_2E32 4294967296.0
-
-#if defined(DMC_MACHINE_gcc)
-#include <limits.h>
-#include <sys/times.h>
-#include <unistd.h>
-
-#ifdef CLK_TCK
-static double clock_interval = 1. / double(CLK_TCK);
-#else
-static double clock_interval = 1. / double(CLOCKS_PER_SEC);
-#endif
-
-#endif
-
-// TODO: Resolve the Pentium nonsense. Find an intrinsic for the query.
-#ifdef DMC_USE_PENTIUM_TIMER
-DMC_DECL void GetPentiumCounter(DWORD& hix, DWORD& lox)
-{
-    DWORD hi, lo;
-
-    __asm
-        {
-        xor   eax,eax                          // VC won't realize that eax is modified w/out this
-                                         //   instruction to modify the val.
-                //   Problem shows up in release mode builds
-        _emit 0x0F // Pentium high-freq counter to edx;eax
-        _emit 0x31
-        mov   hi,edx
-        mov   lo,eax
-        xor   edx,edx // So VC gets that edx is modified
-        }
-
-    hix = hi;
-    lox = lo;
-}
-
-// Fast, accurate timer.
-double Timer::GetCurTime()
-{
-    DWORD hi, lo;
-    GetPentiumCounter(hi, lo);
-    hi -= high_bias;
-
-    double PThisTicks = double(hi) * DMC_2E32 + double(lo);
-
-    double ThisTime = PThisTicks * Multiplier;
-
-    return ThisTime;
-}
-
-#elif defined(DMC_MACHINE_win)
-
-// Slow, inaccurate timer.
-double Timer::GetCurTime()
-{
-    struct _timeb timebuffer;
-    _ftime(&timebuffer);
-
-    time_t sec = timebuffer.time;
-    unsigned short milli = timebuffer.millitm;
-    double dtime = double(sec) + double(milli) * 0.001;
-
-    return dtime;
-}
-
-#elif defined(DMC_MACHINE_gcc)
-
-double Timer::GetCurTime()
-{
-    struct tms buffer;
-    double dtime = double(times(&buffer)) * clock_interval;
-    return dtime;
-}
-
-#else
-#error Need a timer for this architecture.
-#endif
-
-// Create the timer. It is stopped.
+// Create the timer as reset and started
 Timer::Timer()
 {
-#ifdef DMC_USE_PENTIUM_TIMER
-    // Initialize the high performance Pentium timer.
-    LARGE_INTEGER freq, tim0q, tim1q;
-    DWORD hi0, lo0, hi1, lo1;
-    QueryPerformanceFrequency(&freq);
-
-    freqHigh = freq.HighPart;
-    freqLow = freq.LowPart;
-
-    QueryPerformanceCounter(&tim0q);
-    GetPentiumCounter(hi0, lo0);
-    Sleep(100);
-    QueryPerformanceCounter(&tim1q);
-    GetPentiumCounter(hi1, lo1);
-
-    high_bias = hi0;
-
-    double QRefTicks = (double(tim1q.HighPart - tim0q.HighPart) * DMC_2E32) + double(tim1q.LowPart) - double(tim0q.LowPart); // High probably 0.
-    double QTicksPerSec = double(freq.HighPart) * DMC_2E32 + double(freq.LowPart);
-
-    // double RefSecs = QRefTicks / QTicksPerSec;
-    double PRefTicks = double(hi1 - hi0) * DMC_2E32 + double(lo1) - double(lo0);
-    Multiplier = QRefTicks / (QTicksPerSec * PRefTicks);
-#endif
-
-    Going = false;
-    StartTime = GetCurTime();
-    ElapsedTime = 0;
+    going = true;
+    startTime = GetCurTime();
+    elapsedTime = Duration(0);
 }
 
-// Start or re-start the timer.
+// Start or re-start the timer without updating elapsedTime
 double Timer::Start()
 {
-    Going = true;
-    StartTime = GetCurTime();
-
-    return ElapsedTime;
+    double elT = Read();
+    going = true;
+    startTime = GetCurTime();
+    return elT;
 }
 
-// Stop the timer and set ElapsedTime to be the total time it's run so far.
+// Stop the timer and update elapsedTime
 double Timer::Stop()
 {
-    Going = false;
-    double CurTime = GetCurTime();
-    ElapsedTime += CurTime - StartTime;
-    StartTime = CurTime;
+    double elT = Read();
+    going = false;
+    elapsedTime += GetCurTime() - startTime;
 
-    return ElapsedTime;
+    return elT;
 }
 
-// Return elapsed time on the timer.
-// If the clock is still going, add in how long it's been going
-// since the last time it was started.
-// If it's not going, it's just ElapsedTime.
+// Read elapsed time, without stopping or starting the timer
+// If timer is going, add in current time span, otherwise it's just elapsedTime.
 double Timer::Read()
 {
-    if (Going)
-        return ElapsedTime + (GetCurTime() - StartTime);
+    if (going)
+        return Duration(elapsedTime + (GetCurTime() - startTime)).count();
     else
-        return ElapsedTime;
+        return elapsedTime.count();
 }
 
-// Reset the elapsed time to 0.
-// Doesn't start or stop the clock. This is like Dad's old
-// silver stopwatch. Return the elapsed time *before* it was reset.
+// Reset the elapsed time to 0, without stopping or starting the timer
 double Timer::Reset()
 {
-    double CurTime = GetCurTime();
-    double El = ElapsedTime + (CurTime - StartTime);
-    StartTime = CurTime;
-    ElapsedTime = 0;
-
-    return El;
+    double elT = Read();
+    startTime = GetCurTime();
+    elapsedTime = Duration(0);
+    return elT;
 }
-
-StatTimer::StatTimer(int MaxEvents_)
-{
-    MaxEvents = MaxEvents_;
-    EventTimes = new float[MaxEvents];
-    NumEvents = 0;
-    IsGoing = false;
-}
-
-StatTimer::~StatTimer()
-{
-    if (EventTimes) delete[] EventTimes;
-}
-
-void StatTimer::Reset()
-{
-    NumEvents = 0;
-    IsGoing = false;
-}
-
-void StatTimer::StartEvent()
-{
-    if (IsGoing) {
-        float t = Clock.Reset();
-        memmove(&EventTimes[1], EventTimes, sizeof(float) * (MaxEvents - 1));
-        EventTimes[0] = t;
-        if (NumEvents < MaxEvents) NumEvents++;
-    } else {
-        Clock.Reset();
-        Clock.Start();
-        IsGoing = true;
-        NumEvents = 0;
-    }
-}
-
-float StatTimer::GetMean(int N)
-{
-    int NN = dmcm::Min(N, NumEvents, MaxEvents);
-
-    float AccT = 0;
-    int i = 0;
-    for (i = 0; i < NN; i++) {
-        AccT += EventTimes[i];
-        // std::cerr << i << "=" << EventTimes[i] << ' ';
-    }
-    // std::cerr << std::endl;
-
-    if (i)
-        return AccT / float(NN);
-    else
-        return 0.0;
-}
-
-float StatTimer::GetMax(int N)
-{
-    int NN = dmcm::Min(N, NumEvents, MaxEvents);
-
-    float AccT = 0;
-    for (int i = 0; i < NN; i++) AccT = std::max(AccT, EventTimes[i]);
-
-    return AccT;
-}
-
-float StatTimer::GetMin(int N)
-{
-    int NN = dmcm::Min(N, NumEvents, MaxEvents);
-
-    float AccT = DMC_MAXFLOAT;
-    for (int i = 0; i < NN; i++) AccT = std::min(AccT, EventTimes[i]);
-
-    return AccT;
-}
-
-/*
-TODO: Use chrono instead of my own internal timer
-#include <chrono>
-startTime = std::chrono::high_resolution_clock::now();
-auto curTime = std::chrono::high_resolution_clock::now();
-elapsedTime += std::chrono::duration<double>(curTime - startTime).count();
-return elapsedTime + std::chrono::duration<double>(std::chrono::high_resolution_clock::now() - startTime).count();
-auto curTime = std::chrono::high_resolution_clock::now();
-auto diff = elapsedTime + std::chrono::duration<double>(curTime - startTime).count();
-std::chrono::time_point<std::chrono::high_resolution_clock> startTime; // The time the clock was most-recently started
-*/
