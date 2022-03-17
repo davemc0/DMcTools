@@ -21,8 +21,7 @@ template <class Elem_T> DMC_DECL HVector<Elem_T> ComputePSum(HVector<Elem_T>* p,
     return psum;
 }
 
-// Tries one point based on the simplex and if it's better,
-// then replaces the worst point in the simplex with it.
+// Tries one point based on the simplex and if it's better then replaces the worst point in the simplex with it.
 template <class Elem_T>
 DMC_DECL Elem_T TrySimplex(HVector<Elem_T>* p, HVector<Elem_T>& y, HVector<Elem_T>& psum, size_t ndim, Elem_T (*funk)(const HVector<Elem_T>&, void*),
                            void* UserData, size_t ihi, Elem_T fac)

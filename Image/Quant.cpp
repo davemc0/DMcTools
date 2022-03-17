@@ -198,6 +198,7 @@ typename Quantizer<Pixel_T, Index_T>::MathType Quantizer<Pixel_T, Index_T>::Refi
     MathType Error = OldError;
     int maxIt = Fast ? QP.maxItersFast : QP.maxIters;
 
+    // Error is not necessarily decreasing.
     for (int iter = 0; iter < maxIt && (iter == 0 || (Error + QP.targetErr < OldError)); iter++) {
         OldError = Error;
         if (Fast)
@@ -300,11 +301,11 @@ template <class Pixel_T, class Index_T> void Quantizer<Pixel_T, Index_T>::Median
     std::vector<Box> Boxes; // The bounding boxes for the HECount that map to a given entry
 
     // Set up the initial box
-    Box b;
-    b.index = 0;
-    b.HECount = CHist.size();
-    b.PixCount = size; // Pixels in image
-    Boxes.push_back(b);
+    Box newBox;
+    newBox.index = 0;
+    newBox.HECount = CHist.size();
+    newBox.PixCount = size; // Pixels in image
+    Boxes.push_back(newBox);
 
     // Main loop: split boxes until we have enough
     while (Boxes.size() < QP.maxColorPalette) {

@@ -95,7 +95,7 @@ public:
     virtual void Load(const char* fname, LoadSaveParams SP = LoadSaveParams()) = 0;
 
     // Save the image to a file
-    virtual void Save(const char* fname, LoadSaveParams SP = LoadSaveParams()) const { ASSERT_RM(0, "Save not defined for this tImage type."); }
+    virtual void Save(const char* fname, LoadSaveParams SP = LoadSaveParams()) const = 0; //{ ASSERT_RM(0, "Save not defined for this tImage type."); }
 
     // Make a copy of the actual image and return a pointer to its baseImage.
     virtual baseImage* Copy() const = 0;

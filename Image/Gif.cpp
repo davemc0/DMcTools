@@ -191,7 +191,7 @@ struct GIFInfo {
     int readImage()
     {
         byte ch, ch1, *ptr1, *picptr;
-        int i, npixels, maxpixels;
+        int npixels, maxpixels;
 
         npixels = maxpixels = 0;
 
@@ -211,7 +211,7 @@ struct GIFInfo {
 
         if (Misc & 0x80) {
             GrayColormap = true;
-            for (i = 0; i < 1 << ((Misc & 7) + 1); i++) {
+            for (int i = 0; i < 1 << ((Misc & 7) + 1); i++) {
                 r[i] = NEXTBYTE;
                 g[i] = NEXTBYTE;
                 b[i] = NEXTBYTE;
@@ -221,7 +221,7 @@ struct GIFInfo {
 
             if (WantPaletteInds) {
                 GrayColormap = true;
-                for (i = 0; i < 256; i++) {
+                for (int i = 0; i < 256; i++) {
                     // for(i=0; i< 1 << ((Misc&7)+1); i++) {
                     r[i] = i;
                 }
@@ -357,7 +357,7 @@ struct GIFInfo {
 
                 npixels += OutCount;
                 if (!Interlace)
-                    for (i = OutCount - 1; i >= 0; i--) {
+                    for (int i = OutCount - 1; i >= 0; i--) {
                         *picptr++ = r[OutCode[i]];
                         // std::cerr << OutCode[i] << '_';
                         if (!GrayColormap) {
@@ -366,7 +366,7 @@ struct GIFInfo {
                         }
                     }
                 else
-                    for (i = OutCount - 1; i >= 0; i--) doInterlace(OutCode[i]);
+                    for (int i = OutCount - 1; i >= 0; i--) doInterlace(OutCode[i]);
                 OutCount = 0;
 
                 // Build the hash table on-the-fly. No table is stored in the file.
@@ -411,7 +411,7 @@ struct GIFInfo {
         // Returns '1' if successful
 
         byte ch, *origptr;
-        int i, block;
+        int block;
         bool gotimage;
 
         // Initialize variables
@@ -480,7 +480,7 @@ struct GIFInfo {
 
             GrayColormap = true;
 
-            for (i = 0; i < ColorMapSize; i++) {
+            for (int i = 0; i < ColorMapSize; i++) {
                 r[i] = NEXTBYTE;
                 g[i] = NEXTBYTE;
                 b[i] = NEXTBYTE;
@@ -491,7 +491,7 @@ struct GIFInfo {
             // Put std EGA palette (repeated 16 times) into colormap, for lack of anything better to do
 
             GrayColormap = false;
-            for (i = 0; i < 256; i++) {
+            for (int i = 0; i < 256; i++) {
                 r[i] = EGApalette[i & 15][0];
                 g[i] = EGApalette[i & 15][1];
                 b[i] = EGApalette[i & 15][2];
@@ -500,7 +500,7 @@ struct GIFInfo {
 
         if (WantPaletteInds) {
             GrayColormap = true;
-            for (i = 0; i < ColorMapSize; i++) { r[i] = i; }
+            for (int i = 0; i < ColorMapSize; i++) { r[i] = i; }
         }
 
         /* possible things at this point are:
@@ -514,7 +514,7 @@ struct GIFInfo {
         while (1) {
             block = NEXTBYTE;
             if (block == EXTENSION) { // Parse extension blocks
-                int i, fn, blocksize;
+                int fn, blocksize;
                 fn = NEXTBYTE; // Read extension block
 #ifdef DMC_DEBUG
                 std::cerr << "GIF extension type 0x%02x\n", fn;
@@ -525,14 +525,14 @@ struct GIFInfo {
                         EATBYTE;
                         EATBYTE;
                     } else {
-                        for (i = 0; i < blocksize; i++) EATBYTE;
+                        for (int i = 0; i < blocksize; i++) EATBYTE;
                     }
                     int sbsize;
                     while ((sbsize = NEXTBYTE) > 0) { // Eat any following data subblocks
-                        for (i = 0; i < sbsize; i++) EATBYTE;
+                        for (int i = 0; i < sbsize; i++) EATBYTE;
                     }
                 } else if (fn == 0xFE) { // Comment Extension
-                    int ch, j, sbsize, cmtlen;
+                    int j, sbsize, cmtlen;
                     byte* ptr1;
                     char* sp;
 
@@ -542,7 +542,7 @@ struct GIFInfo {
                     do { // Figure out length of comment
                         sbsize = NEXTBYTE;
                         cmtlen += sbsize;
-                        for (j = 0; j < sbsize; j++) ch = NEXTBYTE;
+                        for (j = 0; j < sbsize; j++) EATBYTE;
                     } while (sbsize);
 
                     if (cmtlen > 0) { // Build into one un-blocked comment
@@ -558,7 +558,7 @@ struct GIFInfo {
                         std::cerr << "GIF Comment: " << cmt << std::endl;
                     }
                 } else if (fn == 0x01) { // PlainText Extension
-                    int j, sbsize, ch;
+                    int j, sbsize;
                     int tgLeft, tgTop, tgWidth, tgHeight, cWidth, cHeight, fg, bg;
 
                     gifWarning("PlainText extension found in GIF file. Ignored.\n");
@@ -575,8 +575,8 @@ struct GIFInfo {
                     cHeight = NEXTBYTE;
                     fg = NEXTBYTE;
                     bg = NEXTBYTE;
-                    i = 12;
-                    for (; i < sbsize; i++) EATBYTE; // Read rest of first subblock
+
+                    for (int i = 12; i < sbsize; i++) EATBYTE; // Read rest of first subblock
 #ifdef DMC_DEBUG
                     std::cerr << "PlainText: tgrid=" << tgLeft << "," << tgTop << " " << tgWidth << "x" << tgHeight << " cell=" << cWidth << "x" << cHeight
                               << " col=" << fg << "," << bg << std::endl;
@@ -586,11 +586,8 @@ struct GIFInfo {
                         j = 0;
                         sbsize = NEXTBYTE;
                         while (j < sbsize) {
-                            ch = NEXTBYTE;
+                            EATBYTE;
                             j++;
-#ifdef DMC_DEBUG
-                            std::cerr << ch;
-#endif
                         }
                     } while (sbsize);
 #ifdef DMC_DEBUG
@@ -644,8 +641,6 @@ struct GIFInfo {
 #endif
 
                 if (gotimage) { // Just skip over remaining images
-                    int i, misc, ch, ch1;
-
                     // Skip image header
                     EATBYTE;
                     EATBYTE; // Left position
@@ -654,11 +649,11 @@ struct GIFInfo {
                     EATBYTE;
                     EATBYTE; // Width
                     EATBYTE;
-                    EATBYTE;         // Height
-                    misc = NEXTBYTE; // Misc. bits
+                    EATBYTE;             // Height
+                    int misc = NEXTBYTE; // Misc. bits
 
                     if (misc & 0x80) { // Image has local colormap. skip it
-                        for (i = 0; i < 1 << ((misc & 7) + 1); i++) {
+                        for (int i = 0; i < 1 << ((misc & 7) + 1); i++) {
                             EATBYTE;
                             EATBYTE;
                             EATBYTE;
@@ -668,9 +663,11 @@ struct GIFInfo {
                     EATBYTE; // Minimum code size
 
                     // Skip image data sub-blocks
+                    int ch1;
                     do {
-                        ch = ch1 = NEXTBYTE;
-                        while (ch--) EATBYTE;
+                        int eatch;
+                        eatch = ch1 = NEXTBYTE;
+                        while (eatch--) EATBYTE;
                         if ((dataptr - RawGIF) > filesize) break; // EOF
                     } while (ch1);
                 } else if (readImage())
@@ -848,9 +845,9 @@ struct GIFWriter {
     long int in_count;  /* length of input */
     long int out_count; /* # of codes output (for debugging) */
 
-    void cl_hash(count_int hsize)
+    void cl_hash(count_int hsize_)
     {
-        for (int i = 0; i < hsize; i++) htab[i] = -1;
+        for (int i = 0; i < hsize_; i++) htab[i] = -1;
     }
 
     /*
@@ -1032,11 +1029,11 @@ struct GIFWriter {
     }
 
     //////////////////////////////
-    DMC_DECL void putword(int w, FILE* fp)
+    DMC_DECL void putword(int w, FILE* fp_)
     {
         /* writes a 16-bit integer in GIF order (LSB first) */
-        fputc(w & 0xff, fp);
-        fputc((w >> 8) & 0xff, fp);
+        fputc(w & 0xff, fp_);
+        fputc((w >> 8) & 0xff, fp_);
     }
 
     //////////////////////////////////////////////////////////////////////

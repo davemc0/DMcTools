@@ -48,10 +48,10 @@ template f3Pixel ColorMap<f3Pixel>::SampleWrapped(const float s_) const;
 
 template <class Pixel_T> ColorMap<Pixel_T>* ColorMap<Pixel_T>::Copy() const
 {
-    ColorMap<Pixel_T>* C = new ColorMap<Pixel_T>();
-    *C = *this;
+    ColorMap<Pixel_T>* CMP = new ColorMap<Pixel_T>();
+    *CMP = *this;
 
-    return C;
+    return CMP;
 }
 template ColorMap<f3Pixel>* ColorMap<f3Pixel>::Copy() const;
 

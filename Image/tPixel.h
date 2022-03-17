@@ -97,17 +97,17 @@ public:
     // The float to int versions also do a Clamp().
     template <class Out_T, class In_T> static void channel_cast(Out_T& d, const In_T& s)
     {
-        if (element_traits<In_T>::bytes == element_traits<Out_T>::bytes && element_traits<In_T>::normalized == element_traits<Out_T>::normalized &&
-            element_traits<In_T>::floating_point == element_traits<Out_T>::floating_point) // both are same: Simple assign
-            d = static_cast<Out_T>(s);                                                     // static_cast shouldn't be required but gcc complains.
-        else if (!element_traits<In_T>::normalized && !element_traits<Out_T>::normalized)  // neither is normalized: Static cast
+        if constexpr (element_traits<In_T>::bytes == element_traits<Out_T>::bytes && element_traits<In_T>::normalized == element_traits<Out_T>::normalized &&
+                      element_traits<In_T>::floating_point == element_traits<Out_T>::floating_point) // both are same: Simple assign
+            d = static_cast<Out_T>(s);                                                               // static_cast shouldn't be required but gcc complains.
+        else if constexpr (!element_traits<In_T>::normalized && !element_traits<Out_T>::normalized)  // neither is normalized: Static cast
             d = static_cast<Out_T>(s);
-        else if (!element_traits<In_T>::floating_point &&
-                 !element_traits<Out_T>::floating_point) // one is normalized but neither is float: unsigned char -> int, etc.
+        else if constexpr (!element_traits<In_T>::floating_point &&
+                           !element_traits<Out_T>::floating_point) // one is normalized but neither is float: unsigned char -> int, etc.
             d = static_cast<Out_T>(s);
-        else if (element_traits<In_T>::normalized && element_traits<Out_T>::floating_point) // Normalized int to float (non-normalized): Scale
+        else if constexpr (element_traits<In_T>::normalized && element_traits<Out_T>::floating_point) // Normalized int to float (non-normalized): Scale
             d = static_cast<Out_T>(s / static_cast<typename element_traits<Out_T>::FloatMathType>(element_traits<In_T>::one()));
-        else if (element_traits<In_T>::floating_point && element_traits<Out_T>::normalized) // float (non-normalized) to normalized int: Scale and Clamp
+        else if constexpr (element_traits<In_T>::floating_point && element_traits<Out_T>::normalized) // float (non-normalized) to normalized int: Scale and Clamp
             d = static_cast<Out_T>(dmcm::Clamp<In_T>(0, s * static_cast<In_T>(element_traits<Out_T>::one()), static_cast<In_T>(element_traits<Out_T>::one())));
         else {           // both are normalized and integer: Complicated shift. Use specializations.
             ASSERT_R(0); // Should only arrive here with signed ints. Not yet implemented.
@@ -198,9 +198,9 @@ public:
     tPixel(const Elem_T e0, const Elem_T e1, const Elem_T e2, const Elem_T e3 = std::numeric_limits<Elem_T>::max())
     {
         (*this)[0] = e0;
-        if (Chan_ > 1) (*this)[1] = e1;
-        if (Chan_ > 2) (*this)[2] = e2;
-        if (Chan_ > 3) (*this)[3] = e3;
+        if constexpr (Chan_ > 1) (*this)[1] = e1;
+        if constexpr (Chan_ > 2) (*this)[2] = e2;
+        if constexpr (Chan_ > 3) (*this)[3] = e3;
     }
 
     // Construct a tPixel from any other tPixel
@@ -209,10 +209,10 @@ public:
     template <class SrcEl_T, int SrcCh_> tPixel(const tPixel<SrcEl_T, SrcCh_>& s)
     {
         // std::cerr << "tPixel Copy " << SrcCh_ << "->" << Chan_ << std::endl;
-        if (SrcCh_ == 1 || (SrcCh_ == 2 && Chan_ != 2)) {
+        if constexpr (SrcCh_ == 1 || (SrcCh_ == 2 && Chan_ != 2)) {
             for (int i = 0; i < Chan_; i++) channel_cast((*this)[i], s[0]); // Replicate channel 0
         } else {
-            if (SrcCh_ == 3 && Chan_ == 4) {
+            if constexpr (SrcCh_ == 3 && Chan_ == 4) {
                 for (int i = 0; i < 3; i++) channel_cast((*this)[i], s[i]);
                 (*this)[3] = element_traits<Elem_T>::one(); // Set alpha to 1.0.
             } else {
@@ -557,7 +557,7 @@ template <class Elem_T, int Chan_> DMC_DECL std::ostream& operator<<(std::ostrea
 {
     out << '[';
     for (int i = 0; i < Chan_; i++) {
-        if (std::numeric_limits<Elem_T>::digits <= 8)
+        if constexpr (std::numeric_limits<Elem_T>::digits <= 8)
             out << int(p[i]);
         else
             out << p[i];

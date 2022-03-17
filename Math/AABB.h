@@ -49,10 +49,10 @@ template <class Vec_T> struct tAABB {
     {
         return (lo().x <= a.x && lo().y <= a.y && lo().z <= a.z) && (hi().x >= a.x && hi().y >= a.y && hi().z >= a.z);
     }
-    DMC_DECL void grow(const Vec_T& v)
+    DMC_DECL void grow(const Vec_T& p)
     {
-        lo() = min(lo(), v);
-        hi() = max(hi(), v);
+        lo() = min(lo(), p);
+        hi() = max(hi(), p);
     }
 
     DMC_DECL void grow(const tAABB& a)

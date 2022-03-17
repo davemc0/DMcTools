@@ -177,7 +177,7 @@ void Mesh::ImportTriObject(const TriObject& Ob, f3vec::ElType MeshDistFactor, Ve
             continue;
 
         if (v1 == NULL) {
-            if (!(v1 = FindVertex(Ob.verts[i + 1]))) {
+            if (!(v1 = FindVertex(Ob.verts[i + 1]))) { // !!! Should probably be == but not sure.
                 if (VertexType & HAS_ATTRIBS) {
                     v1 = VF();
                     if (DoingColor) static_cast<AVertex*>(v1)->Col = Ob.dcolors[i + 1];
@@ -203,7 +203,7 @@ void Mesh::ImportTriObject(const TriObject& Ob, f3vec::ElType MeshDistFactor, Ve
 
         if (v2 == NULL) v2 = vt;
         if (v2 == NULL) {
-            if (!(v2 = FindVertex(Ob.verts[i + 2]))) {
+            if (!(v2 = FindVertex(Ob.verts[i + 2]))) { // !!! Should probably be == but not sure.
                 if (VertexType & HAS_ATTRIBS) {
                     v2 = VF();
 
@@ -436,11 +436,11 @@ void Mesh::FixFacing()
 }
 
 // Debug: See if all the vertices are inside the box.
-bool Mesh::CheckSize(const Aabb& Box)
+bool Mesh::CheckSize(const Aabb& A)
 {
     bool bad = false;
     for (Vertex* V = Verts; V; V = V->next) {
-        if (!Box.contains(V->V)) {
+        if (!A.contains(V->V)) {
             WARN_D(1, "Vertex out of box: " << V->V);
             bad = true;
         }

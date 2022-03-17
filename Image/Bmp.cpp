@@ -336,7 +336,7 @@ static int loadBMP32(FILE* fp, byte* Pix, unsigned int w, unsigned int h)
 // Returns false on success.
 void ImageLoadSave::LoadBMP(const char* fname)
 {
-    int i, c, c1, rv = 0;
+    int c, c1, rv = 0;
     unsigned int bfSize, bfOffBits, biSize, biWidth, biHeight, biPlanes;
     unsigned int biBitCount, biCompression, biSizeImage, biXPelsPerMeter;
     unsigned int biYPelsPerMeter, biClrUsed, biClrImportant;
@@ -421,7 +421,7 @@ void ImageLoadSave::LoadBMP(const char* fname)
     if (biSize != WIN_OS2_OLD) {
         /* skip ahead to colormap, using biSize */
         c = biSize - 40; /* 40 bytes read from biSize to biClrImportant */
-        for (i = 0; i < c; i++) getc(fp);
+        for (int i = 0; i < c; i++) getc(fp);
 
         bPad = bfOffBits - (biSize + 14);
     }
@@ -429,9 +429,7 @@ void ImageLoadSave::LoadBMP(const char* fname)
     /* load up colormap, if any */
     cmaplen = (biClrUsed) ? biClrUsed : 1 << biBitCount;
     if (biBitCount < 24) {
-        int i;
-
-        for (i = 0; i < cmaplen; i++) {
+        for (int i = 0; i < cmaplen; i++) {
             blu[i] = getc(fp);
             grn[i] = getc(fp);
             red[i] = getc(fp);
@@ -447,7 +445,7 @@ void ImageLoadSave::LoadBMP(const char* fname)
 #ifdef DMC_DEBUG
         {
             fprintf(stderr, "LoadBMP: BMP colormap: (RGB order)\n");
-            for (i = 0; i < cmaplen; i++) { fprintf(stderr, "%02x%02x%02x ", red[i], grn[i], blu[i]); }
+            for (int i = 0; i < cmaplen; i++) { fprintf(stderr, "%02x%02x%02x ", red[i], grn[i], blu[i]); }
             fprintf(stderr, "\n\n");
         }
 #endif
@@ -509,14 +507,14 @@ void ImageLoadSave::LoadBMP(const char* fname)
             chan = 1;
             // Convert color map image to monochrome.
             // Replace the palette indices with the palette entries.
-            for (i = 0; i < size(); i++) { Pix[i] = red[Pix[i]]; }
+            for (int i = 0; i < size(); i++) { Pix[i] = red[Pix[i]]; }
         } else {
             // Convert color map image to 24 bit.
             // Replace the palette indices with the palette entries.
             // The data is in Pix, but is one-third the right size.
             // Work backward to not overwrite.
             unsigned char* tmp = Pix;
-            for (i = size() - 1; i; i--) {
+            for (int i = size() - 1; i; i--) {
                 Pix[i * 3 + 0] = red[tmp[i]];
                 Pix[i * 3 + 1] = grn[tmp[i]];
                 Pix[i * 3 + 2] = blu[tmp[i]];

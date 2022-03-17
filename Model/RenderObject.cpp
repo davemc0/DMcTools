@@ -51,35 +51,28 @@ void RenderObject::RebuildBBox()
 }
 
 // Transform every vertex in the model.
-// Transform every normal and tangent by using ProjectDirection, which is not
-// the inverse transpose, but merely the upper 3x3.
+// Transform every normal and tangent by using ProjectDirection, which is not the inverse transpose, but merely the upper 3x3.
 void RenderObject::ApplyTransform(Matrix44<f3vec>& Mat)
 {
     ASSERT_R(0);
-#if 0
-    Box.reset();
+    if (0) {
+        Box.reset();
 
-    int i;
-    for(i=0; i<verts.size(); i++) {
-        verts[i] = Mat * verts[i];
-        Box += verts[i];
-    }
+        for (int i = 0; i < verts.size(); i++) {
+            verts[i] = Mat * verts[i];
+            Box.grow(verts[i]);
+        }
 
-    for(i=0; i<normals.size(); i++) {
-        normals[i] = Mat.ProjectDirection(normals[i]);
-    }
+        for (int i = 0; i < normals.size(); i++) { normals[i] = Mat.ProjectDirection(normals[i]); }
 
-    // XXX Would it be better to recompute these?
-    for(i=0; i<tangents.size(); i++) {
-        tangents[i] = Mat.ProjectDirection(tangents[i]);
+        // XXX Would it be better to recompute these?
+        for (int i = 0; i < tangents.size(); i++) { tangents[i] = Mat.ProjectDirection(tangents[i]); }
     }
-#endif
 }
 
 void RenderObject::ApplyTextureTransform(Matrix44<f3vec>& Mat)
 {
     ASSERT_R(VertexType & OBJ_TEXCOORDS);
 
-    int i;
-    for (i = 0; i < (int)verts.size(); i++) { texcoords[i] = Mat * texcoords[i]; }
+    for (int i = 0; i < (int)verts.size(); i++) { texcoords[i] = Mat * texcoords[i]; }
 }

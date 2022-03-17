@@ -246,7 +246,7 @@ DMC_DECL bool GetFace(char* OBuf, std::vector<f3vec>& tverts, std::vector<f3vec>
 }; // namespace
 
 // Returns false on success.
-bool Model::LoadOBJ(const char* fname, const unsigned int RequiredAttribs, const unsigned int AcceptedAttribs)
+bool Model::LoadOBJ(const char* fname, const unsigned int, const unsigned int)
 {
     FILE* f = fopen(fname, "r");
     ASSERT_RM(f, "Error opening input file");

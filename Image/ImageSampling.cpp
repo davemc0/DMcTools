@@ -114,9 +114,7 @@ template <class Image_T> struct sample4 {
         typedef tPixel<AccEl_T, Pixel_T::Chan> AccPix_T;
 
         int xl = int(x) - 1;
-        int xh = xl + 4;
         int yl = int(y) - 1;
-        int yh = yl + 4;
 
         AccEl_T Cdx0 = CubicFilterF(x - float(xl));
         AccEl_T Cdx1 = CubicFilterN(x - float(xl + 1));

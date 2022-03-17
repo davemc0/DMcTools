@@ -94,7 +94,7 @@ struct TriObject : public BaseObject {
         if (PrimType == L_TRIANGLES)
             return verts.size() / 3u;
         else
-            return -1;
+            return (size_t)-1;
     }
 
     virtual size_t VertexCount() const { return verts.size(); }

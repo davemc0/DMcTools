@@ -252,4 +252,4 @@ void TriObject::ApplyTransform(Matrix44<f3vec>& Mat)
     for (i = 0; i < (int)tangents.size(); i++) { tangents[i] = Mat.ProjectDirection(tangents[i]); }
 }
 
-void TriObject::ApplyTextureTransform(Matrix44<f3vec>& Mat) { ASSERT_R(0); }
+void TriObject::ApplyTextureTransform(Matrix44<f3vec>&) { ASSERT_R(0); }
