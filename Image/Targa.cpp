@@ -286,7 +286,7 @@ static int decode_rgb_rle32(const unsigned char* src0, unsigned char* dest0, con
     return (0);
 }
 
-void ImageLoadSave::LoadTGA(const char* fname)
+void ImageLoadSave::LoadTGA(const std::string& fname)
 {
     // Read whole file "fname" into array.
     std::ifstream InFile(fname, std::ios::in | std::ios::binary);
@@ -497,13 +497,13 @@ static int encode_rle(const unsigned char* src0, unsigned char* dest, const int 
     return dp;
 }
 
-void ImageLoadSave::SaveTGA(const char* fname) const
+void ImageLoadSave::SaveTGA(const std::string& fname) const
 {
     if (wid > 65535 || wid <= 0 || hgt > 65535 || hgt <= 0) {
         throw DMcError("Write_targa_file " + std::to_string(wid) + "x" + std::to_string(hgt) + " too big.");
     }
 
-    FILE* ft = fopen(fname, "wb");
+    FILE* ft = fopen(fname.c_str(), "wb");
     if (ft == NULL) { throw DMcError(std::string("Failed to open file `") + fname + "' for writing."); }
 
     TGA_Header header;

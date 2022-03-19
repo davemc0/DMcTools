@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////
 // MiscMath.h - Assorted mathematical functions
 //
-// Changes Copyright David K. McAllister, 1998-2007.
+// Changes Copyright David K. McAllister, 1998-2007, 2022.
 
 #pragma once
 
@@ -61,42 +61,25 @@ DMC_DECL int Abs(const int i)
 #endif
 }
 
-DMC_DECL float CopySign(float num, float sign)
-{
-#if 0
-        // If it can't find an intrinsic _copysign for single-precision.
-        // This one is much faster than casting and using the double-precision implementation.
-        union {
-            float f;
-            unsigned int i;
-        } v1, v2, v3;
-
-        v1.f = num;
-        v2.f = sign;
-        v3.i = (v1.i & 0x7fffffff) | (v2.i & 0x80000000);
-
-        return v3.f;
-#else
-    return _copysignf(num, sign);
-    // return static_cast<float>(_copysign(static_cast<float>(x), static_cast<float>(y)));
-#endif
-}
-
 // Three Values
 template <class T> DMC_DECL T Min(const T d1, const T d2, const T d3) { return d1 < d2 ? (d1 < d3 ? d1 : d3) : (d2 < d3 ? d2 : d3); }
 template <class T> DMC_DECL T Max(const T d1, const T d2, const T d3) { return d1 > d2 ? (d1 > d3 ? d1 : d3) : (d2 > d3 ? d2 : d3); }
 
-// Clamp a number to a specific range
-template <class T> DMC_DECL T Clamp(const T minv, const T d, const T maxv = std::numeric_limits<T>::max()) { return d <= minv ? minv : (d >= maxv ? maxv : d); }
-
-// Clamp a number to 0..1
-template <class T> DMC_DECL T Saturate(const T d) { return d <= 0 ? 0 : (d >= 1 ? 1 : d); }
+// DMC_DECL float fastExp2(int a) { return uintAsFloat((uint32_t)(std::min(std::max(a + 127, 1), 254) << 23)); }
+DMC_DECL float fastMax(float a, float b) { return (a + b + abs(a - b)) * 0.5f; }
+DMC_DECL float fastMin(float a, float b) { return (a + b - abs(a - b)) * 0.5f; }
 
 template <class T> DMC_DECL T Round(const T d)
 {
     // Round appears to be missing in VS 2012 but is in 2013.
     return floor(d + static_cast<T>(0.5));
 }
+
+// Clamp a number to a specific range
+template <class T> DMC_DECL T Clamp(const T minv, const T d, const T maxv = std::numeric_limits<T>::max()) { return d <= minv ? minv : (d >= maxv ? maxv : d); }
+
+// Clamp a number to 0..1, i.e. a linear ramp on 0..1
+template <class T> DMC_DECL T Saturate(const T d) { return d <= 0 ? 0 : (d >= 1 ? 1 : d); }
 
 // Cubic Hermite Interpolation
 // Generate a step between minv and maxv.
@@ -119,24 +102,6 @@ template <class T> DMC_DECL T SmoothStep(const T d, const T minv, const T maxv)
 
 // Linear Interpolation
 template <class T> DMC_DECL T LinearInterp(const T d1, const T d2, const T weight) { return (d2 - d1) * weight + d1; }
-
-template <class T> DMC_DECL bool isNaN(const T d)
-{
-#ifdef DMC_MACHINE_win
-    return _isnan(d) != 0;
-#else
-    return isnan(d) != 0;
-#endif
-}
-
-template <class T> DMC_DECL bool isFinite(const T d)
-{
-#ifdef DMC_MACHINE_win
-    return _finite(d) != 0;
-#else
-    return finite(d) != 0;
-#endif
-}
 
 DMC_DECL double Sqrt(const double& v) { return sqrt(v); }
 DMC_DECL float Sqrt(const float& v) { return sqrtf(v); }
@@ -161,8 +126,6 @@ DMC_DECL float Cbrt(const float d)
 #endif
 }
 
-DMC_DECL double Exp10(const double p) { return pow(10.0, p); }
-
 DMC_DECL double Sqr(const double x) { return x * x; }
 DMC_DECL float Sqr(const float x) { return x * x; }
 DMC_DECL int Sqr(const int x) { return x * x; }
@@ -172,8 +135,6 @@ DMC_DECL double Cube(const double x) { return x * x * x; }
 DMC_DECL float Cube(const float x) { return x * x * x; }
 DMC_DECL int Cube(const int x) { return x * x * x; }
 DMC_DECL unsigned int Cube(const unsigned int x) { return x * x * x; }
-
-DMC_DECL bool IsPow2(const int x) { return (x & (x - 1)) == 0; }
 
 DMC_DECL double DtoR(const double d) { return d * static_cast<double>(M_PI) / static_cast<double>(180); }
 DMC_DECL float DtoR(const float d) { return d * static_cast<float>(M_PI) / static_cast<float>(180); }

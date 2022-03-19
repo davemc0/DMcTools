@@ -92,10 +92,10 @@ public:
     virtual void ownPix_virtual(const bool ownPix_) = 0;
 
     // Load the file, convert its type to this one, and fill this tImage
-    virtual void Load(const char* fname, LoadSaveParams SP = LoadSaveParams()) = 0;
+    virtual void Load(const std::string& fname, LoadSaveParams SP = LoadSaveParams()) = 0;
 
     // Save the image to a file
-    virtual void Save(const char* fname, LoadSaveParams SP = LoadSaveParams()) const = 0; //{ ASSERT_RM(0, "Save not defined for this tImage type."); }
+    virtual void Save(const std::string& fname, LoadSaveParams SP = LoadSaveParams()) const = 0; //{ ASSERT_RM(0, "Save not defined for this tImage type."); }
 
     // Make a copy of the actual image and return a pointer to its baseImage.
     virtual baseImage* Copy() const = 0;
@@ -104,7 +104,7 @@ public:
 // Load an image file into whatever kind of tImage is most appropriate.
 // Returns a pointer to the baseImage. dynamic_cast will tell you what kind it really is.
 // Throws a DMcError on failure.
-baseImage* LoadtImage(const char* fname, LoadSaveParams SP = LoadSaveParams());
+baseImage* LoadtImage(const std::string& fname, LoadSaveParams SP = LoadSaveParams());
 
 template <class Pixel_T> class tImage : public baseImage {
     Pixel_T* Pix; // The actual pixels.
@@ -135,7 +135,7 @@ public:
     }
 
     // Construct an image from a file.
-    tImage(const char* fname)
+    tImage(const std::string& fname)
     {
         Pix = NULL;
         wid = hgt = 0;
@@ -504,8 +504,8 @@ public:
         ASSERT_D(size() == 0 || Pix != NULL);
     }
 
-    void Load(const char* fname, LoadSaveParams SP = LoadSaveParams());       // Load an image from a file.
-    void Save(const char* fname, LoadSaveParams SP = LoadSaveParams()) const; // Detects type from filename; won't modify this tImage.
+    void Load(const std::string& fname, LoadSaveParams SP = LoadSaveParams());       // Load an image from a file.
+    void Save(const std::string& fname, LoadSaveParams SP = LoadSaveParams()) const; // Detects type from filename; won't modify this tImage.
 
     //////////////////////////////////////////////////////////////////////
     // Image Operators

@@ -54,7 +54,7 @@ const int TGA_ = 0x00616774;
 const int TIF_ = 0x00666974;
 
 // Return an int whose bytes equal the characters of the extension string
-int GetExtensionVal(const char* fname)
+int GetExtensionVal(const std::string& fname)
 {
     char* ext = GetFileExtension(fname);
     ToLower(ext);
@@ -78,12 +78,12 @@ ImageLoadSave ::~ImageLoadSave()
 // The data must be deleted by baseImg.
 // baseImg must also be deleted by the caller (tLoad or LoadtImage).
 // Pix and baseImg will be NULL on error.
-void ImageLoadSave::Load(const char* fname)
+void ImageLoadSave::Load(const std::string& fname)
 {
-    ASSERT_R(fname);
+    ASSERT_R(!fname.empty());
     ASSERT_R(Pix == NULL && wid == 0 && hgt == 0 && chan == 0);
 
-    int exts = GetExtensionVal(fname);
+    int exts = GetExtensionVal(fname.c_str());
 
     std::ifstream InFile(fname, std::ios::in | std::ios::binary);
     if (!InFile.is_open()) throw DMcError("Failed to open file '" + std::string(fname) + "'");
@@ -172,10 +172,10 @@ unsigned char* ImageLoadSave::ImageAlloc()
 
 // Choose a saver based strictly on extension.
 // The individual savers may look at chan, is_uint, etc. to decide a format.
-void ImageLoadSave::Save(const char* fname_) const
+void ImageLoadSave::Save(const std::string& fname_) const
 {
-    ASSERT_R(fname_);
-    char* fname = _strdup(fname_);
+    ASSERT_R(!fname_.empty());
+    char* fname = _strdup(fname_.c_str());
     int exts = GetExtensionVal(fname);
 
     char* outfname3 = strchr(fname, '\n');
@@ -263,7 +263,7 @@ struct rasterfile {
 // compatibility, code reading rasterfiles must be prepared to compute the
 // true length from the width, height, and depth fields.
 
-void ImageLoadSave::LoadRas(const char* fname)
+void ImageLoadSave::LoadRas(const std::string& fname)
 {
     // Read a Sun Raster File image.
     std::ifstream InFile(fname, std::ios::in | std::ios::binary);
@@ -345,7 +345,7 @@ void ImageLoadSave::LoadRas(const char* fname)
 // PPM File Format
 
 // PAM is four-channel PPM. PFM is one- or three-channel float. PGM is one-channel uchar.
-void ImageLoadSave::LoadPPM(const char* fname)
+void ImageLoadSave::LoadPPM(const std::string& fname)
 {
     std::ifstream InFile(fname, std::ios::in | std::ios::binary);
     if (!InFile.is_open()) throw DMcError("Could not open file for LoadPPM: " + std::string(fname));
@@ -414,9 +414,9 @@ void ImageLoadSave::LoadPPM(const char* fname)
     if (SP.verbose) std::cerr << "Loaded a PPM image.\n";
 }
 
-void ImageLoadSave::SavePPM(const char* fname) const
+void ImageLoadSave::SavePPM(const std::string& fname) const
 {
-    ASSERT_RM(fname, "NULL fname");
+    ASSERT_RM(fname.c_str(), "NULL fname");
     if (Pix == NULL || chan < 1 || wid < 1 || hgt < 1) { throw DMcError("PPM image is not defined. Not saving."); }
 
     ASSERT_RM(!(chan < 1 || chan > 4), "Can't save a X channel image as a PPM.");
@@ -508,7 +508,7 @@ void RawImageGetRow(rawImageRec* raw, unsigned char* buf, int y, int z)
 }
 }; // namespace
 
-void ImageLoadSave::LoadRGB(const char* fname)
+void ImageLoadSave::LoadRGB(const std::string& fname)
 {
     rawImageRec raw;
     unsigned char *tmpR, *tmpG, *tmpB;
@@ -516,7 +516,7 @@ void ImageLoadSave::LoadRGB(const char* fname)
     bool swapFlag = AmLittleEndian();
 
     // Open the file
-    if ((raw.file = fopen(fname, "rb")) == NULL) throw DMcError("LoadRGB() failed: can't open image file " + std::string(fname));
+    if ((raw.file = fopen(fname.c_str(), "rb")) == NULL) throw DMcError("LoadRGB() failed: can't open image file " + std::string(fname));
 
     fread(&raw, 1, 104, raw.file);
 
@@ -592,9 +592,9 @@ void ImageLoadSave::LoadRGB(const char* fname)
 //////////////////////////////////////////////////////
 // JPEG File Format
 
-void ImageLoadSave::LoadJPEG(const char* fname)
+void ImageLoadSave::LoadJPEG(const std::string& fname)
 {
-    unsigned char* image = stbi_load(fname, &wid, &hgt, &chan, STBI_default);
+    unsigned char* image = stbi_load(fname.c_str(), &wid, &hgt, &chan, STBI_default);
     if (!image) throw DMcError("Can't open JPEG file " + std::string(stbi_failure_reason()) + std::string(fname));
 
     is_uint = false;
@@ -604,13 +604,13 @@ void ImageLoadSave::LoadJPEG(const char* fname)
     stbi_image_free(image);
 }
 
-void ImageLoadSave::SaveJPEG(const char* fname) const
+void ImageLoadSave::SaveJPEG(const std::string& fname) const
 {
     if (Pix == NULL || chan < 1 || wid < 1 || hgt < 1) throw DMcError("Image is not defined. Not saving.");
-    if (!fname || !fname[0]) throw DMcError("SaveJPEG: Filename not specified. Not saving.");
+    if (fname.empty()) throw DMcError("SaveJPEG: Filename not specified. Not saving.");
     // Note: A 2 or 4 channel image will have the alpha channel stripped out by the JPEG saver.
 
-    int success = stbi_write_jpg(fname, wid, hgt, chan, Pix, 93);
+    int success = stbi_write_jpg(fname.c_str(), wid, hgt, chan, Pix, 93);
     if (!success) throw DMcError("SaveJPEG() failed: can't write to " + std::string(fname));
 }
 
@@ -630,7 +630,7 @@ void TiffErrHand(const char* module, const char* fmt, va_list ap)
     throw DMcError(string(module) + string(Err));
 }
 
-void ImageLoadSave::LoadTIFF(const char* fname)
+void ImageLoadSave::LoadTIFF(const std::string& fname)
 {
     TIFF* tif; // Tif file handler
 
@@ -693,7 +693,7 @@ void ImageLoadSave::LoadTIFF(const char* fname)
 }
 
 // Handles 1 through 4 channels, uchar, ushort, uint, or float.
-void ImageLoadSave::SaveTIFF(const char* fname) const
+void ImageLoadSave::SaveTIFF(const std::string& fname) const
 {
     if (Pix == NULL || chan < 1 || wid < 1 || hgt < 1) throw DMcError("Image is not defined. Not saving.");
 
@@ -742,9 +742,9 @@ void ImageLoadSave::SaveTIFF(const char* fname) const
 
 #else /* DMC_USE_TIFF */
 
-void ImageLoadSave::LoadTIFF(const char* fname) { throw DMcError("TIFF Support not compiled in."); }
+void ImageLoadSave::LoadTIFF(const std::string& fname) { throw DMcError("TIFF Support not compiled in."); }
 
-void ImageLoadSave::SaveTIFF(const char* fname) const { throw DMcError("TIFF Support not compiled in."); }
+void ImageLoadSave::SaveTIFF(const std::string& fname) const { throw DMcError("TIFF Support not compiled in."); }
 
 #endif /* DMC_USE_TIFF */
 
@@ -752,9 +752,9 @@ void ImageLoadSave::SaveTIFF(const char* fname) const { throw DMcError("TIFF Sup
 // PNG File Format
 
 // Read a PNG file.
-void ImageLoadSave::LoadPNG(const char* fname)
+void ImageLoadSave::LoadPNG(const std::string& fname)
 {
-    unsigned char* image = stbi_load(fname, &wid, &hgt, &chan, STBI_default);
+    unsigned char* image = stbi_load(fname.c_str(), &wid, &hgt, &chan, STBI_default);
     if (!image) throw DMcError("Can't open PNG file " + std::string(stbi_failure_reason()) + std::string(fname));
 
     is_uint = false;
@@ -765,11 +765,11 @@ void ImageLoadSave::LoadPNG(const char* fname)
 }
 
 // Write a PNG file
-void ImageLoadSave::SavePNG(const char* fname) const
+void ImageLoadSave::SavePNG(const std::string& fname) const
 {
     if (Pix == NULL || chan < 1 || wid < 1 || hgt < 1) throw DMcError("Image is not defined. Not saving.");
-    if (!fname || !fname[0]) throw DMcError("SavePNG: Filename not specified. Not saving.");
-    int success = stbi_write_png(fname, wid, hgt, chan, Pix, wid * chan);
+    if (fname.empty()) throw DMcError("SavePNG: Filename not specified. Not saving.");
+    int success = stbi_write_png(fname.c_str(), wid, hgt, chan, Pix, wid * chan);
     if (!success) throw DMcError("SavePNG() failed: " + std::string(fname));
 }
 
@@ -779,7 +779,7 @@ void ImageLoadSave::SavePNG(const char* fname) const
 #ifdef DMC_USE_MAT
 
 // Read a MAT file.
-void ImageLoadSave::LoadMAT(const char* fname)
+void ImageLoadSave::LoadMAT(const std::string& fname)
 {
     MATFile* pmat;
     mxArray* pa;
@@ -803,7 +803,7 @@ void ImageLoadSave::LoadMAT(const char* fname)
 }
 
 // Write a MAT file
-void ImageLoadSave::SaveMAT(const char* fname) const
+void ImageLoadSave::SaveMAT(const std::string& fname) const
 {
     if (Pix == NULL || chan < 1 || wid < 1 || hgt < 1)  throw DMcError("MAT Image is not defined. Not saving.)";
     if(!fname || !fname[0])  throw DMcError("MAT Filename not specified. Not saving.");
@@ -856,9 +856,9 @@ void ImageLoadSave::SaveMAT(const char* fname) const
 
 #else /* DMC_USE_MAT */
 
-void ImageLoadSave::LoadMAT(const char* fname) { throw DMcError("MAT Support not compiled in."); }
+void ImageLoadSave::LoadMAT(const std::string& fname) { throw DMcError("MAT Support not compiled in."); }
 
-void ImageLoadSave::SaveMAT(const char* fname) const { throw DMcError("MAT Support not compiled in."); }
+void ImageLoadSave::SaveMAT(const std::string& fname) const { throw DMcError("MAT Support not compiled in."); }
 
 #endif /* DMC_USE_MAT */
 
@@ -867,9 +867,9 @@ void ImageLoadSave::SaveMAT(const char* fname) const { throw DMcError("MAT Suppo
 
 // Currently this loads and saves f3Images, not rgbeImages.
 // I will add this later.
-void ImageLoadSave::LoadRGBE(const char* fname)
+void ImageLoadSave::LoadRGBE(const std::string& fname)
 {
-    FILE* filep = fopen(fname, "rb");
+    FILE* filep = fopen(fname.c_str(), "rb");
     if (filep == NULL) throw DMcError("LoadRGBE: Unable to load HDR: " + std::string(fname));
 
     int i, j, row;
@@ -917,12 +917,12 @@ void ImageLoadSave::LoadRGBE(const char* fname)
     delete[] helpit;
 }
 
-void ImageLoadSave::SaveRGBE(const char* fname) const
+void ImageLoadSave::SaveRGBE(const std::string& fname) const
 {
     ASSERT_R(is_float && chan == 3);
     ASSERT_R(Pix);
 
-    FILE* filep = fopen(fname, "wb");
+    FILE* filep = fopen(fname.c_str(), "wb");
     if (filep == NULL) throw DMcError("SaveRGBE: Unable to save HDR: " + std::string(fname));
 
     /*Allocate enough space for one row of COLOR at a time */
@@ -967,7 +967,7 @@ void ImageLoadSave::SaveRGBE(const char* fname) const
     if (SP.verbose) std::cerr << "Wrote out HDR file with exposure " << exposure << std::endl;
 }
 
-template <class Image_T> const baseImage* ImageLoadSave::ConvertToSaveFormat(const char* fname, const Image_T* srcImg)
+template <class Image_T> const baseImage* ImageLoadSave::ConvertToSaveFormat(const std::string& fname, const Image_T* srcImg)
 {
     const baseImage* outImg = static_cast<const baseImage*>(srcImg);
 
@@ -1012,23 +1012,23 @@ template <class Image_T> const baseImage* ImageLoadSave::ConvertToSaveFormat(con
 
     return outImg;
 }
-template const baseImage* ImageLoadSave::ConvertToSaveFormat(const char* fname, const h1Image* srcImg);
-template const baseImage* ImageLoadSave::ConvertToSaveFormat(const char* fname, const h2Image* srcImg);
-template const baseImage* ImageLoadSave::ConvertToSaveFormat(const char* fname, const h3Image* srcImg);
-template const baseImage* ImageLoadSave::ConvertToSaveFormat(const char* fname, const h4Image* srcImg);
-template const baseImage* ImageLoadSave::ConvertToSaveFormat(const char* fname, const f1Image* srcImg);
-template const baseImage* ImageLoadSave::ConvertToSaveFormat(const char* fname, const f2Image* srcImg);
-template const baseImage* ImageLoadSave::ConvertToSaveFormat(const char* fname, const f3Image* srcImg);
-template const baseImage* ImageLoadSave::ConvertToSaveFormat(const char* fname, const f4Image* srcImg);
-template const baseImage* ImageLoadSave::ConvertToSaveFormat(const char* fname, const uc1Image* srcImg);
-template const baseImage* ImageLoadSave::ConvertToSaveFormat(const char* fname, const uc2Image* srcImg);
-template const baseImage* ImageLoadSave::ConvertToSaveFormat(const char* fname, const uc3Image* srcImg);
-template const baseImage* ImageLoadSave::ConvertToSaveFormat(const char* fname, const uc4Image* srcImg);
-template const baseImage* ImageLoadSave::ConvertToSaveFormat(const char* fname, const us1Image* srcImg);
-template const baseImage* ImageLoadSave::ConvertToSaveFormat(const char* fname, const us2Image* srcImg);
-template const baseImage* ImageLoadSave::ConvertToSaveFormat(const char* fname, const us3Image* srcImg);
-template const baseImage* ImageLoadSave::ConvertToSaveFormat(const char* fname, const us4Image* srcImg);
-template const baseImage* ImageLoadSave::ConvertToSaveFormat(const char* fname, const ui1Image* srcImg);
-template const baseImage* ImageLoadSave::ConvertToSaveFormat(const char* fname, const ui2Image* srcImg);
-template const baseImage* ImageLoadSave::ConvertToSaveFormat(const char* fname, const ui3Image* srcImg);
-template const baseImage* ImageLoadSave::ConvertToSaveFormat(const char* fname, const ui4Image* srcImg);
+template const baseImage* ImageLoadSave::ConvertToSaveFormat(const std::string& fname, const h1Image* srcImg);
+template const baseImage* ImageLoadSave::ConvertToSaveFormat(const std::string& fname, const h2Image* srcImg);
+template const baseImage* ImageLoadSave::ConvertToSaveFormat(const std::string& fname, const h3Image* srcImg);
+template const baseImage* ImageLoadSave::ConvertToSaveFormat(const std::string& fname, const h4Image* srcImg);
+template const baseImage* ImageLoadSave::ConvertToSaveFormat(const std::string& fname, const f1Image* srcImg);
+template const baseImage* ImageLoadSave::ConvertToSaveFormat(const std::string& fname, const f2Image* srcImg);
+template const baseImage* ImageLoadSave::ConvertToSaveFormat(const std::string& fname, const f3Image* srcImg);
+template const baseImage* ImageLoadSave::ConvertToSaveFormat(const std::string& fname, const f4Image* srcImg);
+template const baseImage* ImageLoadSave::ConvertToSaveFormat(const std::string& fname, const uc1Image* srcImg);
+template const baseImage* ImageLoadSave::ConvertToSaveFormat(const std::string& fname, const uc2Image* srcImg);
+template const baseImage* ImageLoadSave::ConvertToSaveFormat(const std::string& fname, const uc3Image* srcImg);
+template const baseImage* ImageLoadSave::ConvertToSaveFormat(const std::string& fname, const uc4Image* srcImg);
+template const baseImage* ImageLoadSave::ConvertToSaveFormat(const std::string& fname, const us1Image* srcImg);
+template const baseImage* ImageLoadSave::ConvertToSaveFormat(const std::string& fname, const us2Image* srcImg);
+template const baseImage* ImageLoadSave::ConvertToSaveFormat(const std::string& fname, const us3Image* srcImg);
+template const baseImage* ImageLoadSave::ConvertToSaveFormat(const std::string& fname, const us4Image* srcImg);
+template const baseImage* ImageLoadSave::ConvertToSaveFormat(const std::string& fname, const ui1Image* srcImg);
+template const baseImage* ImageLoadSave::ConvertToSaveFormat(const std::string& fname, const ui2Image* srcImg);
+template const baseImage* ImageLoadSave::ConvertToSaveFormat(const std::string& fname, const ui3Image* srcImg);
+template const baseImage* ImageLoadSave::ConvertToSaveFormat(const std::string& fname, const ui4Image* srcImg);

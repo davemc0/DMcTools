@@ -7,6 +7,7 @@
 #pragma once
 
 #include "Half/half.h"
+#include "Math/BinaryRep.h"
 #include "Math/MiscMath.h"
 #include "Util/Assert.h"
 
@@ -548,7 +549,7 @@ template <class Elem_T, int Chan_> DMC_DECL typename tPixel<Elem_T, Chan_>::Math
 template <class Elem_T, int Chan_> DMC_DECL bool isFinite(const tPixel<Elem_T, Chan_>& p)
 {
     for (int i = 0; i < Chan_; i++)
-        if (!dmcm::isFinite(p[i]) || dmcm::isNaN(p[i])) return false;
+        if (!isFinite(p[i]) || isNaN(p[i])) return false;
     return true;
 }
 

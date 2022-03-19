@@ -43,7 +43,10 @@ static int EGApalette[16][3] = {{0, 0, 0},       {0, 0, 128},     {0, 128, 0},  
 /*****************************/
 
 // Info structure filled in by ReadGIF()
-struct GIFInfo {
+class GIFReader {
+public:
+    GIFReader(const std::string& fname_) : fname(fname_) {}
+
     unsigned char* pic; // Image data
     int chan;
     unsigned char r[256], g[256], b[256]; // Colormap
@@ -72,7 +75,7 @@ struct GIFInfo {
         Misc,                     // Miscellaneous bits (interlace, local cmap)
         filesize;                 // Length of the input file.
 
-    const char* fname;
+    const std::string& fname;
 
     bool Interlace, HasColormap, GrayColormap, WantPaletteInds;
 
@@ -399,7 +402,6 @@ struct GIFInfo {
                 memset((char*)pic8 + npixels, 0, (size_t)(maxpixels - npixels));
         }
 
-        // Fill in the GIFInfo structure */
         pic = pic8;
 
         return 1;
@@ -408,7 +410,7 @@ struct GIFInfo {
     //////////////////////////////////////////////////////////////////////
     int ReadGIF()
     {
-        // Returns '1' if successful
+        // Returns 1 if successful
 
         byte ch, *origptr;
         int block;
@@ -422,7 +424,7 @@ struct GIFInfo {
 
         pic = NULL;
 
-        FILE* fp = fopen(fname, "rb");
+        FILE* fp = fopen(fname.c_str(), "rb");
         if (!fp) return (gifError("can't open file"));
 
         // Find the size of the file
@@ -726,11 +728,10 @@ struct GIFInfo {
 };
 
 //////////////////////////////////////////////////////////////////////
-void ImageLoadSave::LoadGIF(const char* fname)
+void ImageLoadSave::LoadGIF(const std::string& fname)
 {
-    GIFInfo gi;
+    GIFReader gi(fname);
 
-    gi.fname = fname;
     gi.WantPaletteInds = SP.wantPaletteInds;
     int ret = gi.ReadGIF();
 
@@ -757,7 +758,7 @@ void ImageLoadSave::LoadGIF(const char* fname)
 static unsigned long masks[] = {0x0000, 0x0001, 0x0003, 0x0007, 0x000F, 0x001F, 0x003F, 0x007F, 0x00FF,
                                 0x01FF, 0x03FF, 0x07FF, 0x0FFF, 0x1FFF, 0x3FFF, 0x7FFF, 0xFFFF};
 
-struct GIFWriter {
+class GIFWriter {
     int init_bits;
     int EOFCode;
 
@@ -1036,12 +1037,13 @@ struct GIFWriter {
         fputc((w >> 8) & 0xff, fp_);
     }
 
+public:
     //////////////////////////////////////////////////////////////////////
-    void WriteGIF(const char* fname, int wid, int hgt, byte* Pix, bool isOneChan, LoadSaveParams SP)
+    void WriteGIF(const std::string& fname, int wid, int hgt, byte* Pix, bool isOneChan, LoadSaveParams SP)
     {
         int size = wid * hgt;
 
-        if ((fp = fopen(fname, "wb")) == 0) throw DMcError("WriteGIF() failed: can't write GIF image file " + std::string(fname));
+        if ((fp = fopen(fname.c_str(), "wb")) == 0) throw DMcError("WriteGIF() failed: can't write GIF image file " + std::string(fname));
 
         int ColorMapSize, InitCodeSize, BitsPerPixel;
 
@@ -1136,7 +1138,7 @@ struct GIFWriter {
     }
 };
 
-void ImageLoadSave::SaveGIF(const char* fname) const
+void ImageLoadSave::SaveGIF(const std::string& fname) const
 {
     if (Pix == NULL || chan < 1 || wid < 1 || hgt < 1) { throw DMcError("Image is empty. Not saving."); }
 

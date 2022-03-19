@@ -45,33 +45,33 @@ public:
         is_float = is_float_;
     }
 
-    void Load(const char* fname);
-    void Save(const char* fname) const;
+    void Load(const std::string& fname);
+    void Save(const std::string& fname) const;
 
-    template <class Image_T> const baseImage* ConvertToSaveFormat(const char* fname, const Image_T* srcImg);
+    template <class Image_T> const baseImage* ConvertToSaveFormat(const std::string& fname, const Image_T* srcImg);
 
 private:
-    void LoadBMP(const char* fname);
-    void LoadGIF(const char* fname);
-    void LoadJPEG(const char* fname);
-    void LoadMAT(const char* fname);
-    void LoadPNG(const char* fname);
-    void LoadPPM(const char* fname);
-    void LoadRGB(const char* fname);
-    void LoadRGBE(const char* fname);
-    void LoadRas(const char* fname);
-    void LoadTGA(const char* fname);
-    void LoadTIFF(const char* fname);
+    void LoadBMP(const std::string& fname);
+    void LoadGIF(const std::string& fname);
+    void LoadJPEG(const std::string& fname);
+    void LoadMAT(const std::string& fname);
+    void LoadPNG(const std::string& fname);
+    void LoadPPM(const std::string& fname);
+    void LoadRGB(const std::string& fname);
+    void LoadRGBE(const std::string& fname);
+    void LoadRas(const std::string& fname);
+    void LoadTGA(const std::string& fname);
+    void LoadTIFF(const std::string& fname);
 
-    void SaveBMP(const char* fname) const;
-    void SaveGIF(const char* fname) const;
-    void SaveJPEG(const char* fname) const;
-    void SaveMAT(const char* fname) const;
-    void SavePNG(const char* fname) const;
-    void SavePPM(const char* fname) const;
-    void SaveRGBE(const char* fname) const;
-    void SaveTGA(const char* fname) const;
-    void SaveTIFF(const char* fname) const;
+    void SaveBMP(const std::string& fname) const;
+    void SaveGIF(const std::string& fname) const;
+    void SaveJPEG(const std::string& fname) const;
+    void SaveMAT(const std::string& fname) const;
+    void SavePNG(const std::string& fname) const;
+    void SavePPM(const std::string& fname) const;
+    void SaveRGBE(const std::string& fname) const;
+    void SaveTGA(const std::string& fname) const;
+    void SaveTIFF(const std::string& fname) const;
 
     // Called by Load*(). It creates a tImage that matches the is_* and chan args. Stores the pointer to the tImage in baseImg.
     unsigned char* ImageAlloc();

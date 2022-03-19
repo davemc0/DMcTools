@@ -21,7 +21,7 @@ typedef unsigned char byte;
 #define FERROR(fp) (ferror(fp) || feof(fp))
 
 /*******************************************/
-static DMC_DECL void bmpError(const char* fname, const char* st) { throw DMcError("BMP error: '" + std::string(fname) + "': " + st); }
+static DMC_DECL void bmpError(const std::string& fname, const char* st) { throw DMcError("BMP error: '" + std::string(fname) + "': " + st); }
 
 /*******************************************/
 static DMC_DECL unsigned int getshort(FILE* fp)
@@ -334,7 +334,7 @@ static int loadBMP32(FILE* fp, byte* Pix, unsigned int w, unsigned int h)
 
 /*******************************************/
 // Returns false on success.
-void ImageLoadSave::LoadBMP(const char* fname)
+void ImageLoadSave::LoadBMP(const std::string& fname)
 {
     int c, c1, rv = 0;
     unsigned int bfSize, bfOffBits, biSize, biWidth, biHeight, biPlanes;
@@ -347,7 +347,7 @@ void ImageLoadSave::LoadBMP(const char* fname)
 
     Pix = NULL;
 
-    FILE* fp = fopen(fname, "rb");
+    FILE* fp = fopen(fname.c_str(), "rb");
     if (!fp) bmpError(fname, "couldn't open file");
 
     // Figure out the file size
@@ -560,9 +560,9 @@ static void writeBMP24(FILE* fp, byte* Pix, int w, int h)
 }
 
 /*******************************************/
-void ImageLoadSave::SaveBMP(const char* fname) const
+void ImageLoadSave::SaveBMP(const std::string& fname) const
 {
-    FILE* fp = fopen(fname, "wb");
+    FILE* fp = fopen(fname.c_str(), "wb");
     if (!fp) return (bmpError(fname, "couldn't write file"));
 
     int i, ncolors = 0, nbits = 0, bytesperline;

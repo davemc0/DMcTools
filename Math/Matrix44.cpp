@@ -5,6 +5,7 @@
 
 #include "Math/Matrix44.h"
 
+#include "Math/BinaryRep.h"
 #include "Math/Vector.h"
 
 //////////////////////////////////////////////////////////
@@ -654,7 +655,7 @@ template void Matrix44<d3vec>::LookAt(const d3vec& eye, const d3vec& lookat, con
 template <class Vec_T> bool Matrix44<Vec_T>::CheckNaN() const
 {
     typename Vec_T::ElType* m = (typename Vec_T::ElType*)mat;
-    for (int i = 0; i < 16; i++) ASSERT_RM(!dmcm::isNaN(m[i]), "Matrix has a NaN");
+    for (int i = 0; i < 16; i++) ASSERT_RM(!isNaN(m[i]), "Matrix has a NaN");
 
     return true;
 }

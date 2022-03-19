@@ -101,16 +101,16 @@ DMC_DECL void RemoveArgs(int& argc, char** argv, int& i, int NumDel = 1)
 }
 
 // Return just the filename.extension portion of a path.
-char* GetFileName(const char* inpath);
+char* GetFileName(const std::string& inpath);
 
 // Return just the extension of a path.
-char* GetFileExtension(const char* inpath);
+char* GetFileExtension(const std::string& inpath);
 
 // Return just the filename of a path without dirs or extension.
-char* GetFileBaseName(const char* inpath);
+char* GetFileBaseName(const std::string& inpath);
 
 // Return just the path without a filename. Ends in '/' if any.
-char* GetFilePath(const char* inpath);
+char* GetFilePath(const std::string& inpath);
 
 void CopyFile(const std::string& inFName, const std::string& outFName);
 

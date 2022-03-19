@@ -41,7 +41,7 @@ baseImage* LoadtImage(const char* fname, LoadSaveParams SP)
 }
 
 // Load an image and store it in this; converts the loaded image to the type of this if necessary.
-template <class Pixel_T> void tImage<Pixel_T>::Load(const char* fname, LoadSaveParams SP)
+template <class Pixel_T> void tImage<Pixel_T>::Load(const std::string& fname, LoadSaveParams SP)
 {
     clear(); // Delete the old contents of the target image
 
@@ -78,31 +78,31 @@ template <class Pixel_T> void tImage<Pixel_T>::Load(const char* fname, LoadSaveP
     // Loader will still point to base and we allow the loader destructor to delete base.
 }
 // TODO: Comment out unused ones to save compile time and executable size
-template void tImage<h1Pixel>::Load(const char* fname, LoadSaveParams SP);
-template void tImage<h2Pixel>::Load(const char* fname, LoadSaveParams SP);
-template void tImage<h3Pixel>::Load(const char* fname, LoadSaveParams SP);
-template void tImage<h4Pixel>::Load(const char* fname, LoadSaveParams SP);
-template void tImage<f1Pixel>::Load(const char* fname, LoadSaveParams SP);
-template void tImage<f2Pixel>::Load(const char* fname, LoadSaveParams SP);
-template void tImage<f3Pixel>::Load(const char* fname, LoadSaveParams SP);
-template void tImage<f4Pixel>::Load(const char* fname, LoadSaveParams SP);
-template void tImage<uc1Pixel>::Load(const char* fname, LoadSaveParams SP);
-template void tImage<uc2Pixel>::Load(const char* fname, LoadSaveParams SP);
-template void tImage<uc3Pixel>::Load(const char* fname, LoadSaveParams SP);
-template void tImage<uc4Pixel>::Load(const char* fname, LoadSaveParams SP);
-template void tImage<us1Pixel>::Load(const char* fname, LoadSaveParams SP);
-template void tImage<us2Pixel>::Load(const char* fname, LoadSaveParams SP);
-template void tImage<us3Pixel>::Load(const char* fname, LoadSaveParams SP);
-template void tImage<us4Pixel>::Load(const char* fname, LoadSaveParams SP);
-template void tImage<ui1Pixel>::Load(const char* fname, LoadSaveParams SP);
-template void tImage<ui2Pixel>::Load(const char* fname, LoadSaveParams SP);
-template void tImage<ui3Pixel>::Load(const char* fname, LoadSaveParams SP);
-template void tImage<ui4Pixel>::Load(const char* fname, LoadSaveParams SP);
+template void tImage<h1Pixel>::Load(const std::string& fname, LoadSaveParams SP);
+template void tImage<h2Pixel>::Load(const std::string& fname, LoadSaveParams SP);
+template void tImage<h3Pixel>::Load(const std::string& fname, LoadSaveParams SP);
+template void tImage<h4Pixel>::Load(const std::string& fname, LoadSaveParams SP);
+template void tImage<f1Pixel>::Load(const std::string& fname, LoadSaveParams SP);
+template void tImage<f2Pixel>::Load(const std::string& fname, LoadSaveParams SP);
+template void tImage<f3Pixel>::Load(const std::string& fname, LoadSaveParams SP);
+template void tImage<f4Pixel>::Load(const std::string& fname, LoadSaveParams SP);
+template void tImage<uc1Pixel>::Load(const std::string& fname, LoadSaveParams SP);
+template void tImage<uc2Pixel>::Load(const std::string& fname, LoadSaveParams SP);
+template void tImage<uc3Pixel>::Load(const std::string& fname, LoadSaveParams SP);
+template void tImage<uc4Pixel>::Load(const std::string& fname, LoadSaveParams SP);
+template void tImage<us1Pixel>::Load(const std::string& fname, LoadSaveParams SP);
+template void tImage<us2Pixel>::Load(const std::string& fname, LoadSaveParams SP);
+template void tImage<us3Pixel>::Load(const std::string& fname, LoadSaveParams SP);
+template void tImage<us4Pixel>::Load(const std::string& fname, LoadSaveParams SP);
+template void tImage<ui1Pixel>::Load(const std::string& fname, LoadSaveParams SP);
+template void tImage<ui2Pixel>::Load(const std::string& fname, LoadSaveParams SP);
+template void tImage<ui3Pixel>::Load(const std::string& fname, LoadSaveParams SP);
+template void tImage<ui4Pixel>::Load(const std::string& fname, LoadSaveParams SP);
 
-template <class Pixel_T> void tImage<Pixel_T>::Save(const char* fname, LoadSaveParams SP) const
+template <class Pixel_T> void tImage<Pixel_T>::Save(const std::string& fname, LoadSaveParams SP) const
 {
     ImageLoadSave saver;
-    const baseImage* outImg = saver.ConvertToSaveFormat(fname, this);
+    const baseImage* outImg = saver.ConvertToSaveFormat(fname.c_str(), this);
 
     saver.SetImage((unsigned char*)outImg->pv_virtual(), w_virtual(), h_virtual(), outImg->chan_virtual(),
                    (typeid(typename Pixel_T::ElType) == typeid(unsigned int)), (typeid(typename Pixel_T::ElType) == typeid(unsigned short)),
@@ -124,23 +124,23 @@ template <class Pixel_T> void tImage<Pixel_T>::Save(const char* fname, LoadSaveP
     if (outImg != this) delete outImg; // If we had to create a converted image for saving, delete it.
 }
 // TODO: Comment out unused ones to save compile time and executable size
-template void tImage<h1Pixel>::Save(const char* fname, LoadSaveParams SP) const;
-template void tImage<h2Pixel>::Save(const char* fname, LoadSaveParams SP) const;
-template void tImage<h3Pixel>::Save(const char* fname, LoadSaveParams SP) const;
-template void tImage<h4Pixel>::Save(const char* fname, LoadSaveParams SP) const;
-template void tImage<f1Pixel>::Save(const char* fname, LoadSaveParams SP) const;
-template void tImage<f2Pixel>::Save(const char* fname, LoadSaveParams SP) const;
-template void tImage<f3Pixel>::Save(const char* fname, LoadSaveParams SP) const;
-template void tImage<f4Pixel>::Save(const char* fname, LoadSaveParams SP) const;
-template void tImage<uc1Pixel>::Save(const char* fname, LoadSaveParams SP) const;
-template void tImage<uc2Pixel>::Save(const char* fname, LoadSaveParams SP) const;
-template void tImage<uc3Pixel>::Save(const char* fname, LoadSaveParams SP) const;
-template void tImage<uc4Pixel>::Save(const char* fname, LoadSaveParams SP) const;
-template void tImage<us1Pixel>::Save(const char* fname, LoadSaveParams SP) const;
-template void tImage<us2Pixel>::Save(const char* fname, LoadSaveParams SP) const;
-template void tImage<us3Pixel>::Save(const char* fname, LoadSaveParams SP) const;
-template void tImage<us4Pixel>::Save(const char* fname, LoadSaveParams SP) const;
-template void tImage<ui1Pixel>::Save(const char* fname, LoadSaveParams SP) const;
-template void tImage<ui2Pixel>::Save(const char* fname, LoadSaveParams SP) const;
-template void tImage<ui3Pixel>::Save(const char* fname, LoadSaveParams SP) const;
-template void tImage<ui4Pixel>::Save(const char* fname, LoadSaveParams SP) const;
+template void tImage<h1Pixel>::Save(const std::string& fname, LoadSaveParams SP) const;
+template void tImage<h2Pixel>::Save(const std::string& fname, LoadSaveParams SP) const;
+template void tImage<h3Pixel>::Save(const std::string& fname, LoadSaveParams SP) const;
+template void tImage<h4Pixel>::Save(const std::string& fname, LoadSaveParams SP) const;
+template void tImage<f1Pixel>::Save(const std::string& fname, LoadSaveParams SP) const;
+template void tImage<f2Pixel>::Save(const std::string& fname, LoadSaveParams SP) const;
+template void tImage<f3Pixel>::Save(const std::string& fname, LoadSaveParams SP) const;
+template void tImage<f4Pixel>::Save(const std::string& fname, LoadSaveParams SP) const;
+template void tImage<uc1Pixel>::Save(const std::string& fname, LoadSaveParams SP) const;
+template void tImage<uc2Pixel>::Save(const std::string& fname, LoadSaveParams SP) const;
+template void tImage<uc3Pixel>::Save(const std::string& fname, LoadSaveParams SP) const;
+template void tImage<uc4Pixel>::Save(const std::string& fname, LoadSaveParams SP) const;
+template void tImage<us1Pixel>::Save(const std::string& fname, LoadSaveParams SP) const;
+template void tImage<us2Pixel>::Save(const std::string& fname, LoadSaveParams SP) const;
+template void tImage<us3Pixel>::Save(const std::string& fname, LoadSaveParams SP) const;
+template void tImage<us4Pixel>::Save(const std::string& fname, LoadSaveParams SP) const;
+template void tImage<ui1Pixel>::Save(const std::string& fname, LoadSaveParams SP) const;
+template void tImage<ui2Pixel>::Save(const std::string& fname, LoadSaveParams SP) const;
+template void tImage<ui3Pixel>::Save(const std::string& fname, LoadSaveParams SP) const;
+template void tImage<ui4Pixel>::Save(const std::string& fname, LoadSaveParams SP) const;

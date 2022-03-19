@@ -8,7 +8,7 @@
 #include "Util/toolconfig.h"
 
 #include <cmath>
-#include <stdlib.h>
+#include <cstdlib>
 
 #ifdef _WIN32
 #include <intrin.h>
@@ -44,24 +44,34 @@ DMC_DECL uint64_t ctz(uint64_t b)
 DMC_DECL uint32_t floatAsUint(float a)
 {
     return *(uint32_t*)&a;
-    union Conv {
+    union {
         float f;
         uint32_t u;
-    };
-    Conv un;
+    } un;
     un.f = a;
     return un.u;
 }
 
 DMC_DECL float uintAsFloat(uint32_t u)
 {
-    union Conv {
+    union {
         float f;
         uint32_t u;
-    };
-    Conv un;
+    } un;
     un.u = u;
     return un.f;
+}
+
+DMC_DECL float copySign(float num, float sign)
+{
+#if 1
+    // If no intrinsic _copysign for single-precision.
+    // This one is much faster than casting and using the double-precision implementation.
+    return uintAsFloat((floatAsUint(num) & 0x7fffffff) | (floatAsUint(sign) & 0x80000000));
+#else
+    return _copysignf(num, sign);
+    // return static_cast<float>(_copysign(static_cast<float>(x), static_cast<float>(y)));
+#endif
 }
 
 DMC_DECL uint32_t fixedToUint(const uint32_t fixed, const uint32_t nBits)
@@ -89,6 +99,26 @@ DMC_DECL bool isDenorm(float f)
     uint32_t ui = floatAsUint(f);
     return ((ui & 0x7f800000) == 0) && f != 0.f;
 }
+
+template <class T> DMC_DECL bool isNaN(const T d)
+{
+#ifdef DMC_MACHINE_win
+    return _isnan(d) != 0;
+#else
+    return isnan(d) != 0;
+#endif
+}
+
+template <class T> DMC_DECL bool isFinite(const T d)
+{
+#ifdef DMC_MACHINE_win
+    return _finite(d) != 0;
+#else
+    return finite(d) != 0;
+#endif
+}
+
+template <class T> DMC_DECL bool isPow2(const T x) { return (x & (x - 1)) == 0; }
 
 DMC_DECL float constructFloat(uint32_t fsign, uint32_t fexp, uint32_t fmant) { return uintAsFloat((fsign << 31) | (fexp << 23) | fmant); }
 
@@ -148,7 +178,3 @@ DMC_DECL float fixedToFloatGivenExp(const uint32_t fixed, const uint32_t expVal,
 
     return constructFloat(0, fexp, mant);
 }
-
-DMC_DECL float fastExp2(int a) { return uintAsFloat((uint32_t)(std::min(std::max(a + 127, 1), 254) << 23)); }
-DMC_DECL float fastMax(float a, float b) { return (a + b + abs(a - b)) * 0.5f; }
-DMC_DECL float fastMin(float a, float b) { return (a + b - abs(a - b)) * 0.5f; }

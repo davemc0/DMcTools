@@ -5,6 +5,7 @@
 
 #include "Model/Mesh.h"
 
+#include "Math/BinaryRep.h"
 #include "Model/AElements.h"
 
 #include <map>
@@ -26,7 +27,7 @@ Face* AFaceFactory() { return new AFace; }
 DMC_DECL bool CheckVec(const f3vec& V)
 {
     f3vec::ElType len2 = V.lenSqr();
-    return (len2 < 0.97 || len2 > 1.03 || !dmcm::isFinite(V.x) || !dmcm::isFinite(V.y) || !dmcm::isFinite(V.z));
+    return (len2 < 0.97 || len2 > 1.03 || !isFinite(V.x) || !isFinite(V.y) || !isFinite(V.z));
 }
 
 // Return true if vectors are unequal.
@@ -917,7 +918,7 @@ void Mesh::GenTexCoords()
     // XXX Debug code.
     // Sanity check the texcoords.
     for (AVertex* V = (AVertex*)Verts; V; V = (AVertex*)V->next) {
-        if (dmcm::Abs(V->Tex.x) > 1e5 || dmcm::Abs(V->Tex.y) > 1e5 || !dmcm::isFinite(V->Tex.x) || !dmcm::isFinite(V->Tex.y))
+        if (dmcm::Abs(V->Tex.x) > 1e5 || dmcm::Abs(V->Tex.y) > 1e5 || !isFinite(V->Tex.x) || !isFinite(V->Tex.y))
             WARN_D(1, "GenTex: BadTex: " << Name << V->Tex);
     }
 

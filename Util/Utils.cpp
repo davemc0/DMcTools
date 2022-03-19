@@ -29,9 +29,9 @@ unsigned int SRand(unsigned int seed /* = 0 */)
 }
 
 // Return just the path without a filename. Ends in '/' if any.
-char* GetFilePath(const char* inpath)
+char* GetFilePath(const std::string& inpath)
 {
-    char* outpath = strdup(inpath);
+    char* outpath = strdup(inpath.c_str());
     char* outfname = strrchr(outpath, '/');
     char* outfname2 = strrchr(outpath, '\\');
     if (outfname > outfname2)
@@ -45,9 +45,9 @@ char* GetFilePath(const char* inpath)
 }
 
 // Return just the fname.abc portion of a path.
-char* GetFileName(const char* inpath)
+char* GetFileName(const std::string& inpath)
 {
-    char* outpath = strdup(inpath);
+    char* outpath = strdup(inpath.c_str());
     char* outfname = strrchr(outpath, '/');
     if (outfname) {
         *outfname = '\0';
@@ -76,9 +76,9 @@ char* GetFileName(const char* inpath)
 }
 
 // Return just the fname portion of a path.
-char* GetFileBaseName(const char* inpath)
+char* GetFileBaseName(const std::string& inpath)
 {
-    char* outpath = strdup(inpath);
+    char* outpath = strdup(inpath.c_str());
     char* outfname = strrchr(outpath, '/');
     if (outfname) {
         *outfname = '\0';
@@ -110,9 +110,9 @@ char* GetFileBaseName(const char* inpath)
 }
 
 // Return just the xxx portion of path/fname.xxx.
-char* GetFileExtension(const char* inpath)
+char* GetFileExtension(const std::string& inpath)
 {
-    char* outpath = strdup(inpath);
+    char* outpath = strdup(inpath.c_str());
     char* outfname = strrchr(outpath, '.');
     if (outfname) {
         *outfname = '\0';
@@ -132,6 +132,19 @@ char* GetFileExtension(const char* inpath)
     return gogo;
 }
 
+void CopyFile(const std::string& inFName, const std::string& outFName)
+{
+    std::cerr << "Copying from " << inFName << " to " << outFName << '\n';
+    std::string cmd = std::string("COPY /Y /V \"") + inFName + "\" \"" + outFName + "\"";
+
+    try {
+        system(cmd.c_str());
+    }
+    catch (...) {
+        std::cerr << "CopyFile failed: " << cmd << std::endl;
+    }
+}
+
 // Makes a fairly random 32-bit number from a string.
 int HashString(const char* s)
 {
@@ -148,17 +161,4 @@ int HashString(const char* s)
     }
 
     return H;
-}
-
-void CopyFile(const std::string& inFName, const std::string& outFName)
-{
-    std::cerr << "Copying from " << inFName << " to " << outFName << '\n';
-    std::string cmd = std::string("COPY /Y /V \"") + inFName + "\" \"" + outFName + "\"";
-
-    try {
-        system(cmd.c_str());
-    }
-    catch (...) {
-        std::cerr << "CopyFile failed: " << cmd << std::endl;
-    }
 }

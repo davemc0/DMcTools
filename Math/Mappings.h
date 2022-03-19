@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "Math/BinaryRep.h"
 #include "Math/MiscMath.h"
 #include "Math/Vector.h"
 
@@ -29,15 +30,15 @@ template <class vec3_T> DMC_DECL vec3_T ParaboloidTo2D(const vec3_T& v3)
 
 template <class vec3_T> DMC_DECL vec3_T ParaboloidTo3DNN(const vec3_T& v2)
 {
-    return vec3_T(2 * v2.x, 2 * v2.y, v2.z ? (1 - v2.x * v2.x - v2.y * v2.y) : -(1 - v2.x * v2.x - v2.y * v2.y)); // Faster on Intel
-    // return vec3_T(2*v2.x, 2*v2.y, dmcm::CopySign((1 - v2.x*v2.x - v2.y*v2.y), 0.5-v2.z));
+    typename vec3_T::ElType e = 1 - sqr(v2.x) - sqr(v2.y);
+    return vec3_T(2 * v2.x, 2 * v2.y, v2.z ? e : -e);
 }
 
 template <class vec3_T> DMC_DECL vec3_T ParaboloidTo3D(const vec3_T& v2)
 {
-    typename vec3_T::ElType d = v2.x * v2.x + v2.y * v2.y + 1;
-    // return vec3_T(2*v2.x/d, 2*v2.y/d, (1 - v2.x*v2.x - v2.y*v2.y) / dmcm::CopySign(d, 0.5-v2.z));
-    return vec3_T(2 * v2.x / d, 2 * v2.y / d, (v2.z ? -(1 - v2.x * v2.x - v2.y * v2.y) : (1 - v2.x * v2.x - v2.y * v2.y)) / d); // Faster on Intel
+    typename vec3_T::ElType e = 1 - sqr(v2.x) - sqr(v2.y);
+    typename vec3_T::ElType d = 1 + sqr(v2.x) + sqr(v2.y);
+    return vec3_T(2 * v2.x / d, 2 * v2.y / d, (v2.z ? -e : e) / d);
 }
 
 template <class vec3_T> DMC_DECL vec3_T OctahedronTo2DNN(const vec3_T& v3)
@@ -46,7 +47,7 @@ template <class vec3_T> DMC_DECL vec3_T OctahedronTo2DNN(const vec3_T& v3)
     if (v3.z >= 0)
         return vec3_T(v3.x / d, v3.y / d, 0); // +Z
     else
-        return vec3_T((v3.x + dmcm::CopySign(1, v3.x) * -v3.z) / d, (v3.y + dmcm::CopySign(1, v3.y) * -v3.z) / d, 0); // -Z
+        return vec3_T((v3.x + copySign(1, v3.x) * -v3.z) / d, (v3.y + copySign(1, v3.y) * -v3.z) / d, 0); // -Z
 }
 
 template <class vec3_T> DMC_DECL vec3_T OctahedronTo2D(const vec3_T& v3) { return OctahedronTo2DNN(v3); }
@@ -57,7 +58,7 @@ template <class vec3_T> DMC_DECL vec3_T OctahedronTo3DNN(const vec3_T& v2)
     if (z >= 0)
         return vec3_T(v2.x, v2.y, z); // +Z
     else
-        return vec3_T(dmcm::CopySign(1, v2.x) * (1 - dmcm::Abs(v2.y)), dmcm::CopySign(1, v2.y) * (1 - dmcm::Abs(v2.x)), z); // -Z
+        return vec3_T(copySign(1, v2.x) * (1 - dmcm::Abs(v2.y)), copySign(1, v2.y) * (1 - dmcm::Abs(v2.x)), z); // -Z
 }
 
 template <class vec3_T> DMC_DECL vec3_T OctahedronTo3D(const vec3_T& v2) { return OctahedronTo3DNN(v2).normalized(); }
@@ -73,23 +74,57 @@ template <class vec3_T> DMC_DECL vec3_T PyramidTo2D(const vec3_T& v3) { return P
 template <class vec3_T> DMC_DECL vec3_T PyramidTo3DNN(const vec3_T& v2)
 {
     typename vec3_T::ElType d = 1 - std::max(dmcm::Abs(v2.x), dmcm::Abs(v2.y));
-    // return vec3_T(v2.x, v2.y, CopySign(d, 0.5-v2.z));
-    return vec3_T(v2.x, v2.y, v2.z > 0 ? -d : d); // Faster on Intel.
+    return vec3_T(v2.x, v2.y, v2.z > 0 ? -d : d);
 }
 
 template <class vec3_T> DMC_DECL vec3_T PyramidTo3D(const vec3_T& v2) { return PyramidTo3DNN(v2).normalized(); }
 
-template <class vec3_T> DMC_DECL vec3_T CubeTo2D(const vec3_T& v3) {}
+template <class vec3_T> DMC_DECL vec3_T CubeTo2DNN(const vec3_T& v3)
+{
+    int kz = abs(v3).maxDim();
+    int kx = (kz + 1) % 3;
+    int ky = (kx + 1) % 3;
+    if (v3[kz] < 0.f) std::swap(kx, ky);
 
-template <class vec3_T> DMC_DECL vec3_T CubeTo3D(const vec3_T& v2) {}
+    vec3_T V2(v3[kx] / v3[kz], v3[ky] / v3[kz], kz * 2 + (v3[kz] < 0.f));
+    return V2;
+}
+
+template <class vec3_T> DMC_DECL vec3_T CubeTo2D(const vec3_T& v3) { return CubeTo2DNN(v3); }
+
+template <class vec3_T> DMC_DECL vec3_T CubeTo3DNN(const vec3_T& v2)
+{
+    int kz = v2.z / 2;
+    bool neg = (int)v2.z & 1;
+    int kx = (kz + 1) % 3;
+    int ky = (kx + 1) % 3;
+    if (neg) std::swap(kx, ky);
+
+    vec3_T v3;
+    v3[kx] = v2.x;
+    v3[ky] = v2.y;
+    v3[kz] = neg ? -1 : 1;
+
+    return v3;
+}
+
+template <class vec3_T> DMC_DECL vec3_T CubeTo3D(const vec3_T& v2) { return CubeTo3DNN(v2).normalized(); }
 
 template <class vec3_T> DMC_DECL vec3_T SphereTo2D(const vec3_T& v3) {}
 
 template <class vec3_T> DMC_DECL vec3_T SphereTo3D(const vec3_T& v2) {}
 
-template <class vec3_T> DMC_DECL vec3_T HemisphereTo2D(const vec3_T& v3) {}
+template <class vec3_T> DMC_DECL vec3_T HemisphereTo2D(const vec3_T& v3) { return vec3_T(v3.x, v3.y, v3.z < 0); }
 
-template <class vec3_T> DMC_DECL vec3_T HemisphereTo3D(const vec3_T& v2) {}
+template <class vec3_T> DMC_DECL vec3_T HemisphereTo2DNN(const vec3_T& v3) { return HemisphereTo2D(v3.normalized()); }
+
+template <class vec3_T> DMC_DECL vec3_T HemisphereTo3D(const vec3_T& v2)
+{
+    typename vec3_T::ElType d = 1 - sqr(v2.x) - sqr(v2.y);
+    return vec3_T(v2.x, v2.y, v2.z > 0 ? -d : d);
+}
+
+template <class vec3_T> DMC_DECL vec3_T HemisphereTo3DNN(const vec3_T& v2) { return HemisphereTo3D(v2); }
 
 // Does the simple linear mapping from u,v to integer pixel coords
 // u,v is on -1..1. x,y is on 0..imsize-1.
@@ -111,7 +146,7 @@ template <class Fl_T> DMC_DECL void XYToUV(Fl_T& u, Fl_T& v, const int x, const 
 
 // Does the simple linear mapping from u,v to integer pixel coords
 // u,v is on -1..1. x,y is on 0..imsize-1.
-// Offsets the x value based on face number
+// Puts face number in v2.z
 template <class vec3_T> DMC_DECL void UVToXY(int& x, int& y, const vec3_T& v2, const int imsize)
 {
     int z = static_cast<int>(v2.z) * imsize;
@@ -121,7 +156,7 @@ template <class vec3_T> DMC_DECL void UVToXY(int& x, int& y, const vec3_T& v2, c
 
 // Does the simple linear mapping from integer pixel coords to u,v
 // u,v is on -1..1. x,y is on 0..imsize-1.
-// Offsets the x value based on face number
+// Puts face number in v2.z
 template <class vec3_T> DMC_DECL void XYToUV(vec3_T& v2, const int x, const int y, const int imsize)
 {
     v2.x = static_cast<typename vec3_T::ElType>(x % imsize) * 2.0 / static_cast<typename vec3_T::ElType>(imsize - 1) - 1.0;
