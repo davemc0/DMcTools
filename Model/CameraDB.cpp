@@ -149,7 +149,7 @@ void CameraInfo::WriteToFile(FILE* fp, int FrameNum)
 
     f3vec Orig, X, Y, Z;
     GetFrame(X, Y, Z, Orig);
-    f3vec::ElType fovyDeg = dmcm::RtoD(GetFOVY());
+    f3vec::ElType fovyDeg = radToDeg(GetFOVY());
 
     fprintf(fp, "%f[%f,%f,%f][%f,%f,%f][%f,%f,%f] %d\n", fovyDeg, Orig.x, Orig.y, Orig.z, Z.x, Z.y, Z.z, Y.x, Y.y, Y.z, FrameNum);
 }
@@ -176,7 +176,7 @@ int CameraInfo::ReadFromFile(FILE* fp, int& FrameNum) // RETURNS "1" IF SUCCESSF
 
     WorldToEye.LookAt(Orig, Orig - Z, Y);
     // std::cerr << DtoR(FOV) << std::endl;
-    ComputePerspective(dmcm::DtoR(FOV), wR / wT, Near, Far);
+    ComputePerspective(degToRad(FOV), wR / wT, Near, Far);
 
     return (Cond != EOF);
 }

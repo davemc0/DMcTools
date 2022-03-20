@@ -34,7 +34,7 @@ template ColorMap<f3Pixel>::ColorMap(const ColorMap<f3Pixel>& O, const size_t Si
 
 template <class Pixel_T> Pixel_T ColorMap<Pixel_T>::operator()(const float s_) const
 {
-    float s = dmcm::Saturate(s_);
+    float s = saturate(s_);
     return Sample01(s);
 }
 template f3Pixel ColorMap<f3Pixel>::operator()(const float s_) const;
@@ -90,11 +90,11 @@ template <class Pixel_T> void ColorMap<Pixel_T>::SetSpan(const float sLo_, const
         vHi = vHi_;
     }
 
-    sLo = dmcm::Saturate(sLo);
-    sHi = dmcm::Saturate(sHi);
+    sLo = saturate(sLo);
+    sHi = saturate(sHi);
 
-    size_t iLo = size_t(dmcm::Round(sLo * (float(size() - 1))));
-    size_t iHi = size_t(dmcm::Round(sHi * (float(size() - 1))));
+    size_t iLo = size_t(round(sLo * float(size() - 1)));
+    size_t iHi = size_t(round(sHi * float(size() - 1)));
 
     RealSetSpan(iLo, iHi, vLo, vHi);
 }

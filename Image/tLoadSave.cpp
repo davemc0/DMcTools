@@ -28,7 +28,7 @@
 // Load an image file into whatever kind of tImage is most appropriate.
 // Returns a pointer to the baseImage. dynamic_cast will tell you what kind it really is.
 // Throws a DMcError on failure.
-baseImage* LoadtImage(const char* fname, LoadSaveParams SP)
+baseImage* LoadtImage(const std::string& fname, LoadSaveParams SP)
 {
     ImageLoadSave loader;
     loader.SP = SP;

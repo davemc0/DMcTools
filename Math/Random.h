@@ -56,7 +56,7 @@ DMC_DECL float DRandf(const float low = 0.0f, const float high = 1.0f) { return 
 DMC_DECL double Gaussian(const double x, const double sigma, const double mu = 0)
 {
     double oneOverSigma = 1. / sigma;
-    return exp(-0.5 * dmcm::Sqr(((x - mu) * oneOverSigma))) * ONEOVERSQRT2PI * oneOverSigma;
+    return exp(-0.5 * sqr(((x - mu) * oneOverSigma))) * ONEOVERSQRT2PI * oneOverSigma;
 }
 
 // Symmetric gaussian centered at origin.
@@ -64,7 +64,7 @@ DMC_DECL double Gaussian(const double x, const double sigma, const double mu = 0
 template <class T> DMC_DECL T Gaussian2(const T x, const T y, const T sigma)
 {
     T oneOverSigma = static_cast<T>(1) / sigma;
-    return exp(static_cast<T>(-0.5) * (dmcm::Sqr(x) + dmcm::Sqr(y)) * dmcm::Sqr(oneOverSigma)) * static_cast<T>(ONEOVERSQRT2PI) * oneOverSigma;
+    return exp(static_cast<T>(-0.5) * (sqr(x) + sqr(y)) * sqr(oneOverSigma)) * static_cast<T>(ONEOVERSQRT2PI) * oneOverSigma;
 }
 
 // Compute the gaussian at value x with given sigma and mu=0.
@@ -73,7 +73,7 @@ template <class T> DMC_DECL T Gaussian2(const T x, const T y, const T sigma)
 DMC_DECL double GaussianSq(const double xSq, const double sigma)
 {
     double oneOverSigma = 1. / sigma;
-    return exp(-0.5 * xSq * dmcm::Sqr(oneOverSigma)) * ONEOVERSQRT2PI * oneOverSigma;
+    return exp(-0.5 * xSq * sqr(oneOverSigma)) * ONEOVERSQRT2PI * oneOverSigma;
 }
 
 // Return a random number with a normal distribution

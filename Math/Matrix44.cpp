@@ -84,11 +84,11 @@ template <class Vec_T> bool Matrix44<Vec_T>::build_inverse(typename Vec_T::ElTyp
     // Make it upper triangular using Gauss-Jordan with partial pivoting.
     for (int i = 0; i < 4; i++) {
         // Find largest row.
-        typename Vec_T::ElType maxv = dmcm::Abs(m[i][i]);
+        typename Vec_T::ElType maxv = abs(m[i][i]);
         int row = i;
         for (int j = i + 1; j < 4; j++) {
-            if (dmcm::Abs(m[j][i]) > maxv) {
-                maxv = dmcm::Abs(m[j][i]);
+            if (abs(m[j][i]) > maxv) {
+                maxv = abs(m[j][i]);
                 row = j;
             }
         }

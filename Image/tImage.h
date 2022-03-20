@@ -731,12 +731,12 @@ DMC_HDECL tImage<Pixel_T> operator/(const tImage<Pixel_T> &p, const Pixel_T &v)
 
 // Linearly interpolate between images p1 and p2.
 // I.e., if weight==0, returns p1. If weight==1, returns p2.
-template <class Pixel_T> DMC_HDECL tImage<Pixel_T> LinearInterp(const tImage<Pixel_T>& p1, const tImage<Pixel_T>& p2, typename Pixel_T::FloatMathType weight)
+template <class Pixel_T> DMC_HDECL tImage<Pixel_T> linInterp(const tImage<Pixel_T>& p1, const tImage<Pixel_T>& p2, typename Pixel_T::FloatMathType weight)
 {
     ASSERT_R(p1.size() == p2.size());
     tImage<Pixel_T> r(p1.w(), p1.h());
     int sz = p1.size();
-    for (int i = 0; i < p1.size(); i++) r[i] = LinearInterp(p1[i], p2[i], weight);
+    for (int i = 0; i < p1.size(); i++) r[i] = linInterp(p1[i], p2[i], weight);
     return r;
 }
 

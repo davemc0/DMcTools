@@ -43,7 +43,7 @@ void StatTimer::StartEvent()
 
 float StatTimer::GetMean(int N)
 {
-    int NN = dmcm::Min(N, NumEvents, MaxEvents);
+    int NN = min(N, NumEvents, MaxEvents);
 
     float AccT = 0;
     int i = 0;
@@ -61,7 +61,7 @@ float StatTimer::GetMean(int N)
 
 float StatTimer::GetMax(int N)
 {
-    int NN = dmcm::Min(N, NumEvents, MaxEvents);
+    int NN = min(N, NumEvents, MaxEvents);
 
     float AccT = 0;
     for (int i = 0; i < NN; i++) AccT = std::max(AccT, EventTimes[i]);
@@ -71,7 +71,7 @@ float StatTimer::GetMax(int N)
 
 float StatTimer::GetMin(int N)
 {
-    int NN = dmcm::Min(N, NumEvents, MaxEvents);
+    int NN = min(N, NumEvents, MaxEvents);
 
     float AccT = DMC_MAXFLOAT;
     for (int i = 0; i < NN; i++) AccT = std::min(AccT, EventTimes[i]);

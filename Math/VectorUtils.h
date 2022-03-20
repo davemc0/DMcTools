@@ -53,7 +53,7 @@ template <class Vec_T> DMC_DECL Vec_T Solve(const Vec_T& p, const Vec_T& u, cons
                  ((u.x * v.y - u.y * v.x) * p.z + (v.z * u.y - u.z * v.y) * p.x + (u.z * v.x - u.x * v.z) * p.y) * det);
 }
 
-template <class Vec_T> DMC_DECL Vec_T LinearInterp(const Vec_T& v1, const Vec_T& v2, typename Vec_T::ElType t)
+template <class Vec_T> DMC_DECL Vec_T linInterp(const Vec_T& v1, const Vec_T& v2, typename Vec_T::ElType t)
 {
     return Vec_T(v1.x + (v2.x - v1.x) * t, v1.y + (v2.y - v1.y) * t, v1.z + (v2.z - v1.z) * t);
 }

@@ -109,7 +109,7 @@ public:
         else if constexpr (element_traits<In_T>::normalized && element_traits<Out_T>::floating_point) // Normalized int to float (non-normalized): Scale
             d = static_cast<Out_T>(s / static_cast<typename element_traits<Out_T>::FloatMathType>(element_traits<In_T>::one()));
         else if constexpr (element_traits<In_T>::floating_point && element_traits<Out_T>::normalized) // float (non-normalized) to normalized int: Scale and Clamp
-            d = static_cast<Out_T>(dmcm::Clamp<In_T>(0, s * static_cast<In_T>(element_traits<Out_T>::one()), static_cast<In_T>(element_traits<Out_T>::one())));
+            d = static_cast<Out_T>(clamp<In_T>(s * static_cast<In_T>(element_traits<Out_T>::one()), 0, static_cast<In_T>(element_traits<Out_T>::one())));
         else {           // both are normalized and integer: Complicated shift. Use specializations.
             ASSERT_R(0); // Should only arrive here with signed ints. Not yet implemented.
         }
@@ -480,7 +480,7 @@ template <class Elem_T, int Chan_> DMC_DECL tPixel<Elem_T, Chan_> operator/(cons
 
 // Linearly interpolate between pixels p1 and p2.
 // If weight==0, returns p1. If weight==1, returns p2.
-template <class Pixel_T> DMC_DECL Pixel_T LinearInterp(const Pixel_T& p1, const Pixel_T& p2, typename Pixel_T::FloatMathType weight)
+template <class Pixel_T> DMC_DECL Pixel_T linInterp(const Pixel_T& p1, const Pixel_T& p2, typename Pixel_T::FloatMathType weight)
 {
     return static_cast<typename Pixel_T::FloatMathPixType>(p1) +
         (static_cast<typename Pixel_T::FloatMathPixType>(p2) - static_cast<typename Pixel_T::FloatMathPixType>(p1)) * weight;
@@ -506,7 +506,7 @@ template <class Elem_T, int Chan_> DMC_DECL tPixel<Elem_T, Chan_> Min(const tPix
 template <class Elem_T, int Chan_> DMC_DECL tPixel<Elem_T, Chan_> Abs(const tPixel<Elem_T, Chan_>& p)
 {
     tPixel<Elem_T, Chan_> r;
-    for (int i = 0; i < Chan_; i++) r[i] = dmcm::Abs(p[i]);
+    for (int i = 0; i < Chan_; i++) r[i] = abs(p[i]);
     return r;
 }
 
@@ -531,7 +531,7 @@ template <class Elem_T, int Chan_>
 DMC_DECL tPixel<Elem_T, Chan_> Clamp(const tPixel<Elem_T, Chan_>& cmin, const tPixel<Elem_T, Chan_>& d, const tPixel<Elem_T, Chan_>& cmax)
 {
     tPixel<Elem_T, Chan_> r;
-    for (int i = 0; i < Chan_; i++) r[i] = dmcm::Clamp(cmin[i], d[i], cmax[i]);
+    for (int i = 0; i < Chan_; i++) r[i] = clamp(d[i], cmin[i], cmax[i]);
     return r;
 }
 
@@ -542,7 +542,7 @@ template <class Elem_T, int Chan_> DMC_DECL typename tPixel<Elem_T, Chan_>::Math
     typename tPixel<Elem_T, Chan_>::MathPixType BM = static_cast<typename tPixel<Elem_T, Chan_>::MathPixType>(B);
     typename tPixel<Elem_T, Chan_>::MathPixType D = AM - BM;
     typename tPixel<Elem_T, Chan_>::MathType DifSum = 0;
-    for (int i = 0; i < Chan_; i++) DifSum += dmcm::Sqr(D[i]);
+    for (int i = 0; i < Chan_; i++) DifSum += sqr(D[i]);
     return DifSum;
 }
 

@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "Math/MiscMath.h"
 #include "Util/toolconfig.h"
 
 #include <cmath>
@@ -49,24 +50,6 @@ struct alignas(32) double4 {
     double x, y, z, w;
 };
 #endif
-
-////////////////////////////////////////////////
-// Scalar templatized min/max/clamp for any type
-
-#define SCALARTMPLMINMAX(TEMPLATE, T, MIN, MAX)                          \
-    TEMPLATE DMC_DECL T min(T a, T b) { return MIN; }                    \
-    TEMPLATE DMC_DECL T max(T a, T b) { return MAX; }                    \
-    TEMPLATE DMC_DECL T min(T a, T b, T c) { return min(min(a, b), c); } \
-    TEMPLATE DMC_DECL T max(T a, T b, T c) { return max(max(a, b), c); } \
-    TEMPLATE DMC_DECL T clamp(T v, T lo, T hi) { return min(max(v, lo), hi); }
-
-// This impl ensures that it will only return NaN if the 'b' is NaN; taken from: http://www.cs.utah.edu/~thiago/papers/robustBVH-v2.pdf
-SCALARTMPLMINMAX(template <class T>, T&, (a < b) ? a : b, (a > b) ? a : b)
-SCALARTMPLMINMAX(template <class T>, const T&, (a < b) ? a : b, (a > b) ? a : b)
-
-// TODO: These belong in MiscMath.h.
-template <class T> DMC_DECL T sqr(const T& a) { return a * a; }
-template <class T> DMC_DECL T rcp(const T& a) { return (a) ? (T)1 / a : (T)0; }
 
 ////////////////////////////////////////////////
 

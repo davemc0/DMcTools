@@ -137,8 +137,7 @@ public:
     // Fill the vector with rands on 0.0 -> 1.0.
     HVector<Elem_T>& rand();
 
-    // Fill the vector with a normal distribution of random numbers,
-    // with the given standard deviation.
+    // Fill the vector with a normal distribution of random numbers, with the given standard deviation.
     HVector<Elem_T>& nrand(const Elem_T sigma = 1.0);
 
     DMC_DECL Elem_T lenSqr() const
@@ -151,7 +150,7 @@ public:
         return l2;
     }
 
-    DMC_DECL Elem_T length() const { return dmcm::Sqrt(lenSqr()); }
+    DMC_DECL Elem_T length() const { return sqrt(lenSqr()); }
 
     friend HMatrix<Elem_T> OuterProd(const HVector<Elem_T>& A, const HVector<Elem_T>& B);
 

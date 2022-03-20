@@ -203,7 +203,7 @@ void CopyRect(tImage<DstPixel_T>& DstIm, const tImage<SrcPixel_T>& SrcIm, const 
             else if (mode == 1) { // OVER Operator with per-pixel alpha
                 typename DstPixel_T::FloatMathPixType srcpix(SrcIm(sx, sy));
                 typename DstPixel_T::FloatMathType srcalpha(srcpix[3]);
-                DstIm(dx, dy) = LinearInterp(DstIm(dx, dy), SrcIm(sx, sy), srcalpha);
+                DstIm(dx, dy) = linInterp(DstIm(dx, dy), SrcIm(sx, sy), srcalpha);
             } else if (mode == 2) { // Color key BLIT
                 // This one makes white and off-white be transparent. Should turn this into alpha.
                 if (SrcIm(sx, sy) != Key) DstIm(dx, dy) = static_cast<DstPixel_T>(SrcIm(sx, sy));
@@ -213,9 +213,9 @@ void CopyRect(tImage<DstPixel_T>& DstIm, const tImage<SrcPixel_T>& SrcIm, const 
                 typename DstPixel_T::FloatMathPixType dstpix(DstIm(dx, dy));
                 typename DstPixel_T::FloatMathType srcalpha(srcpix[3]);
                 typename DstPixel_T::FloatMathPixType mp(srcpix * dstpix);
-                DstIm(dx, dy) = LinearInterp(dstpix, mp, srcalpha);
+                DstIm(dx, dy) = linInterp(dstpix, mp, srcalpha);
             } else if (mode == 4) { // OVER Operator with constant alpha
-                DstIm(dx, dy) = LinearInterp(DstIm(dx, dy), SrcIm(sx, sy), alpha);
+                DstIm(dx, dy) = linInterp(DstIm(dx, dy), SrcIm(sx, sy), alpha);
             } else if (mode == 5) { // Adding pixels
                 DstIm(dx, dy) = DstIm(dx, dy) + SrcIm(sx, sy);
             } else if (mode == 6) { // Copy one channel

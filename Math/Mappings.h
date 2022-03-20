@@ -18,13 +18,13 @@
 
 template <class vec3_T> DMC_DECL vec3_T ParaboloidTo2DNN(const vec3_T& v3)
 {
-    typename vec3_T::ElType d = dmcm::Abs(v3.z) + v3.length();
+    typename vec3_T::ElType d = abs(v3.z) + v3.length();
     return vec3_T(v3.x / d, v3.y / d, v3.z < 0);
 }
 
 template <class vec3_T> DMC_DECL vec3_T ParaboloidTo2D(const vec3_T& v3)
 {
-    typename vec3_T::ElType d = dmcm::Abs(v3.z) + 1;
+    typename vec3_T::ElType d = abs(v3.z) + 1;
     return vec3_T(v3.x / d, v3.y / d, v3.z < 0);
 }
 
@@ -43,7 +43,7 @@ template <class vec3_T> DMC_DECL vec3_T ParaboloidTo3D(const vec3_T& v2)
 
 template <class vec3_T> DMC_DECL vec3_T OctahedronTo2DNN(const vec3_T& v3)
 {
-    typename vec3_T::ElType d = dmcm::Abs(v3.x) + dmcm::Abs(v3.y) + dmcm::Abs(v3.z);
+    typename vec3_T::ElType d = abs(v3.x) + abs(v3.y) + abs(v3.z);
     if (v3.z >= 0)
         return vec3_T(v3.x / d, v3.y / d, 0); // +Z
     else
@@ -54,18 +54,18 @@ template <class vec3_T> DMC_DECL vec3_T OctahedronTo2D(const vec3_T& v3) { retur
 
 template <class vec3_T> DMC_DECL vec3_T OctahedronTo3DNN(const vec3_T& v2)
 {
-    typename vec3_T::ElType z = 1 - dmcm::Abs(v2.x) - dmcm::Abs(v2.y);
+    typename vec3_T::ElType z = 1 - abs(v2.x) - abs(v2.y);
     if (z >= 0)
         return vec3_T(v2.x, v2.y, z); // +Z
     else
-        return vec3_T(copySign(1, v2.x) * (1 - dmcm::Abs(v2.y)), copySign(1, v2.y) * (1 - dmcm::Abs(v2.x)), z); // -Z
+        return vec3_T(copySign(1, v2.x) * (1 - abs(v2.y)), copySign(1, v2.y) * (1 - abs(v2.x)), z); // -Z
 }
 
 template <class vec3_T> DMC_DECL vec3_T OctahedronTo3D(const vec3_T& v2) { return OctahedronTo3DNN(v2).normalized(); }
 
 template <class vec3_T> DMC_DECL vec3_T PyramidTo2DNN(const vec3_T& v3)
 {
-    typename vec3_T::ElType d = dmcm::Abs(v3.z) + std::max(dmcm::Abs(v3.x), dmcm::Abs(v3.y));
+    typename vec3_T::ElType d = abs(v3.z) + std::max(abs(v3.x), abs(v3.y));
     return vec3_T(v3.x / d, v3.y / d, v3.z < 0);
 }
 
@@ -73,7 +73,7 @@ template <class vec3_T> DMC_DECL vec3_T PyramidTo2D(const vec3_T& v3) { return P
 
 template <class vec3_T> DMC_DECL vec3_T PyramidTo3DNN(const vec3_T& v2)
 {
-    typename vec3_T::ElType d = 1 - std::max(dmcm::Abs(v2.x), dmcm::Abs(v2.y));
+    typename vec3_T::ElType d = 1 - std::max(abs(v2.x), abs(v2.y));
     return vec3_T(v2.x, v2.y, v2.z > 0 ? -d : d);
 }
 

@@ -45,10 +45,10 @@ DMC_DECL bool CompareVecs(const f3vec& V0, const f3vec& V1, f3vec::ElType Eps = 
 Vertex* Mesh::FindVertexInEdgeList(const std::vector<Edge*>& Edg, const f3vec& V, Edge*& e) const
 {
     for (int j = 0; j < (int)Edg.size(); j++) {
-        if (isNear(Edg[j]->v0->V, V, dmcm::Sqr(MeshMaxDist))) {
+        if (isNear(Edg[j]->v0->V, V, sqr(MeshMaxDist))) {
             e = Edg[j];
             return Edg[j]->v0;
-        } else if (isNear(Edg[j]->v1->V, V, dmcm::Sqr(MeshMaxDist))) {
+        } else if (isNear(Edg[j]->v1->V, V, sqr(MeshMaxDist))) {
             e = Edg[j];
             return Edg[j]->v1;
         }
@@ -918,8 +918,7 @@ void Mesh::GenTexCoords()
     // XXX Debug code.
     // Sanity check the texcoords.
     for (AVertex* V = (AVertex*)Verts; V; V = (AVertex*)V->next) {
-        if (dmcm::Abs(V->Tex.x) > 1e5 || dmcm::Abs(V->Tex.y) > 1e5 || !isFinite(V->Tex.x) || !isFinite(V->Tex.y))
-            WARN_D(1, "GenTex: BadTex: " << Name << V->Tex);
+        if (abs(V->Tex.x) > 1e5 || abs(V->Tex.y) > 1e5 || !isFinite(V->Tex.x) || !isFinite(V->Tex.y)) WARN_D(1, "GenTex: BadTex: " << Name << V->Tex);
     }
 
     VertexType = VertexType | OBJ_TEXCOORDS;

@@ -98,7 +98,7 @@ void LoadMTL(const char* fname)
             }
         } else if (!strncmp(TmpBuf, "Ns", 2)) {
             // Ns ranges from 0 to 200.0.
-            M.Shininess = dmcm::Clamp(1.0, atof(&TmpBuf[3]), 200.0) * (127.0 / 200.0);
+            M.Shininess = clamp(atof(&TmpBuf[3]), 1.0, 200.0) * (127.0 / 200.0);
             M.ShininessValid = true;
             // std::cerr << "Shininess = " << M.Shininess << std::endl;
         } else if (!strncmp(TmpBuf, "illum", 5)) {

@@ -6,6 +6,7 @@
 #pragma once
 
 #include "Math/Matrix44.h"
+#include "Math/MiscMath.h"
 #include "Util/Utils.h"
 
 #include <vector>
@@ -44,7 +45,7 @@ public:
         FocalDistance = 5;
         HeightValue = 0.785398; // Default is 2 for Orthographic.
         ProjectionValid = ViewValid = false;
-        ComputePerspective(dmcm::DtoR(45.), 1, 1, 1000);
+        ComputePerspective(degToRad(45.), 1, 1, 1000);
     }
 
     Matrix44<f3vec> GetProjectionMatrix();
