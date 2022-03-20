@@ -64,7 +64,7 @@ DMC_DECL float uintAsFloat(uint32_t u)
 
 DMC_DECL float copySign(float num, float sign)
 {
-#if 1
+#if 0
     // If no intrinsic _copysign for single-precision.
     // This one is much faster than casting and using the double-precision implementation.
     return uintAsFloat((floatAsUint(num) & 0x7fffffff) | (floatAsUint(sign) & 0x80000000));
