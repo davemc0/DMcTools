@@ -9,12 +9,17 @@
 
 #include <vector>
 
+// Take one individual sample from image
+template <class Image_T> bool sample1(typename Image_T::PixType& res, const Image_T& Img, const float x, const float y);
+template <class Image_T> bool sample2(typename Image_T::PixType& res, const Image_T& Img, const float x, const float y);
+template <class Image_T> bool sample4(typename Image_T::PixType& res, const Image_T& Img, const float x, const float y);
+
 // Box filter for MIP level generation, etc.
 template <class Image_T> void Downsample2x2(Image_T& Out, const Image_T& Img);
 
 // Arbitrary image resizing, both up and down, with any aspect ratio change.
 // Should work with all image formats.
-template <class Image_T> void Resample(Image_T& Out, const Image_T& Img, const int w1, const int h1);
+template <class Image_T> void Resize(Image_T& Out, const Image_T& Img, const int w1, const int h1);
 
 // Map a float image to an unsigned char image.
 template <class OutImage_T, class InImage_T>

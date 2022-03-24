@@ -91,24 +91,24 @@ template <class Vec_T> struct tAABB {
     // Returns nearest point to P on but not in this AABB, assuming P is inside this AABB
     DMC_DECL Vec_T nearestOnSurface(const Vec_T& P) const
     {
-        Vec_T v(P);
+        Vec_T NP(P);
         float dm = DMC_MAXFLOAT;
         for (int c = 0; c < 3; c++) {
             float dl = P[c] - lo()[c];
             if (dl < dm) {
-                v = P;
-                v[c] = lo()[c];
+                NP = P;
+                NP[c] = lo()[c];
                 dm = dl;
             }
             float dh = hi()[c] - P[c];
             if (dh < dm) {
-                v = P;
-                v[c] = hi()[c];
+                NP = P;
+                NP[c] = hi()[c];
                 dm = dh;
             }
         }
 
-        return v;
+        return NP;
     }
 
     // Construct the requested one of the eight corners of the AABB

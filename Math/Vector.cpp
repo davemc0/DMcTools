@@ -19,6 +19,7 @@ template <class T, int L, class S> DMC_DECL std::ostream& operator<<(std::ostrea
 }
 template std::ostream& operator<<(std::ostream& os, const tVector<float, 3, f3vec>& b);
 template std::ostream& operator<<(std::ostream& os, const tVector<double, 3, d3vec>& b);
+template std::ostream& operator<<(std::ostream& os, const tVector<float, 4, f4vec>& b);
 
 template <class T, int L, class S> DMC_DECL std::istream& operator>>(std::istream& is, tVector<T, L, S>& b)
 {

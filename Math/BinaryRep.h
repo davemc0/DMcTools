@@ -153,6 +153,7 @@ DMC_DECL uint32_t roundFloatToInt(const float f, const bool roundUp, const uint3
 }
 
 // Force a float to have given exponent, reducing precision as needed
+// Only works if expVal > fexp; otherwise no info can be preserved, so return 0.
 DMC_DECL uint32_t floatToFixedGivenExp(const float f, const uint32_t expVal, const uint32_t nBits)
 {
     if (f == 0.f) return 0;
@@ -161,20 +162,19 @@ DMC_DECL uint32_t floatToFixedGivenExp(const float f, const uint32_t expVal, con
 
     uint32_t shBits = expVal - fexp;
     uint32_t fixed = (fmant | 0x800000) >> shBits; // Move the mantissa to make expVal be the exponent
-    if (shBits > 31) fixed = 0;
+    if (shBits > 31) fixed = 0;                    // Usually because shBits < 0 because expVal < fexp
 
     return fixed >> (24 - nBits);
 }
 
 DMC_DECL float fixedToFloatGivenExp(const uint32_t fixed, const uint32_t expVal, const uint32_t nBits)
 {
-    if (fixed == 0) return 0.f;
+    if (fixed == 0) return 0.f; // Usually because expVal > actual exp so no mantissa bits were preserved
 
     uint32_t nonzeroBits = 32 - clz(fixed);
     uint32_t shBits = 24 - nonzeroBits;
     uint32_t mant = (fixed << shBits) & 0x7fffff;
-
-    uint32_t fexp = shBits - (nBits - nonzeroBits);
+    uint32_t fexp = expVal - shBits + (24 - nBits);
 
     return constructFloat(0, fexp, mant);
 }

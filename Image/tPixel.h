@@ -95,7 +95,7 @@ public:
     // unsigned char and unsigned short use 0.X for N-bit fixed point. int is non-normalized (i.e., just an integer).
     // Floating point map min -> max intensity to 0.0 -> 1.0, a la OpenGL.
     // These float to int converts are slow without SSE, so make sure you TURN ON SSE.
-    // The float to int versions also do a Clamp().
+    // The float to int versions also do a clamp.
     template <class Out_T, class In_T> static void channel_cast(Out_T& d, const In_T& s)
     {
         if constexpr (element_traits<In_T>::bytes == element_traits<Out_T>::bytes && element_traits<In_T>::normalized == element_traits<Out_T>::normalized &&

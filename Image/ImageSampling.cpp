@@ -95,7 +95,7 @@ DMC_DECL float CubicFilterN(float x)
 // Use for 1 <= x <= 2
 DMC_DECL float CubicFilterF(float x) { return ((-7.0f / 18.0f * x + 2.0f) * x - 10.0f / 3.0f) * x + 16.0f / 9.0f; }
 
-// Helper function for sampleNweighted functions
+// Helper function for sampleN functions
 template <class Image_T, class AccPix_T, class AccEl_T>
 DMC_DECL void takeSample(AccPix_T& faccum, AccEl_T& fweight, const Image_T& Img, int x, int y, AccEl_T wgt)
 {
@@ -106,7 +106,7 @@ DMC_DECL void takeSample(AccPix_T& faccum, AccEl_T& fweight, const Image_T& Img,
 }
 
 // Bicubic image sample with accumulated weight for edge case handling
-template <class Image_T> struct sample4 {
+template <class Image_T> struct sampler4 {
     DMC_DECL bool operator()(typename Image_T::PixType& res, const Image_T& Img, const float x, const float y)
     {
         typedef typename element_traits<typename Image_T::PixType::ElType>::FloatMathType AccEl_T;
@@ -160,7 +160,7 @@ template <class Image_T> struct sample4 {
 
 // Bilinear image sample with accumulated weight for edge case handling
 // XXX In release mode this returns 254 when sampling values of 255.
-template <class Image_T> struct sample2 {
+template <class Image_T> struct sampler2 {
     DMC_DECL bool operator()(typename Image_T::PixType& res, const Image_T& Img, const float x, const float y)
     {
         typedef typename element_traits<typename Image_T::PixType::ElType>::FloatMathType AccEl_T;
@@ -193,7 +193,7 @@ template <class Image_T> struct sample2 {
 };
 
 // Nearest image sample with accumulated weight for edge case handling
-template <class Image_T> struct sample1 {
+template <class Image_T> struct sampler1 {
     DMC_DECL bool operator()(typename Image_T::PixType& res, const Image_T& Img, const float x, const float y)
     {
         typedef typename element_traits<typename Image_T::PixType::ElType>::FloatMathType AccEl_T;
@@ -213,7 +213,7 @@ template <class Image_T> struct sample1 {
 }; // namespace
 
 // For each pixel in output image, sample input image using SampF
-template <class Image_T, class Sampler_F> void ResampleNtap(Sampler_F SampF, Image_T& Out, const Image_T& Img, const int w1, const int h1)
+template <class Image_T, class Sampler_F> void ResizeWithSampler(Sampler_F SampF, Image_T& Out, const Image_T& Img, const int w1, const int h1)
 {
     Out.SetSize(w1, h1);
 
@@ -236,7 +236,7 @@ template <class Image_T, class Sampler_F> void ResampleNtap(Sampler_F SampF, Ima
     }
 }
 
-template <class Image_T> void Resample(Image_T& Out, const Image_T& Img, const int w1, const int h1)
+template <class Image_T> void Resize(Image_T& Out, const Image_T& Img, const int w1, const int h1)
 {
     ASSERT_R(w1 > 0 && h1 > 0)
 
@@ -266,17 +266,44 @@ template <class Image_T> void Resample(Image_T& Out, const Image_T& Img, const i
 
     // Use bicubic for upsampling but bilinear for downsampling.
     if (Out.w() > Img.w() || Out.h() > Img.h()) {
-        ResampleNtap(sample4<Image_T>(), Out, *OpImg, w1, h1);
+        ResizeWithSampler(sampler4<Image_T>(), Out, *OpImg, w1, h1);
     } else {
-        ResampleNtap(sample2<Image_T>(), Out, *OpImg, w1, h1);
+        ResizeWithSampler(sampler2<Image_T>(), Out, *OpImg, w1, h1);
     }
 
     if (OpImg != &Img) delete OpImg;
 }
 
-template void Resample(f1Image& Out, const f1Image& Img, const int w1, const int h1);
-template void Resample(f3Image& Out, const f3Image& Img, const int w1, const int h1); // Tested Feb. 2015
-template void Resample(f4Image& Out, const f4Image& Img, const int w1, const int h1);
-template void Resample(uc1Image& Out, const uc1Image& Img, const int w1, const int h1); // Tested Apr. 2016
-template void Resample(uc3Image& Out, const uc3Image& Img, const int w1, const int h1);
-template void Resample(uc4Image& Out, const uc4Image& Img, const int w1, const int h1); // Tested Dec. 2014
+template void Resize(f1Image& Out, const f1Image& Img, const int w1, const int h1);
+template void Resize(f3Image& Out, const f3Image& Img, const int w1, const int h1); // Tested Feb. 2015
+template void Resize(f4Image& Out, const f4Image& Img, const int w1, const int h1);
+template void Resize(uc1Image& Out, const uc1Image& Img, const int w1, const int h1); // Tested Apr. 2016
+template void Resize(uc3Image& Out, const uc3Image& Img, const int w1, const int h1);
+template void Resize(uc4Image& Out, const uc4Image& Img, const int w1, const int h1); // Tested Dec. 2014
+
+template <class Image_T> bool sample1(typename Image_T::PixType& res, const Image_T& Img, const float x, const float y)
+{
+    sampler1<Image_T> smplr;
+
+    return smplr(res, Img, x, y);
+}
+template bool sample1(f3Pixel& res, const f3Image& Img, const float x, const float y);
+template bool sample1(uc3Pixel& res, const uc3Image& Img, const float x, const float y);
+
+template <class Image_T> bool sample2(typename Image_T::PixType& res, const Image_T& Img, const float x, const float y)
+{
+    sampler2<Image_T> smplr;
+
+    return smplr(res, Img, x, y);
+}
+template bool sample2(f3Pixel& res, const f3Image& Img, const float x, const float y);
+template bool sample2(uc3Pixel& res, const uc3Image& Img, const float x, const float y);
+
+template <class Image_T> bool sample4(typename Image_T::PixType& res, const Image_T& Img, const float x, const float y)
+{
+    sampler4<Image_T> smplr;
+
+    return smplr(res, Img, x, y);
+}
+template bool sample4(f3Pixel& res, const f3Image& Img, const float x, const float y);
+template bool sample4(uc3Pixel& res, const uc3Image& Img, const float x, const float y);

@@ -47,6 +47,7 @@ template <class Elem_T> DMC_DECL Elem_T TRand(const Elem_T low, const Elem_T hig
 {
     return low + TRand<Elem_T>() * (high - low);
 } // A random number on low to high
+
 DMC_DECL double DRand(const double low = 0.0, const double high = 1.0) { return low + TRand<double>() * (high - low); } // A random number on low to high
 DMC_DECL float DRandf(const float low = 0.0f, const float high = 1.0f) { return low + TRand<float>() * (high - low); }  // A random number on low to high
 

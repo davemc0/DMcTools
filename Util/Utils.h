@@ -137,6 +137,9 @@ DMC_HDECL void FloatFmt(std::ostream& os, int prec = 8)
     os.setf(std::ios_base::fixed | std::ios_base::showpoint | std::ios_base::showpos, std::ios_base::floatfield);
 }
 
+// Consider removing this or using something like:
+// extern "C" int __isa_available;
+// int main() { printf("__isa_available: %d\n", __isa_available); }
 DMC_DECL void cpuid(unsigned int cmd, unsigned int& a, unsigned int& b, unsigned int& c, unsigned int& d)
 {
     unsigned int aa = 0, bb = 0, cc = 0, dd = 0;
@@ -168,54 +171,6 @@ DMC_DECL void cpuid(unsigned int cmd, unsigned int& a, unsigned int& b, unsigned
     b = bb;
     c = cc;
     d = dd;
-}
-
-DMC_DECL bool HasMMX()
-{
-    unsigned int a = 0, b = 0, c = 0, d = 0;
-    cpuid(0, a, b, c, d);
-    if (a < 1) return false;
-    cpuid(1, a, b, c, d);
-    if (d & (1 << 23))
-        return true;
-    else
-        return false;
-}
-
-DMC_DECL bool HasSSE()
-{
-    unsigned int a = 0, b = 0, c = 0, d = 0;
-    cpuid(0, a, b, c, d);
-    if (a < 1) return false;
-    cpuid(1, a, b, c, d);
-    if (d & (1 << 25))
-        return true;
-    else
-        return false;
-}
-
-DMC_DECL bool HasSSE2()
-{
-    unsigned int a = 0, b = 0, c = 0, d = 0;
-    cpuid(0, a, b, c, d);
-    if (a < 1) return false;
-    cpuid(1, a, b, c, d);
-    if (d & (1 << 26))
-        return true;
-    else
-        return false;
-}
-
-DMC_DECL bool HasSSE3()
-{
-    unsigned int a = 0, b = 0, c = 0, d = 0;
-    cpuid(0, a, b, c, d);
-    if (a < 1) return false;
-    cpuid(1, a, b, c, d);
-    if (c & (1 << 0))
-        return true;
-    else
-        return false;
 }
 
 DMC_DECL unsigned int NumCores()
