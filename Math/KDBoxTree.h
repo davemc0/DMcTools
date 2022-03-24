@@ -6,7 +6,6 @@
 #pragma once
 
 #include "Math/AABB.h"
-#include "Math/BinaryRep.h"
 #include "Util/Assert.h"
 
 #include <algorithm>
@@ -185,7 +184,7 @@ private:
 
         for (typename std::vector<Item_T>::const_iterator Ti = Items.begin(); Ti != Items.end(); Ti++) {
             f3vec Vf = Ti->vec3();
-            if (isNaN(Vf.x) || isNaN(Vf.y) || isNaN(Vf.z)) std::cerr << "NAN " << Vf << std::endl;
+            if (std::isnan(Vf.x) || std::isnan(Vf.y) || std::isnan(Vf.z)) std::cerr << "NAN " << Vf << std::endl;
         }
 
         // Split the box into two kids and find median.

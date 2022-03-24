@@ -8,11 +8,7 @@
 #include "Util/toolconfig.h"
 
 #include <cmath>
-#include <cstdlib>
-
-#ifdef _WIN32
-#include <intrin.h>
-#endif
+#include <cstdint>
 
 uint32_t clz(uint32_t b);
 
@@ -96,26 +92,9 @@ DMC_DECL uint32_t unsignedIntBits(uint32_t v) { return 32 - clz(v); }
 
 DMC_DECL bool isDenorm(float f)
 {
+    // TODO: Try: return std::isfinite(f) && !std::isnormal(f)
     uint32_t ui = floatAsUint(f);
     return ((ui & 0x7f800000) == 0) && f != 0.f;
-}
-
-template <class T> DMC_DECL bool isNaN(const T d)
-{
-#ifdef DMC_MACHINE_win
-    return _isnan(d) != 0;
-#else
-    return isnan(d) != 0;
-#endif
-}
-
-template <class T> DMC_DECL bool isFinite(const T d)
-{
-#ifdef DMC_MACHINE_win
-    return _finite(d) != 0;
-#else
-    return finite(d) != 0;
-#endif
 }
 
 template <class T> DMC_DECL bool isPow2(const T x) { return (x & (x - 1)) == 0; }

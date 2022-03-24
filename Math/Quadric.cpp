@@ -6,8 +6,6 @@
 
 #include "Math/Quadric.h"
 
-#include "Math/BinaryRep.h"
-
 template <class Vec_T> bool Quadric3<Vec_T>::FindMin(Vec_T& p, typename Vec_T::ElType SingularityThresh) const
 {
     Matrix44<Vec_T> M(matrix44());
@@ -30,7 +28,7 @@ template <class Vec_T> bool Quadric3<Vec_T>::FindMin(Vec_T& p, typename Vec_T::E
     p.y = M(1, 3);
     p.z = M(2, 3);
 
-    return (isFinite(p.x) && isFinite(p.y) && isFinite(p.z));
+    return (std::isfinite(p.x) && std::isfinite(p.y) && std::isfinite(p.z));
 }
 template bool Quadric3<f3vec>::FindMin(f3vec& p, float SingularityThresh) const;
 template bool Quadric3<d3vec>::FindMin(d3vec& p, double SingularityThresh) const;

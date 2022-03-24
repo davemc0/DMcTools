@@ -5,6 +5,10 @@
 
 #include "Math/BinaryRep.h"
 
+#ifdef _WIN32
+#include <intrin.h>
+#endif
+
 uint32_t clz(uint32_t v)
 {
 #if defined(_WIN32)
