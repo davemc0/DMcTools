@@ -199,7 +199,7 @@ typename Quantizer<Pixel_T, Index_T>::MathType Quantizer<Pixel_T, Index_T>::Refi
     int maxIt = Fast ? QP.maxItersFast : QP.maxIters;
 
     // Error is not necessarily decreasing.
-    for (int iter = 0; iter < maxIt && (iter == 0 || (Error + QP.targetErr < OldError)); iter++) {
+    for (int iter = 0; iter < maxIt && (iter == 0 /* || (Error + QP.targetErr < OldError)*/); iter++) {
         OldError = Error;
         if (Fast)
             Error = Image3to1Fast(CHist, Centroids);
