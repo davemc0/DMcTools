@@ -11,12 +11,36 @@
 
 #include <vector>
 
-typedef enum { CURVE_MORTON, CURVE_HILBERT, CURVE_RASTER, CURVE_BOUSTRO, CURVE_TILED2 } SFCurveType;
+typedef enum { CURVE_MORTON, CURVE_HILBERT, CURVE_RASTER, CURVE_BOUSTRO, CURVE_TILED2, CURVE_COUNT } SFCurveType;
 char const* SFCurveNames[] = {"CURVE_MORTON", "CURVE_HILBERT", "CURVE_RASTER", "CURVE_BOUSTRO", "CURVE_TILED2"};
 
-// Public, generic interface
+// Public, generic interfaces
+// Statically choose the SFCurveType (performant)
 template <typename intcode_t, SFCurveType CT> intcode_t toSFCurveCode(const i3vec& x) {}
 template <typename intcode_t, SFCurveType CT> i3vec toSFCurveCoords(const intcode_t& x) {}
+
+// Dynamically choose the SFCurveType
+template <typename intcode_t> intcode_t toSFCurveCode(const i3vec& x, SFCurveType CT)
+{
+    switch (CT) {
+    case CURVE_MORTON: return toSFCurveCode<intcode_t, CURVE_MORTON>(x);
+    case CURVE_HILBERT: return toSFCurveCode<intcode_t, CURVE_HILBERT>(x);
+    case CURVE_RASTER: return toSFCurveCode<intcode_t, CURVE_RASTER>(x);
+    case CURVE_BOUSTRO: return toSFCurveCode<intcode_t, CURVE_BOUSTRO>(x);
+    case CURVE_TILED2: return toSFCurveCode<intcode_t, CURVE_TILED2>(x);
+    }
+    return 0;
+}
+template <typename intcode_t> i3vec toSFCurveCoords(const intcode_t& x, SFCurveType CT)
+{
+    switch (CT) {
+    case CURVE_MORTON: return toSFCurveCoords<intcode_t, CURVE_MORTON>(x);
+    case CURVE_HILBERT: return toSFCurveCoords<intcode_t, CURVE_HILBERT>(x);
+    case CURVE_RASTER: return toSFCurveCoords<intcode_t, CURVE_RASTER>(x);
+    case CURVE_BOUSTRO: return toSFCurveCoords<intcode_t, CURVE_BOUSTRO>(x);
+    case CURVE_TILED2: return toSFCurveCoords<intcode_t, CURVE_TILED2>(x);
+    }
+}
 
 // Convert a 3D float vector to 3 integer code for later conversion to Morton
 template <typename intcode_t, typename Vec_T> class FixedPointifier {
@@ -108,31 +132,34 @@ template <typename intcode_t> intcode_t computeMortonCode(intcode_t x, intcode_t
 
 // Returns the curve index
 // x,y,z are the integer coordinates in 3D.
-// template<typename intcode_t>
-uint32_t computeMortonCodeF(uint32_t x, uint32_t y, uint32_t z)
+template <typename intcode_t> intcode_t computeMortonCodeF(i3vec v) {}
+
+template <> uint32_t computeMortonCodeF(i3vec v)
 {
-    x = (x | (x << 16)) & 0x030000FF;
-    x = (x | (x << 8)) & 0x0300F00F;
-    x = (x | (x << 4)) & 0x030C30C3;
-    x = (x | (x << 2)) & 0x09249249;
+    v.x = (v.x | (v.x << 16)) & 0x030000FF;
+    v.x = (v.x | (v.x << 8)) & 0x0300F00F;
+    v.x = (v.x | (v.x << 4)) & 0x030C30C3;
+    v.x = (v.x | (v.x << 2)) & 0x09249249;
 
-    y = (y | (y << 16)) & 0x030000FF;
-    y = (y | (y << 8)) & 0x0300F00F;
-    y = (y | (y << 4)) & 0x030C30C3;
-    y = (y | (y << 2)) & 0x09249249;
+    v.y = (v.y | (v.y << 16)) & 0x030000FF;
+    v.y = (v.y | (v.y << 8)) & 0x0300F00F;
+    v.y = (v.y | (v.y << 4)) & 0x030C30C3;
+    v.y = (v.y | (v.y << 2)) & 0x09249249;
 
-    z = (z | (z << 16)) & 0x030000FF;
-    z = (z | (z << 8)) & 0x0300F00F;
-    z = (z | (z << 4)) & 0x030C30C3;
-    z = (z | (z << 2)) & 0x09249249;
+    v.z = (v.z | (v.z << 16)) & 0x030000FF;
+    v.z = (v.z | (v.z << 8)) & 0x0300F00F;
+    v.z = (v.z | (v.z << 4)) & 0x030C30C3;
+    v.z = (v.z | (v.z << 2)) & 0x09249249;
 
-    return (z << 2) | (y << 1) | x;
+    return (v.z << 2) | (v.y << 1) | v.x;
 }
 
 // Returns the curve index
 // x,y,z are the integer coordinates in 3D.
-uint64_t computeMortonCodeF(uint64_t x, uint64_t y, uint64_t z)
+template <> uint64_t computeMortonCodeF(i3vec v)
 {
+    uint64_t x = v.x, y = v.y, z = v.z;
+
     x = (x | (x << 32)) & 0x000F00000000FFFF;
     x = (x | (x << 16)) & 0x000F0000FF0000FF;
     x = (x | (x << 8)) & 0x000F00F00F00F00F;
@@ -193,14 +220,29 @@ template <> i3vec toSFCurveCoords<uint64_t, CURVE_BOUSTRO>(const uint64_t& x) { 
 template <> i3vec toSFCurveCoords<uint64_t, CURVE_TILED2>(const uint64_t& x) { return toTiled2Coords<uint64_t>(x); }
 
 // Actual implementations
-template <typename intcode_t> intcode_t toMortonCode(const i3vec& x) {}
-template <typename intcode_t> intcode_t toHilbertCode(const i3vec& x) {}
-template <typename intcode_t> intcode_t toRasterCode(const i3vec& x) {}
-template <typename intcode_t> intcode_t toBoustroCode(const i3vec& x) {}
-template <typename intcode_t> intcode_t toTiled2Code(const i3vec& x) {}
+template <typename intcode_t> intcode_t toMortonCode(const i3vec& v)
+{
+    intcode_t x = v.x, y = v.y, z = v.z;
+    intcode_t codex = 0, codey = 0, codez = 0;
 
-template <typename intcode_t> i3vec toMortonCoords(const intcode_t& x) {}
-template <typename intcode_t> i3vec toHilbertCoords(const intcode_t& x) {}
-template <typename intcode_t> i3vec toRasterCoords(const intcode_t& x) {}
-template <typename intcode_t> i3vec toBoustroCoords(const intcode_t& x) {}
-template <typename intcode_t> i3vec toTiled2Coords(const intcode_t& x) {}
+    const int nbits2 = sizeof(intcode_t) > sizeof(int) ? 40 : 20; // Nbits2 is 2X the curve order.
+
+    for (int i = 0, andbit = 1; i < nbits2; i += 2, andbit <<= 1) {
+        codex |= (intcode_t)(x & andbit) << i;
+        codey |= (intcode_t)(y & andbit) << i;
+        codez |= (intcode_t)(z & andbit) << i;
+    }
+
+    return (codez << 2) | (codey << 1) | codex;
+}
+
+template <typename intcode_t> intcode_t toHilbertCode(const i3vec& x) { return 0; }
+template <typename intcode_t> intcode_t toRasterCode(const i3vec& x) { return 0; }
+template <typename intcode_t> intcode_t toBoustroCode(const i3vec& x) { return 0; }
+template <typename intcode_t> intcode_t toTiled2Code(const i3vec& x) { return 0; }
+
+template <typename intcode_t> i3vec toMortonCoords(const intcode_t& x) { return i3vec(0); }
+template <typename intcode_t> i3vec toHilbertCoords(const intcode_t& x) { return i3vec(0); }
+template <typename intcode_t> i3vec toRasterCoords(const intcode_t& x) { return i3vec(0); }
+template <typename intcode_t> i3vec toBoustroCoords(const intcode_t& x) { return i3vec(0); }
+template <typename intcode_t> i3vec toTiled2Coords(const intcode_t& x) { return i3vec(0); }

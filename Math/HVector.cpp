@@ -33,7 +33,7 @@ template std::ostream& operator<<(std::ostream& os, const HVector<float>& p);
 
 template <class Elem_T> HVector<Elem_T>& HVector<Elem_T>::rand()
 {
-    for (size_t i = 0; i < size(); i++) (*this)[i] = TRand<Elem_T>();
+    for (size_t i = 0; i < size(); i++) (*this)[i] = tRand<Elem_T>();
 
     return *this;
 }

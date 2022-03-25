@@ -11,45 +11,29 @@
 #define SQRT2PI 2.506628274631000502415765284811045253006
 #define ONEOVERSQRT2PI (1. / SQRT2PI)
 
-// True approximately n out of out_of times
-DMC_DECL bool chance(int n, int out_of) { return (out_of > 0) ? ((rand() % out_of) < n) : false; }
+// A random number on 0.0 to 1.0 for float and 0 to 2^31 for int
+template <class Elem_T> DMC_DECL Elem_T tRand() { return static_cast<Elem_T>((rand() << 15) | rand()) / static_cast<Elem_T>(RAND_MAX * RAND_MAX); }
+template <> DMC_DECL int tRand() { return abs((rand() ^ (rand() << 15) ^ (rand() << 30))); }
 
-// A random number on [0 .. out_of)
-DMC_DECL int randn(int out_of) { return (out_of > 0) ? (rand() % out_of) : 0; }
+template <class Elem_T> DMC_DECL Elem_T tRand(const Elem_T low, const Elem_T high) { return low + tRand<Elem_T>() * (high - low); }
+template <> DMC_DECL int tRand(const int low, const int high) { return low + tRand<int>() % (high - low); }
+
+// A random float or double on low to high
+DMC_DECL float frand() { return tRand<float>(); }
+DMC_DECL double drand() { return tRand<double>(); }
+DMC_DECL float frand(const float low, const float high) { return low + tRand<float>() * (high - low); }
+DMC_DECL double drand(const double low, const double high) { return low + tRand<double>() * (high - low); }
 
 // A random integer
-DMC_DECL int LRand()
-{
-#ifdef DMC_MACHINE_win
-    return abs((rand() ^ (rand() << 15) ^ (rand() << 30)));
-#else
-    return int(lrand48());
-#endif
-}
+DMC_DECL int irand() { return tRand<int>(); }
+DMC_DECL int irand(const int low, const int high) { return low + (irand() % (high - low)); }
+DMC_DECL int irand(const int high) { return irand() % high; }
 
-// A random number on low to high
-DMC_DECL int LRand(const int low, const int high) { return low + (LRand() % (high - low)); }
+// True approximately n out of out_of times
+DMC_DECL bool chance(int n, int out_of) { return (out_of > 0) ? (irand(out_of) < n) : false; }
 
-// A random number on 0 to high
-DMC_DECL int LRand(const int high) { return LRand() % high; }
-
-// A random number on 0.0 to 1.0
-template <class Elem_T> DMC_DECL Elem_T TRand()
-{
-#ifdef DMC_MACHINE_win
-    return static_cast<Elem_T>((rand() << 15) | rand()) / static_cast<Elem_T>(RAND_MAX * RAND_MAX);
-#else
-    return static_cast<Elem_T>(drand48());
-#endif
-}
-
-template <class Elem_T> DMC_DECL Elem_T TRand(const Elem_T low, const Elem_T high)
-{
-    return low + TRand<Elem_T>() * (high - low);
-} // A random number on low to high
-
-DMC_DECL double DRand(const double low = 0.0, const double high = 1.0) { return low + TRand<double>() * (high - low); } // A random number on low to high
-DMC_DECL float DRandf(const float low = 0.0f, const float high = 1.0f) { return low + TRand<float>() * (high - low); }  // A random number on low to high
+// A random number on [0 .. out_of)
+DMC_DECL int randn(int out_of) { return (out_of > 0) ? irand(out_of) : 0; }
 
 // Compute the gaussian with sigma and mu at value x.
 // exp(-0.5 * Sqr(((x-mu)/sigma))) / (SQRT2PI * sigma);
@@ -82,8 +66,8 @@ template <class Elem_T> DMC_DECL Elem_T TNRand(const Elem_T sigma = 1)
 {
     Elem_T x, y, r2;
     do {
-        x = TRand<Elem_T>(-1.0, 1.0);
-        y = TRand<Elem_T>(-1.0, 1.0);
+        x = tRand<Elem_T>(-1.0, 1.0);
+        y = tRand<Elem_T>(-1.0, 1.0);
         r2 = x * x + y * y;
     } while (r2 > 1.0 || r2 == 0.0);
 
@@ -102,7 +86,7 @@ DMC_DECL double NRand(const double mu, const double sigma) { return TNRand<doubl
 DMC_DECL float NRandf(const float mu, const float sigma) { return TNRand<float>(sigma) + mu; }
 
 // True approximately frac percent of the time
-DMC_DECL bool chance(float frac) { return frac > DRandf(); }
+DMC_DECL bool chance(float frac) { return frac > frand(); }
 
 // Seeds the random number generator based on time and/or process ID, if seed is zero (default).
 // Definition of SRand() is in Utils.cpp.

@@ -76,27 +76,31 @@ template <class Vec_T> DMC_DECL void ComputePlane(const Vec_T& V0, const Vec_T& 
     D = -Dot(V0, N);
 }
 
-// Return a uniformly distributed random point in the domain
-template <class Vec_T> DMC_DECL Vec_T MakeDRand(const typename Vec_T::ElType low = 0, const typename Vec_T::ElType high = 1)
+// Return a uniformly distributed random point in the scalar domain; works on int and float vectors
+template <class Vec_T> DMC_DECL Vec_T makeRand()
 {
-    return Vec_T(TRand<typename Vec_T::ElType>(low, high), TRand<typename Vec_T::ElType>(low, high), TRand<typename Vec_T::ElType>(low, high));
+    return Vec_T(tRand<typename Vec_T::ElType>(), tRand<typename Vec_T::ElType>(), tRand<typename Vec_T::ElType>());
+}
+template <class Vec_T> DMC_DECL Vec_T makeRand(const typename Vec_T::ElType low, const typename Vec_T::ElType high)
+{
+    return Vec_T(tRand<typename Vec_T::ElType>(low, high), tRand<typename Vec_T::ElType>(low, high), tRand<typename Vec_T::ElType>(low, high));
 }
 
-// Return a uniformly distributed random point in the domain
-template <class Vec_T> DMC_DECL Vec_T MakeDRand(const Vec_T low, const Vec_T high)
+// Return a uniformly distributed random point in the vector domain; works on int and float vectors
+template <class Vec_T> DMC_DECL Vec_T makeRand(const Vec_T low, const Vec_T high)
 {
-    return Vec_T(TRand<typename Vec_T::ElType>(low.x, high.x), TRand<typename Vec_T::ElType>(low.y, high.y), TRand<typename Vec_T::ElType>(low.z, high.z));
+    return Vec_T(tRand<typename Vec_T::ElType>(low.x, high.x), tRand<typename Vec_T::ElType>(low.y, high.y), tRand<typename Vec_T::ElType>(low.z, high.z));
 }
 
 // Return a normally distributed random point
-template <class Vec_T> DMC_DECL Vec_T MakeNRand(const typename Vec_T::ElType sigma = 1) { return Vec_T(NRand(0, sigma), NRand(0, sigma), NRand(0, sigma)); }
+template <class Vec_T> DMC_DECL Vec_T makeNRand(const typename Vec_T::ElType sigma = 1) { return Vec_T(NRand(0, sigma), NRand(0, sigma), NRand(0, sigma)); }
 
-// Return a uniformly distributed random point on a unit sphere
-template <class Vec_T> Vec_T MakeRandOnSphere()
+// Return a uniformly distributed random point on a unit sphericall shell
+template <class Vec_T> Vec_T makeRandOnSphere()
 {
     Vec_T RVec;
     do {
-        RVec = MakeDRand<Vec_T>(-1, 1);
+        RVec = makeRand<Vec_T>(-1, 1);
     } while (RVec.lenSqr() > static_cast<typename Vec_T::ElType>(1) || RVec.lenSqr() == static_cast<typename Vec_T::ElType>(0));
 
     RVec.normalize();
