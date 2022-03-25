@@ -29,7 +29,7 @@ int Perlin::FindRandPrime(int i0, int i1)
 {
     while (1) {
         // Get an odd random number in the range.
-        int i = (irand() % ((i1 - i0) / 2)) * 2 + 1;
+        int i = irand((i1 - i0) / 2) * 2 + 1;
         i = (i0 & (~1)) + i;
 
         // Find the next largest prime.

@@ -95,7 +95,7 @@ template <class Image_T> typename Image_T::PixType::ElType getApproxMedian(const
     typename Image_T::PixType::ElType* vals = new typename Image_T::PixType::ElType[NumSamples];
 
     for (int k = 0; k < NumSamples; k++) {
-        int i = irand() % Img.size();
+        int i = irand(Img.size());
         vals[k] = Img[i].luminance();
     }
 
