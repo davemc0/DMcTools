@@ -13,6 +13,7 @@ Projects that use DMcTools:
 * https://github.com/davemc0/GenArt.git
 * https://github.com/davemc0/ClothDemo.git
 * https://github.com/davemc0/Particle.git
+* https://github.com/davemc0/IMgFix.git
 
 This code is implemented in C++. I originally developed it on Linux, but I've only run it on Windows lately. This code works great on Visual Studio 2019 with C++17. I hope it will build on Linux or Mac straightforwardly.
 
