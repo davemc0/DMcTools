@@ -46,16 +46,12 @@ struct DMcError {
 // On failure, prints msg and terminates in debug mode
 #define ASSERT_DM(condition, msg)                                                                                                                         \
     {                                                                                                                                                     \
-        if (!(condition)) {                                                                                                                               \
-            if (!(condition)) throw DMcError(std::string("Assert_DM: (") + #condition + ") at " + __FILE__ + ":" + std::to_string(__LINE__) + " " + msg); \
-        }                                                                                                                                                 \
+        if (!(condition)) { throw DMcError(std::string("Assert_DM: (") + #condition + ") at " + __FILE__ + ":" + std::to_string(__LINE__) + " " + msg); } \
     }
 // On failure, terminates in debug mode
 #define ASSERT_D(condition)                                                                                                                  \
     {                                                                                                                                        \
-        if (!(condition)) {                                                                                                                  \
-            if (!(condition)) throw DMcError(std::string("Assert_D: (") + #condition + ") at " + __FILE__ + ":" + std::to_string(__LINE__)); \
-        }                                                                                                                                    \
+        if (!(condition)) { throw DMcError(std::string("Assert_D: (") + #condition + ") at " + __FILE__ + ":" + std::to_string(__LINE__)); } \
     }
 // On failure, prints msg in debug mode
 #define WARN_D(condition, msg)                                                                                             \
