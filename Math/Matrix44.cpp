@@ -604,10 +604,10 @@ template <class Vec_T> void Matrix44<Vec_T>::LookAt(const Vec_T& eye, const Vec_
     Vec_T upn(up);
     upn.normalize();
 
-    Vec_T s(Cross(f, upn));
+    Vec_T s(cross(f, upn));
     s.normalize();
 
-    Vec_T u(Cross(s, f));
+    Vec_T u(cross(s, f));
     // u.normalize(); // This normalize shouldn't be necessary.
 
     typename Vec_T::ElType m[4][4];

@@ -43,27 +43,40 @@ template <typename intcode_t> i3vec toSFCurveCoords(const intcode_t& x, SFCurveT
 }
 
 // Convert a 3D float vector to 3 integer code for later conversion to Morton
-template <typename intcode_t, typename Vec_T> class FixedPointifier {
-    FixedPointifier(const tAABB<Vec_T>& world)
+template <typename Vec_T> class FixedPointifier {
+public:
+    FixedPointifier(const tAABB<Vec_T>& world, const unsigned int nbits_) : m_nbits(nbits_)
     {
-        const float keyMaxf = sizeof(intcode_t) > sizeof(int) ? 1048576.0f : (float)((1 << 10) - 1); // XXX Why is one of these even and the other odd?
+        const float keyMaxf = (float)((1 << m_nbits) - 1);
 
-        scale = keyMaxf / world.extent();
-        beta = world.lo();
+        m_scale = keyMaxf / world.extent();
+        m_scaleInv = world.extent() / keyMaxf;
+        m_bias = world.lo();
     }
 
-    void floatToFixed(const Vec_T& P, intcode_t& keyx, intcode_t& keyy, intcode_t& keyz)
+    i3vec floatToFixed(const Vec_T& P)
     {
-        const int keyMaxi = sizeof(Index_t) > sizeof(int) ? 1048575 : 1023;
+        const int keyMaxi = (1 << m_nbits) - 1;
 
-        keyx = clamp(int(scale.x * (P.x - bias.x)), 0, keyMaxi);
-        keyy = clamp(int(scale.y * (P.y - bias.y)), 0, keyMaxi);
-        keyz = clamp(int(scale.z * (P.z - bias.z)), 0, keyMaxi);
+        Vec_T v = m_scale * (P - m_bias);
+        i3vec key = v;
+        key = clamp(key, i3vec(0), i3vec(keyMaxi)); // Key.clamp(i3vec(0), i3vec(keyMaxi)) is const and doesn't do what we want.
+
+        return key;
+    }
+
+    Vec_T fixedToFloat(const i3vec& P)
+    {
+        const float keyMaxf = (float)((1 << m_nbits) - 1);
+        Vec_T v = m_bias + f3vec(P) * m_scaleInv;
+
+        return v;
     }
 
 private:
-    Vec_T scale;
-    Vec_T bias;
+    const unsigned int m_nbits;
+    Vec_T m_scale, m_scaleInv;
+    Vec_T m_bias;
 };
 
 // Returns the curve index

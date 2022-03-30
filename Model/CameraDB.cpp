@@ -121,7 +121,7 @@ DMC_DECL void PlaneFromPoints(f3vec::ElType* ABCD, const f3vec P0, const f3vec P
     f3vec V1 = P1 - P0;
     f3vec V2 = P2 - P0;
     f3vec* ABC = (f3vec*)ABCD;
-    *ABC = Cross(V1, V2);
+    *ABC = cross(V1, V2);
     (*ABC).normalize();
     ABCD[3] = -dot(*ABC, P0); // D
 }

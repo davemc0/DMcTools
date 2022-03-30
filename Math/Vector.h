@@ -457,7 +457,7 @@ public:
         for (int i = 0; i < L; i++) rp[i] = ::max(tp[i], vp[i]); // Use max defined with above macro
         return r;
     }
-    template <class V, class W> DMC_DECL S clamp(const tVector<T, L, V>& lo, const tVector<T, L, W>& hi) const
+    template <class V, class W> DMC_DECL [[nodiscard]] S clamp(const tVector<T, L, V>& lo, const tVector<T, L, W>& hi) const
     {
         const T* tp = getPtr();
         const T* lop = lo.getPtr();
@@ -689,7 +689,7 @@ public:
     }
 };
 
-DMC_DECL f3vec Cross(const f3vec& v1, const f3vec& v2) { return f3vec(v1.y * v2.z - v1.z * v2.y, v1.z * v2.x - v1.x * v2.z, v1.x * v2.y - v1.y * v2.x); }
+DMC_DECL f3vec cross(const f3vec& v1, const f3vec& v2) { return f3vec(v1.y * v2.z - v1.z * v2.y, v1.z * v2.x - v1.x * v2.z, v1.x * v2.y - v1.y * v2.x); }
 
 class d3vec : public tVector<double, 3, d3vec>, public double3 {
 public:
@@ -722,9 +722,11 @@ public:
         set(v);
         return *this;
     }
+
+    DMC_DECL explicit operator f3vec() const { return f3vec((float)x, (float)y, (float)z); }
 };
 
-DMC_DECL d3vec Cross(const d3vec& v1, const d3vec& v2) { return d3vec(v1.y * v2.z - v1.z * v2.y, v1.z * v2.x - v1.x * v2.z, v1.x * v2.y - v1.y * v2.x); }
+DMC_DECL d3vec cross(const d3vec& v1, const d3vec& v2) { return d3vec(v1.y * v2.z - v1.z * v2.y, v1.z * v2.x - v1.x * v2.z, v1.x * v2.y - v1.y * v2.x); }
 
 ////////////////////////////////////////////////
 

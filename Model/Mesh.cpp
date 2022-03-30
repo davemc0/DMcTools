@@ -686,7 +686,7 @@ void Mesh::GenFaceNormals()
         f3vec P0 = F->v0->V - F->v1->V;
         f3vec P1 = F->v2->V - F->v1->V;
 
-        f3vec N = f3vec(Cross(P1, P0));
+        f3vec N = f3vec(cross(P1, P0));
         N.normalize();
 
         F->Nor = N;
@@ -932,7 +932,7 @@ DMC_DECL f3vec ComputeFaceTangent(const f3vec& P1, const f3vec& P2, const f3vec&
     f3vec::ElType dU2 = T1.x - T2.x;
     f3vec V = Vec2 * dU1 - Vec1 * dU2; // Opposite of the article.
     V.normalize();
-    f3vec U = Cross(V, N);
+    f3vec U = cross(V, N);
     U.normalize();
     return U;
 }

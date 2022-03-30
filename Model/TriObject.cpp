@@ -44,7 +44,7 @@ void TriObject::GenNormals()
         f3vec P0 = verts[i] - verts[i + 1];
         f3vec P1 = verts[i + 2] - verts[i + 1];
 
-        f3vec* N = new f3vec(Cross(P1, P0));
+        f3vec* N = new f3vec(cross(P1, P0));
         N->normalize();
 
         // Store a pointer to this facet normal in F->e0.
