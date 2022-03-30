@@ -62,7 +62,7 @@ DMC_DECL double GaussianSq(const double xSq, const double sigma)
 }
 
 // Return a random number with a normal distribution
-template <class Elem_T> DMC_DECL Elem_T TNRand(const Elem_T sigma = 1)
+template <class Elem_T> DMC_DECL Elem_T tNRand(const Elem_T sigma = 1)
 {
     Elem_T x, y, r2;
     do {
@@ -80,10 +80,10 @@ template <class Elem_T> DMC_DECL Elem_T TNRand(const Elem_T sigma = 1)
 }
 
 // Return a random number with a normal distribution
-DMC_DECL double NRand(const double mu, const double sigma) { return TNRand<double>(sigma) + mu; }
+DMC_DECL double ndrand(const double mu, const double sigma) { return tNRand<double>(sigma) + mu; }
 
 // Return a random number with a normal distribution
-DMC_DECL float NRandf(const float mu, const float sigma) { return TNRand<float>(sigma) + mu; }
+DMC_DECL float nfrand(const float mu, const float sigma) { return tNRand<float>(sigma) + mu; }
 
 // True approximately frac percent of the time
 DMC_DECL bool chance(float frac) { return frac > frand(); }

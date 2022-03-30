@@ -103,7 +103,7 @@ template <class Vec_T> DMC_DECL Vec_T makeRand(const tAABB<Vec_T>& box)
 }
 
 // Return a normally distributed random point
-template <class Vec_T> DMC_DECL Vec_T makeNRand(const typename Vec_T::ElType sigma = 1) { return Vec_T(NRand(0, sigma), NRand(0, sigma), NRand(0, sigma)); }
+template <class Vec_T> DMC_DECL Vec_T makeNRand(const typename Vec_T::ElType sigma = 1) { return Vec_T(ndrand(0, sigma), ndrand(0, sigma), ndrand(0, sigma)); }
 
 // Return a uniformly distributed random point on a unit spherical shell
 template <class Vec_T> Vec_T makeRandOnSphere()

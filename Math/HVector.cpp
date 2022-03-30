@@ -41,7 +41,7 @@ template HVector<float>& HVector<float>::rand();
 
 template <class Elem_T> HVector<Elem_T>& HVector<Elem_T>::nrand(const Elem_T sigma)
 {
-    for (size_t i = 0; i < size(); i++) (*this)[i] = NRand(0, sigma);
+    for (size_t i = 0; i < size(); i++) (*this)[i] = ndrand(0, sigma);
 
     return *this;
 }
