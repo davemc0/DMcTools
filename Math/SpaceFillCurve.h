@@ -151,51 +151,76 @@ template <typename intcode_t> intcode_t toMortonCode(i3vec v)
     return (codez << 2) | (codey << 1) | codex;
 }
 
+// Hilbert coordinate transpose functions by John Skilling. Public domain.
+// See https://stackoverflow.com/questions/499166/mapping-n-dimensional-value-to-a-point-on-hilbert-curve
+// The uint32_t is the N-D coordinate type. Could be something else.
+
+void transposeFromHilbertCoords(uint32_t* X, int nbits, int dim)
+{
+    uint32_t N = 2 << (nbits - 1), P, Q, t;
+
+    // Gray decode by H ^ (H/2)
+    t = X[dim - 1] >> 1;
+    // Corrected error in Skilling's paper on the following line. The appendix had i >= 0 leading to negative array index.
+    for (int i = dim - 1; i > 0; i--) X[i] ^= X[i - 1];
+    X[0] ^= t;
+
+    // Undo excess work
+    for (Q = 2; Q != N; Q <<= 1) {
+        P = Q - 1;
+        for (int i = dim - 1; i >= 0; i--)
+            if (X[i] & Q) // Invert
+                X[0] ^= P;
+            else { // Exchange
+                t = (X[0] ^ X[i]) & P;
+                X[0] ^= t;
+                X[i] ^= t;
+            }
+    }
+}
+
+void transposeToHilbertCoords(uint32_t* X, int nbits, int dim)
+{
+    uint32_t M = 1 << (nbits - 1), P, Q, t;
+
+    // Inverse undo
+    for (Q = M; Q > 1; Q >>= 1) {
+        P = Q - 1;
+        for (int i = 0; i < dim; i++)
+            if (X[i] & Q) // Invert
+                X[0] ^= P;
+            else { // Exchange
+                t = (X[0] ^ X[i]) & P;
+                X[0] ^= t;
+                X[i] ^= t;
+            }
+    }
+
+    // Gray encode
+    for (int i = 1; i < dim; i++) X[i] ^= X[i - 1];
+    t = 0;
+    for (Q = M; Q > 1; Q >>= 1)
+        if (X[dim - 1] & Q) t ^= Q - 1;
+    for (int i = 0; i < dim; i++) X[i] ^= t;
+}
+
 template <typename intcode_t> intcode_t toHilbertCode(i3vec v)
 {
     const int nbits = curveOrder<intcode_t>();
-    const intcode_t transform[8] = {0, 1, 7, 6, 3, 2, 4, 5};
-    intcode_t s = 0;
 
-    for (int i = nbits - 1; i >= 0; i--) {
-        uint32_t xi = ((uint32_t)v.x >> (uint32_t)i) & 1;
-        uint32_t yi = ((uint32_t)v.y >> (uint32_t)i) & 1;
-        uint32_t zi = ((uint32_t)v.z >> (uint32_t)i) & 1;
-
-        uint32_t index = (xi << 2) + (yi << 1) + zi;
-        s = (s << 3) + transform[index];
-
-        if (index == 0) {
-            std::swap(v.y, v.z); // Swap y and z
-        } else if (index == 1) {
-            std::swap(v.x, v.y); // Swap x and y
-        } else if (index == 2) {
-            intcode_t temp = (v.z) ^ (-1);
-            v.z = (v.y) ^ (-1);
-            v.y = temp; // Swap and complement z and y
-        } else if (index == 3) {
-            intcode_t temp = (v.x) ^ (-1);
-            v.x = (v.y) ^ (-1);
-            v.y = temp; // Swap and complement x and y
-        } else if (index == 4) {
-            v.x = (v.x) ^ (-1);
-            v.z = (v.z) ^ (-1); // Complement z and x
-        } else if (index == 5) {
-            std::swap(v.x, v.y); // Swap x and y
-        } else if (index == 6) {
-            v.x = (v.x) ^ (-1);
-            v.z = (v.z) ^ (-1); // Complement z and x
-        } else if (index == 7) {
-            intcode_t temp = (v.x) ^ (-1);
-            v.x = (v.y) ^ (-1);
-            v.y = temp; // Swap and complement x and y
-        }
-    }
+    transposeToHilbertCoords((uint32_t*)v.data(), nbits, 3);
+    intcode_t s = toMortonCode<intcode_t>(v);
 
     return s;
 }
 
-template <typename intcode_t> intcode_t toRasterCode(i3vec v) { return 0; }
+template <typename intcode_t> intcode_t toRasterCode(i3vec v)
+{
+    const int nbits = curveOrder<intcode_t>();
+    intcode_t s = ((intcode_t)v.z << (intcode_t)(2 * nbits)) | ((intcode_t)v.y << (intcode_t)nbits) | (intcode_t)v.x;
+
+    return s;
+}
 template <typename intcode_t> intcode_t toBoustroCode(i3vec v) { return 0; }
 template <typename intcode_t> intcode_t toTiled2Code(i3vec v) { return 0; }
 
@@ -215,8 +240,26 @@ template <typename intcode_t> i3vec toMortonCoords(intcode_t p)
     return v;
 }
 
-template <typename intcode_t> i3vec toHilbertCoords(intcode_t p) { return i3vec(0); }
-template <typename intcode_t> i3vec toRasterCoords(intcode_t p) { return i3vec(0); }
+template <typename intcode_t> i3vec toHilbertCoords(intcode_t p)
+{
+    const int nbits = curveOrder<intcode_t>();
+
+    i3vec v = toMortonCoords<intcode_t>(p);
+    transposeFromHilbertCoords((uint32_t*)v.data(), nbits, 3);
+
+    return v;
+}
+
+template <typename intcode_t> i3vec toRasterCoords(intcode_t p)
+{
+    const int nbits = curveOrder<intcode_t>();
+    const intcode_t nbitmask = ((intcode_t)1 << (intcode_t)nbits) - (intcode_t)1;
+
+    i3vec v((int)(p & nbitmask), (int)((p >> (intcode_t)nbits) & nbitmask), (int)((p >> (intcode_t)(2 * nbits)) & nbitmask));
+
+    return v;
+}
+
 template <typename intcode_t> i3vec toBoustroCoords(intcode_t p) { return i3vec(0); }
 template <typename intcode_t> i3vec toTiled2Coords(intcode_t p) { return i3vec(0); }
 
