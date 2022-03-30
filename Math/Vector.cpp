@@ -10,7 +10,7 @@
 template <class T, int L, class S> DMC_DECL std::ostream& operator<<(std::ostream& os, const tVector<T, L, S>& b)
 {
     os << "{";
-    const T* bp = b.getPtr();
+    const T* bp = b.data();
     for (int i = 0; i < L; i++) {
         os << bp[i];
         os << ((i < L - 1) ? ", " : "}");
@@ -26,7 +26,7 @@ template <class T, int L, class S> DMC_DECL std::istream& operator>>(std::istrea
 {
     char st;
     is >> st;
-    T* bp = b.getPtr();
+    T* bp = b.data();
     for (int i = 0; i < L; i++) {
         is >> bp[i];
         is >> st;

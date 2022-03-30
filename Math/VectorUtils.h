@@ -10,6 +10,7 @@
 #include <intrin.h>
 #endif
 
+#include "Math/AABB.h"
 #include "Math/Random.h"
 #include "Math/Vector.h"
 
@@ -76,26 +77,35 @@ template <class Vec_T> DMC_DECL void ComputePlane(const Vec_T& V0, const Vec_T& 
     D = -Dot(V0, N);
 }
 
-// Return a uniformly distributed random point in the scalar domain; works on int and float vectors
+// Return a uniformly distributed random vector on [0..1) for float or [0..2^31) for int
 template <class Vec_T> DMC_DECL Vec_T makeRand()
 {
     return Vec_T(tRand<typename Vec_T::ElType>(), tRand<typename Vec_T::ElType>(), tRand<typename Vec_T::ElType>());
 }
+
+// Return a uniformly distributed random vector on scalar [low..high) for float or int
 template <class Vec_T> DMC_DECL Vec_T makeRand(const typename Vec_T::ElType low, const typename Vec_T::ElType high)
 {
     return Vec_T(tRand<typename Vec_T::ElType>(low, high), tRand<typename Vec_T::ElType>(low, high), tRand<typename Vec_T::ElType>(low, high));
 }
 
-// Return a uniformly distributed random point in the vector domain; works on int and float vectors
+// Return a uniformly distributed random vector on vector [low..high) for float or int
 template <class Vec_T> DMC_DECL Vec_T makeRand(const Vec_T low, const Vec_T high)
 {
     return Vec_T(tRand<typename Vec_T::ElType>(low.x, high.x), tRand<typename Vec_T::ElType>(low.y, high.y), tRand<typename Vec_T::ElType>(low.z, high.z));
 }
 
+// Return a uniformly distributed random vector on AABB box for float or int
+template <class Vec_T> DMC_DECL Vec_T makeRand(const tAABB<Vec_T>& box)
+{
+    return Vec_T(tRand<typename Vec_T::ElType>(box.lo().x, box.hi().x), tRand<typename Vec_T::ElType>(box.lo().y, box.hi().y),
+                 tRand<typename Vec_T::ElType>(box.lo().z, box.hi().z));
+}
+
 // Return a normally distributed random point
 template <class Vec_T> DMC_DECL Vec_T makeNRand(const typename Vec_T::ElType sigma = 1) { return Vec_T(NRand(0, sigma), NRand(0, sigma), NRand(0, sigma)); }
 
-// Return a uniformly distributed random point on a unit sphericall shell
+// Return a uniformly distributed random point on a unit spherical shell
 template <class Vec_T> Vec_T makeRandOnSphere()
 {
     Vec_T RVec;
@@ -118,9 +128,9 @@ template <class Vec_T> Vec_T norm2d(const typename Vec_T::ElType x, const typena
 
 DMC_DECL f4vec toHomogeneous(f3vec& t)
 {
-    const float* tp = t.getPtr();
+    const float* tp = t.data();
     f4vec r;
-    float* rp = r.getPtr();
+    float* rp = r.data();
     for (int i = 0; i < 3; i++) rp[i] = tp[i];
     rp[3] = (float)1;
     return r;
@@ -128,9 +138,9 @@ DMC_DECL f4vec toHomogeneous(f3vec& t)
 
 DMC_DECL f3vec toCartesian(f4vec& t)
 {
-    const float* tp = t.getPtr();
+    const float* tp = t.data();
     f3vec r;
-    float* rp = r.getPtr();
+    float* rp = r.data();
     float c = rcp(tp[3]);
     for (int i = 0; i < 3; i++) rp[i] = tp[i] * c;
     return r;
