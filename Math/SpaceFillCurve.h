@@ -45,57 +45,7 @@ template <typename intcode_t> i3vec toSFCurveCoords(intcode_t x, SFCurveType CT)
 
 // The curve order (number of bits in each dimension)
 // Was sizeof(intcode_t) > sizeof(uint32_t) ? 20 : 10
-template <typename intcode_t> const int curveOrder() { return (sizeof(intcode_t) * 8) / 3; }
-
-// Returns the curve index
-template <typename intcode_t> intcode_t computeMortonCodeF(i3vec v) {}
-
-template <> uint32_t computeMortonCodeF(i3vec v)
-{
-    v.x = (v.x | (v.x << 16)) & 0x030000FF;
-    v.x = (v.x | (v.x << 8)) & 0x0300F00F;
-    v.x = (v.x | (v.x << 4)) & 0x030C30C3;
-    v.x = (v.x | (v.x << 2)) & 0x09249249;
-
-    v.y = (v.y | (v.y << 16)) & 0x030000FF;
-    v.y = (v.y | (v.y << 8)) & 0x0300F00F;
-    v.y = (v.y | (v.y << 4)) & 0x030C30C3;
-    v.y = (v.y | (v.y << 2)) & 0x09249249;
-
-    v.z = (v.z | (v.z << 16)) & 0x030000FF;
-    v.z = (v.z | (v.z << 8)) & 0x0300F00F;
-    v.z = (v.z | (v.z << 4)) & 0x030C30C3;
-    v.z = (v.z | (v.z << 2)) & 0x09249249;
-
-    return (v.z << 2) | (v.y << 1) | v.x;
-}
-
-// Returns the curve index
-// x,y,z are the integer coordinates in 3D.
-template <> uint64_t computeMortonCodeF(i3vec v)
-{
-    uint64_t x = v.x, y = v.y, z = v.z;
-
-    x = (x | (x << 32)) & 0x000F00000000FFFF;
-    x = (x | (x << 16)) & 0x000F0000FF0000FF;
-    x = (x | (x << 8)) & 0x000F00F00F00F00F;
-    x = (x | (x << 4)) & 0x00C30C30C30C30C3;
-    x = (x | (x << 2)) & 0x0249249249249249;
-
-    y = (y | (y << 32)) & 0x000F00000000FFFF;
-    y = (y | (y << 16)) & 0x000F0000FF0000FF;
-    y = (y | (y << 8)) & 0x000F00F00F00F00F;
-    y = (y | (y << 4)) & 0x00C30C30C30C30C3;
-    y = (y | (y << 2)) & 0x0249249249249249;
-
-    z = (z | (z << 32)) & 0x000F00000000FFFF;
-    z = (z | (z << 16)) & 0x000F0000FF0000FF;
-    z = (z | (z << 8)) & 0x000F00F00F00F00F;
-    z = (z | (z << 4)) & 0x00C30C30C30C30C3;
-    z = (z | (z << 2)) & 0x0249249249249249;
-
-    return (z << 2) | (y << 1) | x;
-}
+template <typename intcode_t> constexpr const int curveOrder() { return (sizeof(intcode_t) * 8) / 3; }
 
 // Declarations of actual implementations
 template <typename intcode_t> intcode_t toMortonCode(const i3vec v);
@@ -138,18 +88,62 @@ template <> i3vec toSFCurveCoords<uint64_t, CURVE_TILED2>(const uint64_t p) { re
 // Actual implementations
 template <typename intcode_t> intcode_t toMortonCode(i3vec v)
 {
-    intcode_t x = v.x, y = v.y, z = v.z;
-    intcode_t codex = 0, codey = 0, codez = 0;
+    const int nbits = curveOrder<intcode_t>();
 
-    const int nbits2 = 2 * curveOrder<intcode_t>();
+    // This is because explicit template specialization for the fast types didn't work.
+    if constexpr (nbits == 10) {
+        v.x = (v.x | (v.x << 16)) & 0x030000FF;
+        v.x = (v.x | (v.x << 8)) & 0x0300F00F;
+        v.x = (v.x | (v.x << 4)) & 0x030C30C3;
+        v.x = (v.x | (v.x << 2)) & 0x09249249;
 
-    for (int i = 0, andbit = 1; i < nbits2; i += 2, andbit <<= 1) {
-        codex |= (intcode_t)(x & andbit) << i;
-        codey |= (intcode_t)(y & andbit) << i;
-        codez |= (intcode_t)(z & andbit) << i;
+        v.y = (v.y | (v.y << 16)) & 0x030000FF;
+        v.y = (v.y | (v.y << 8)) & 0x0300F00F;
+        v.y = (v.y | (v.y << 4)) & 0x030C30C3;
+        v.y = (v.y | (v.y << 2)) & 0x09249249;
+
+        v.z = (v.z | (v.z << 16)) & 0x030000FF;
+        v.z = (v.z | (v.z << 8)) & 0x0300F00F;
+        v.z = (v.z | (v.z << 4)) & 0x030C30C3;
+        v.z = (v.z | (v.z << 2)) & 0x09249249;
+
+        return (v.z << 2) | (v.y << 1) | v.x;
+    } else if constexpr (nbits == 21) {
+        uint64_t x = v.x, y = v.y, z = v.z;
+
+        x = (x | (x << 32)) & 0x001F00000000FFFF;
+        x = (x | (x << 16)) & 0x001F0000FF0000FF;
+        x = (x | (x << 8)) & 0x100F00F00F00F00F;
+        x = (x | (x << 4)) & 0x10C30C30C30C30C3;
+        x = (x | (x << 2)) & 0x1249249249249249;
+
+        y = (y | (y << 32)) & 0x001F00000000FFFF;
+        y = (y | (y << 16)) & 0x001F0000FF0000FF;
+        y = (y | (y << 8)) & 0x100F00F00F00F00F;
+        y = (y | (y << 4)) & 0x10C30C30C30C30C3;
+        y = (y | (y << 2)) & 0x1249249249249249;
+
+        z = (z | (z << 32)) & 0x001F00000000FFFF;
+        z = (z | (z << 16)) & 0x001F0000FF0000FF;
+        z = (z | (z << 8)) & 0x100F00F00F00F00F;
+        z = (z | (z << 4)) & 0x10C30C30C30C30C3;
+        z = (z | (z << 2)) & 0x1249249249249249;
+
+        return (z << 2) | (y << 1) | x;
+    } else {
+        intcode_t x = v.x, y = v.y, z = v.z;
+        intcode_t codex = 0, codey = 0, codez = 0;
+
+        const int nbits2 = 2 * nbits;
+
+        for (int i = 0, andbit = 1; i < nbits2; i += 2, andbit <<= 1) {
+            codex |= (intcode_t)(x & andbit) << i;
+            codey |= (intcode_t)(y & andbit) << i;
+            codez |= (intcode_t)(z & andbit) << i;
+        }
+
+        return (codez << 2) | (codey << 1) | codex;
     }
-
-    return (codez << 2) | (codey << 1) | codex;
 }
 
 // Hilbert coordinate transpose functions by John Skilling. Public domain.
