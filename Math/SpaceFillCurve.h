@@ -1,9 +1,15 @@
 //////////////////////////////////////////////////////////////////////
 // SpaceFillCurve.h - Space-filling curve conversions, esp. Morton and Hilbert
 //
-// Copyright David K. McAllister, 2012.
+// Copyright David K. McAllister, 2012-2022.
 
-// TODO: Need the code to convert back from Morton to three ints.
+// Count of random point pairs with coord distance <= 9 that had a code difference < 100 with 10 bits per dimension
+// Computed with DMcToolsTest -SpaceFillCurveTest testCoordToCodeDistAll
+// CURVE_MORTON  750,100
+// CURVE_HILBERT 824,710
+// CURVE_RASTER   58,906
+// CURVE_BOUSTRO  66,123
+// CURVE_TILED2  358,118
 
 #pragma once
 
