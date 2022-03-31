@@ -204,6 +204,7 @@ template <typename intcode_t> intcode_t toHilbertCode(i3vec v)
     const int nbits = curveOrder<intcode_t>();
 
     transposeToHilbertCoords((uint32_t*)v.data(), nbits, 3);
+    std::swap(v.x, v.z);
     intcode_t s = toMortonCode<intcode_t>(v);
 
     return s;
@@ -269,6 +270,7 @@ template <typename intcode_t> i3vec toHilbertCoords(intcode_t p)
     const int nbits = curveOrder<intcode_t>();
 
     i3vec v = toMortonCoords<intcode_t>(p);
+    std::swap(v.x, v.z);
     transposeFromHilbertCoords((uint32_t*)v.data(), nbits, 3);
 
     return v;
