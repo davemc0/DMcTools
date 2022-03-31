@@ -12,7 +12,7 @@
 #include <vector>
 
 typedef enum { CURVE_MORTON, CURVE_HILBERT, CURVE_RASTER, CURVE_BOUSTRO, CURVE_TILED2, CURVE_COUNT } SFCurveType;
-char const* SFCurveNames[] = {"CURVE_MORTON", "CURVE_HILBERT", "CURVE_RASTER", "CURVE_BOUSTRO", "CURVE_TILED2"};
+char const* SFCurveNames[] = {"CURVE_MORTON", "CURVE_HILBERT", "CURVE_RASTER", "CURVE_BOUSTRO", "CURVE_TILED2", "NONE"};
 
 // Public, generic interfaces
 // Statically choose the SFCurveType (performant)
@@ -44,7 +44,8 @@ template <typename intcode_t> i3vec toSFCurveCoords(intcode_t x, SFCurveType CT)
 }
 
 // The curve order (number of bits in each dimension)
-template <typename intcode_t> const int curveOrder() { return sizeof(intcode_t) > sizeof(uint32_t) ? 20 : 10; }
+// Was sizeof(intcode_t) > sizeof(uint32_t) ? 20 : 10
+template <typename intcode_t> const int curveOrder() { return (sizeof(intcode_t) * 8) / 3; }
 
 // Returns the curve index
 template <typename intcode_t> intcode_t computeMortonCodeF(i3vec v) {}
@@ -221,15 +222,44 @@ template <typename intcode_t> intcode_t toRasterCode(i3vec v)
 
     return s;
 }
-template <typename intcode_t> intcode_t toBoustroCode(i3vec v) { return 0; }
-template <typename intcode_t> intcode_t toTiled2Code(i3vec v) { return 0; }
+
+template <typename intcode_t> intcode_t toBoustroCode(i3vec v)
+{
+    const int nbits = curveOrder<intcode_t>();
+    const intcode_t nbitmask = ((intcode_t)1 << (intcode_t)nbits) - (intcode_t)1;
+
+    if (v.y & 1) v.x = nbitmask & ~v.x;
+    if (v.z & 1) v.y = nbitmask & ~v.y;
+    if (v.z & 1) v.x = nbitmask & ~v.x;
+
+    intcode_t s = ((intcode_t)v.z << (intcode_t)(2 * nbits)) | ((intcode_t)v.y << (intcode_t)nbits) | (intcode_t)v.x;
+
+    return s;
+}
+
+template <typename intcode_t> intcode_t toTiled2Code(i3vec v)
+{
+    const int nbits = curveOrder<intcode_t>();
+
+    const int nbitsl = nbits / 2;
+    const intcode_t nbitmaskl = ((intcode_t)1 << (intcode_t)nbitsl) - (intcode_t)1;
+    i3vec vlo(nbitmaskl & v.x, nbitmaskl & v.y, nbitmaskl & v.z);
+    intcode_t lo = ((intcode_t)vlo.z << (intcode_t)(2 * nbitsl)) | ((intcode_t)vlo.y << (intcode_t)nbitsl) | (intcode_t)vlo.x;
+
+    const int nbitsh = nbits - nbitsl;
+    const intcode_t nbitmaskh = ((intcode_t)1 << (intcode_t)nbitsh) - (intcode_t)1;
+    i3vec vhi(nbitmaskh & (v.x >> nbitsl), nbitmaskh & (v.y >> nbitsl), nbitmaskh & (v.z >> nbitsl));
+    intcode_t hi = ((intcode_t)vhi.z << (intcode_t)(2 * nbitsh)) | ((intcode_t)vhi.y << (intcode_t)nbitsh) | (intcode_t)vhi.x;
+
+    return (hi << (intcode_t)(nbitsl * 3)) | lo;
+}
 
 template <typename intcode_t> i3vec toMortonCoords(intcode_t p)
 {
     // From https://github.com/Forceflow/libmorton/blob/main/include/libmorton/morton3D.h
+    const unsigned int nbits = curveOrder<intcode_t>();
     i3vec v(0);
-    unsigned int checkbits = static_cast<unsigned int>(floor((sizeof(intcode_t) * 8.0f / 3.0f)));
-    for (unsigned int i = 0; i <= checkbits; ++i) {
+    for (unsigned int i = 0; i <= nbits; ++i) {
         intcode_t selector = 1;
         unsigned int shift_selector = 3 * i;
         unsigned int shiftback = 2 * i;
@@ -260,8 +290,43 @@ template <typename intcode_t> i3vec toRasterCoords(intcode_t p)
     return v;
 }
 
-template <typename intcode_t> i3vec toBoustroCoords(intcode_t p) { return i3vec(0); }
-template <typename intcode_t> i3vec toTiled2Coords(intcode_t p) { return i3vec(0); }
+template <typename intcode_t> i3vec toBoustroCoords(intcode_t p)
+{
+    const int nbits = curveOrder<intcode_t>();
+    const intcode_t nbitmask = ((intcode_t)1 << (intcode_t)nbits) - (intcode_t)1;
+
+    i3vec v((int)(p & nbitmask), (int)((p >> (intcode_t)nbits) & nbitmask), (int)((p >> (intcode_t)(2 * nbits)) & nbitmask));
+
+    if (v.z & 1) v.y = nbitmask & ~v.y;
+    if (v.z & 1) v.x = nbitmask & ~v.x;
+    if (v.y & 1) v.x = nbitmask & ~v.x;
+
+    return v;
+}
+
+template <typename intcode_t> i3vec toTiled2Coords(intcode_t p)
+{
+    const int nbits = curveOrder<intcode_t>();
+
+    const int nbitsl = nbits / 2;
+    const intcode_t nbitmaskl = ((intcode_t)1 << (intcode_t)nbitsl) - (intcode_t)1;
+
+    const int nbitsh = nbits - nbitsl;
+    const intcode_t nbitmaskh = ((intcode_t)1 << (intcode_t)nbitsh) - (intcode_t)1;
+
+    intcode_t hi = p >> (intcode_t)(nbitsl * 3);
+    intcode_t lo = p & ((intcode_t)1 << (intcode_t)(nbitsl * 3)) - (intcode_t)1;
+
+    i3vec vlo((int)(lo & nbitmaskl), (int)((lo >> (intcode_t)nbitsl) & nbitmaskl), (int)((lo >> (intcode_t)(2 * nbitsl)) & nbitmaskl));
+    i3vec vhi((int)(hi & nbitmaskh), (int)((hi >> (intcode_t)nbitsh) & nbitmaskh), (int)((hi >> (intcode_t)(2 * nbitsh)) & nbitmaskh));
+
+    i3vec v;
+    v.x = (vhi.x << nbitsl) | vlo.x;
+    v.y = (vhi.y << nbitsl) | vlo.y;
+    v.z = (vhi.z << nbitsl) | vlo.z;
+
+    return v;
+}
 
 // Convert a 3D float vector to 3 integer code for later conversion to Morton
 template <typename Vec_T> class FixedPointifier {
