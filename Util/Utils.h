@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "Util/toolconfig.h"
+#include "Util/ToolConfig.h"
 
 #ifdef DMC_MACHINE_win
 #include <intrin.h>

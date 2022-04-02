@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////
-// StatTimer.h - A timer used for a frame rate timer, etc.
+// StatTimer.cpp - A timer used for a frame rate timer with a sliding window of frame times
 //
-// Copyright Dave McAllister, 2008.
+// Copyright David K. McAllister, 2008.
 
 #include "Util/StatTimer.h"
 
@@ -26,7 +26,7 @@ void StatTimer::Reset()
     IsGoing = false;
 }
 
-void StatTimer::StartEvent()
+void StatTimer::Event()
 {
     if (IsGoing) {
         float t = (float)Clock.Reset();
@@ -41,40 +41,29 @@ void StatTimer::StartEvent()
     }
 }
 
-float StatTimer::GetMean(int N)
+float StatTimer::GetMean()
 {
-    int NN = min(N, NumEvents, MaxEvents);
-
     float AccT = 0;
-    int i = 0;
-    for (i = 0; i < NN; i++) {
-        AccT += EventTimes[i];
-        // std::cerr << i << "=" << EventTimes[i] << ' ';
-    }
-    // std::cerr << std::endl;
+    for (int i = 0; i < NumEvents; i++) AccT += EventTimes[i];
 
-    if (i)
-        return AccT / float(NN);
+    if (NumEvents)
+        return AccT / float(NumEvents);
     else
         return 0.0;
 }
 
-float StatTimer::GetMax(int N)
+float StatTimer::GetMax()
 {
-    int NN = min(N, NumEvents, MaxEvents);
-
     float AccT = 0;
-    for (int i = 0; i < NN; i++) AccT = std::max(AccT, EventTimes[i]);
+    for (int i = 0; i < NumEvents; i++) AccT = std::max(AccT, EventTimes[i]);
 
     return AccT;
 }
 
-float StatTimer::GetMin(int N)
+float StatTimer::GetMin()
 {
-    int NN = min(N, NumEvents, MaxEvents);
-
     float AccT = DMC_MAXFLOAT;
-    for (int i = 0; i < NN; i++) AccT = std::min(AccT, EventTimes[i]);
+    for (int i = 0; i < NumEvents; i++) AccT = std::min(AccT, EventTimes[i]);
 
     return AccT;
 }

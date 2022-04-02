@@ -1,5 +1,5 @@
 //////////////////////////////////////////////////////////////////////
-// toolconfig.h - Switches for all the DMcTools file
+// ToolConfig.h - Switches for all the DMcTools file
 //
 // Copyright David K. McAllister, 1996-2014.
 
@@ -59,9 +59,9 @@
 #endif
 
 #define _CRT_SECURE_NO_WARNINGS
-#pragma warning(disable : 4996) // Disable deprecated warning
-#pragma warning(disable : 4244) // Disable bogus conversion warnings
-#pragma warning(disable : 4305) // Disable bogus conversion warnings
+#pragma warning(disable : 4996) // This function or variable may be unsafe.
+#pragma warning(disable : 4244) // Conversion from '__int64' to 'int', possible loss of data
+//#pragma warning(disable : 4305) // Disable bogus conversion warnings
 //#pragma warning (disable:4800) // Disable bogus conversion warnings
 //#pragma warning (disable:4786) // stupid symbol size limitation
 //#pragma warning (disable:4018) // disable signed/unsigned mismatch

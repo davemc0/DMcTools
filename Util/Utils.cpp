@@ -5,7 +5,7 @@
 
 #include "Util/Utils.h"
 
-#include "Util/toolconfig.h"
+#include "Util/ToolConfig.h"
 
 #include <iostream>
 #include <string>
