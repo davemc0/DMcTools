@@ -105,7 +105,7 @@ set(UTIL_SOURCES
     Util/Timer.h
     Util/Utils.cpp
     Util/Utils.h
-    Util/toolconfig.h
+    Util/ToolConfig.h
 )
 
 set(SOURCES

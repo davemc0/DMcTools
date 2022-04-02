@@ -107,10 +107,7 @@ public:
         char ii[32];
 
         for (size_t i = 0; i < r; i++) {
-            for (size_t j = 0; j < c; j++) {
-                s += gcvt(data[i * c + j], 8, ii);
-                s += " ";
-            }
+            for (size_t j = 0; j < c; j++) { s += std::to_string(data[i * c + j]) + " "; }
             s += "\n";
         }
 

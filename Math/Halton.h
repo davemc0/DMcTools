@@ -6,7 +6,7 @@
 #pragma once
 
 #include "Util/Assert.h"
-#include "Util/toolconfig.h"
+#include "Util/ToolConfig.h"
 
 #include <vector>
 

@@ -13,12 +13,8 @@
 template <class Elem_T> std::string HVector<Elem_T>::print() const
 {
     std::string s;
-    char ii[32];
 
-    for (size_t i = 0; i < size(); i++) {
-        s += gcvt((*this)[i], 8, ii);
-        s += " ";
-    }
+    for (size_t i = 0; i < size(); i++) { s += std::to_string(V[i]) + " "; }
 
     return s;
 }

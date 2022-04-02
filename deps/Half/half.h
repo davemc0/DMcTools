@@ -85,7 +85,7 @@
 #ifndef _HALF_H_
 #define _HALF_H_
 
-#include "Util/toolconfig.h"
+#include "Util/ToolConfig.h"
 
 #include <iostream>
 

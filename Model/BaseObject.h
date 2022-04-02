@@ -10,8 +10,6 @@
 #include "Math/Vector.h"
 #include "Model/TextureDB.h"
 
-#include <vector>
-
 // These should be true if the data is valid, i.e. intended to be used.
 #define OBJ_NONE 0
 #define OBJ_COLORS 1

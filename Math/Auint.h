@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "Util/toolconfig.h"
+#include "Util/ToolConfig.h"
 
 #include <cstdio>
 #include <iostream>

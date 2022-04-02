@@ -197,15 +197,13 @@ template void Matrix44<d3vec>::pre_mulmat(double to[4][4], const double from[4][
 
 template <class Vec_T> std::string Matrix44<Vec_T>::string() const
 {
-    const int PRDIG = 8;
-    char xx[40];
     std::string st;
     for (int i = 0; i < 4; i++) {
         st += std::string("[");
-        st += gcvt(mat[i][0], PRDIG, xx) + std::string(", ");
-        st += gcvt(mat[i][1], PRDIG, xx) + std::string(", ");
-        st += gcvt(mat[i][2], PRDIG, xx) + std::string(", ");
-        st += gcvt(mat[i][3], PRDIG, xx) + std::string("]\n");
+        st += std::to_string(mat[i][0]) + std::string(", ");
+        st += std::to_string(mat[i][1]) + std::string(", ");
+        st += std::to_string(mat[i][2]) + std::string(", ");
+        st += std::to_string(mat[i][3]) + std::string("]\n");
     }
 
     return st;
@@ -215,12 +213,10 @@ template std::string Matrix44<d3vec>::string() const;
 
 template <class Vec_T> std::string Matrix44<Vec_T>::string_inv() const
 {
-    const int PRDIG = 8;
-    char xx[40];
     std::string st;
     for (int i = 0; i < 4; i++) {
         st += std::string("[");
-        for (int j = 0; j < 4; j++) st += gcvt(imat[i][j], PRDIG, xx) + std::string(", ");
+        for (int j = 0; j < 4; j++) st += std::to_string(imat[i][j]) + std::string(", ");
         st += std::string("]\n");
     }
 

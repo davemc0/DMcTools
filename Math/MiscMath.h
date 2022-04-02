@@ -6,8 +6,8 @@
 #pragma once
 
 #include "Math/BinaryRep.h"
+#include "Util/ToolConfig.h"
 #include "Util/Utils.h"
-#include "Util/toolconfig.h"
 
 #include <cfloat>
 #include <cmath>

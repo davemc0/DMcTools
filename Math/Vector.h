@@ -7,7 +7,7 @@
 #pragma once
 
 #include "Math/MiscMath.h"
-#include "Util/toolconfig.h"
+#include "Util/ToolConfig.h"
 
 #include <cmath>
 #include <iosfwd>
