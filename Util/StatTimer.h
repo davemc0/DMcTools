@@ -20,8 +20,8 @@ public:
     // Empty the event log and reset the timer. The next Event() will start it ticking again.
     void Reset();
 
-    // Inserts the current time into the event log.
-    void Event();
+    // Inserts the current time into the event log. Returns time of this frame.
+    float Event();
 
     // Get stats on the most recent up-to-MaxEvents frames.
     float GetMean();

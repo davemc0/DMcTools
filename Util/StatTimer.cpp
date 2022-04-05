@@ -26,12 +26,13 @@ void StatTimer::Reset()
     IsGoing = false;
 }
 
-void StatTimer::Event()
+float StatTimer::Event()
 {
+    float frameTime = 0;
     if (IsGoing) {
-        float t = (float)Clock.Reset();
+        frameTime = (float)Clock.Reset();
         memmove(&EventTimes[1], EventTimes, sizeof(float) * (MaxEvents - 1));
-        EventTimes[0] = t;
+        EventTimes[0] = frameTime;
         if (NumEvents < MaxEvents) NumEvents++;
     } else {
         Clock.Reset();
@@ -39,6 +40,8 @@ void StatTimer::Event()
         IsGoing = true;
         NumEvents = 0;
     }
+
+    return frameTime;
 }
 
 float StatTimer::GetMean()

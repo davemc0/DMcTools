@@ -17,22 +17,23 @@ struct DMcError {
 };
 
 // On failure, prints msg and terminates in debug or release mode
-#define ASSERT_RM(condition, msg)                                                                                                                     \
-    {                                                                                                                                                 \
-        if (!(condition)) throw DMcError(std::string("Assert_RM: (") + #condition + ") at " + __FILE__ + ":" + std::to_string(__LINE__) + " " + msg); \
+#define ASSERT_RM(condition, msg)                                                                                                                        \
+    {                                                                                                                                                    \
+        if (!(condition))                                                                                                                                \
+            throw DMcError(std::string("Assert_RM: (") + #condition + ") " + __func__ + " at " + __FILE__ + ":" + std::to_string(__LINE__) + " " + msg); \
     }
 // On failure, terminates in debug or release mode
-#define ASSERT_R(condition)                                                                                                              \
-    {                                                                                                                                    \
-        if (!(condition)) throw DMcError(std::string("Assert_R: (") + #condition + ") at " + __FILE__ + ":" + std::to_string(__LINE__)); \
+#define ASSERT_R(condition)                                                                                                                               \
+    {                                                                                                                                                     \
+        if (!(condition)) throw DMcError(std::string("Assert_R: (") + #condition + ") " + __func__ + " at " + __FILE__ + ":" + std::to_string(__LINE__)); \
     }
 // On failure, prints msg in debug or release mode
-#define WARN_R(condition, msg)                                                                                             \
-    {                                                                                                                      \
-        if (!(condition)) {                                                                                                \
-            std::cerr << "Warn_R: (" << (#condition) << ") at " << __FILE__ << ":" << __LINE__ << " " << msg << std::endl; \
-            std::cerr.flush();                                                                                             \
-        }                                                                                                                  \
+#define WARN_R(condition, msg)                                                                                                                \
+    {                                                                                                                                         \
+        if (!(condition)) {                                                                                                                   \
+            std::cerr << "Warn_R: (" << (#condition) << ") " << __func__ << " at " << __FILE__ << ":" << __LINE__ << " " << msg << std::endl; \
+            std::cerr.flush();                                                                                                                \
+        }                                                                                                                                     \
     }
 // Prints msg in debug or release mode
 #define INFO_R(msg)                    \
@@ -44,22 +45,24 @@ struct DMcError {
 #if defined(_DEBUG) && !defined(__CUDA_ARCH__)
 
 // On failure, prints msg and terminates in debug mode
-#define ASSERT_DM(condition, msg)                                                                                                                         \
-    {                                                                                                                                                     \
-        if (!(condition)) { throw DMcError(std::string("Assert_DM: (") + #condition + ") at " + __FILE__ + ":" + std::to_string(__LINE__) + " " + msg); } \
+#define ASSERT_DM(condition, msg)                                                                                                                        \
+    {                                                                                                                                                    \
+        if (!(condition)) {                                                                                                                              \
+            throw DMcError(std::string("Assert_DM: (") + #condition + ") " + __func__ + " at " + __FILE__ + ":" + std::to_string(__LINE__) + " " + msg); \
+        }                                                                                                                                                \
     }
 // On failure, terminates in debug mode
-#define ASSERT_D(condition)                                                                                                                  \
-    {                                                                                                                                        \
-        if (!(condition)) { throw DMcError(std::string("Assert_D: (") + #condition + ") at " + __FILE__ + ":" + std::to_string(__LINE__)); } \
+#define ASSERT_D(condition)                                                                                                                                   \
+    {                                                                                                                                                         \
+        if (!(condition)) { throw DMcError(std::string("Assert_D: (") + #condition + ") " + __func__ + " at " + __FILE__ + ":" + std::to_string(__LINE__)); } \
     }
 // On failure, prints msg in debug mode
-#define WARN_D(condition, msg)                                                                                             \
-    {                                                                                                                      \
-        if (!(condition)) {                                                                                                \
-            std::cerr << "Warn_D: (" << (#condition) << ") at " << __FILE__ << ":" << __LINE__ << " " << msg << std::endl; \
-            std::cerr.flush();                                                                                             \
-        }                                                                                                                  \
+#define WARN_D(condition, msg)                                                                                                                \
+    {                                                                                                                                         \
+        if (!(condition)) {                                                                                                                   \
+            std::cerr << "Warn_D: (" << (#condition) << ") " << __func__ << " at " << __FILE__ << ":" << __LINE__ << " " << msg << std::endl; \
+            std::cerr.flush();                                                                                                                \
+        }                                                                                                                                     \
     }
 // Prints msg in debug mode
 #define INFO(msg)                      \
@@ -84,10 +87,11 @@ struct DMcError {
     }
 #endif
 
-#define GL_ASSERT()                                                                                                                                \
-    {                                                                                                                                              \
-        GLenum DMC_err;                                                                                                                            \
-        while ((DMC_err = glGetError()) != GL_NO_ERROR) {                                                                                          \
-            throw DMcError(std::string("OpenGL error: (") + (char*)gluErrorString(DMC_err) + ") at " + __FILE__ + ":" + std::to_string(__LINE__)); \
-        }                                                                                                                                          \
+#define GL_ASSERT()                                                                                                                      \
+    {                                                                                                                                    \
+        GLenum DMC_err;                                                                                                                  \
+        while ((DMC_err = glGetError()) != GL_NO_ERROR) {                                                                                \
+            throw DMcError(std::string("OpenGL error: (") + (char*)gluErrorString(DMC_err) + ") " + __func__ + " at " + __FILE__ + ":" + \
+                           std::to_string(__LINE__));                                                                                    \
+        }                                                                                                                                \
     }\
