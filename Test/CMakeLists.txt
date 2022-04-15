@@ -51,7 +51,7 @@ set(SOURCES
 
 source_group("src"  FILES ${SOURCES})
 
-add_subdirectory(${PROJECT_ROOT_DIR}/../DMcTools ${CMAKE_CURRENT_BINARY_DIR}/DMcTools)
+add_subdirectory(${PROJECT_ROOT_DIR}/../../DMcTools ${CMAKE_CURRENT_BINARY_DIR}/DMcTools)
 
 add_executable(${EXE_NAME} ${SOURCES})
 
