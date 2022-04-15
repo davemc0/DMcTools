@@ -1,21 +1,34 @@
 #include "Math/BinaryRep.h"
 #include "Math/Random.h"
+#include "Math/Vector.h"
 
 #include <iostream>
 
-bool MathTest(int argc, char** argv)
+void vectorTest()
 {
-    std::cerr << "Starting MathTest\n";
+    {
+        f3vec a(1, 0, 0), b(0, 1, 0);
+        f3vec c = cross(a, b);
+        std::cerr << a << b << c << '\n';
+    }
+    {
+        d3vec a(1.f, (double)0, (int)0), b(0, 1, 0);
+        d3vec c = cross(a, b);
+        std::cerr << a << b << c << '\n';
+    }
+}
 
+void deconstructFloatTest()
+{
     int tries = 0, fails = 0;
     while (1) {
-        float frnd = abs(NRandf(0, 1));
+        float frnd = abs(nfrand(0, 1));
 
         uint32_t fsign, fexp, fmant;
         deconstructFloat(frnd, fsign, fexp, fmant);
 
-        int expVal = fexp + LRand(10);
-        int nBits = LRand(8, 25);
+        int expVal = fexp + irand(10);
+        int nBits = irand(8, 25);
 
         uint32_t fixed = floatToFixedGivenExp(frnd, expVal, nBits);
 
@@ -30,6 +43,14 @@ bool MathTest(int argc, char** argv)
             printf("O %9.9g %d %d %006x %d/%d\n", fout, fsign, fexp, fmant, fails, tries);
         }
     }
+}
+
+bool MathTest(int argc, char** argv)
+{
+    std::cerr << "Starting MathTest\n";
+
+    vectorTest();
+    // deconstructFloatTest();
 
     std::cerr << "Ending MathTest\n";
 

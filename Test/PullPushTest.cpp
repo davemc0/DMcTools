@@ -21,7 +21,7 @@ bool PullPushTest(int argc, char** argv)
     // Sparsely sample srcImg into Im and Wg
     int nSamples = srcImg.size() / 1000;
     for (int i = 0; i < nSamples; i++) {
-        int j = LRand(srcImg.size());
+        int j = irand(srcImg.size());
         Im[j] = srcImg[j];
         Wg[j] = 1.0f;
     }

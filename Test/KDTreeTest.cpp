@@ -73,7 +73,7 @@ void FillList(std::vector<f3vec>& List)
     std::cerr << "Generating List...\n";
     Timer Clock;
     for (int i = 0; i < LISTCOUNT; i++) {
-        f3vec P = MakeDRand<f3vec>(-1000, 1000);
+        f3vec P = makeRand<f3vec>(-1000, 1000);
         List.push_back(P);
     }
     std::cerr << "Finished. " << LISTCOUNT << " Time: " << Clock.Read() << std::endl;
@@ -133,7 +133,7 @@ void FindClosest_Speed(const std::vector<f3vec>& List, const KDBoxTree<KDBVector
     Timer Clock;
     for (size_t i = 0; i < SPDLOOPCOUNT; i++) {
         // cerr << ".";
-        f3vec Q = MakeDRand<f3vec>(-2000, 2000);
+        f3vec Q = makeRand<f3vec>(-2000, 2000);
         const KDBVector QB(Q);
         KDBVector ResultT;
         f3vec::ElType treedist = Tree.nearest(QB, ResultT);
@@ -150,7 +150,7 @@ bool FindClosest_Verify(const std::vector<f3vec>& List, const KDBoxTree<KDBVecto
     Timer Clock;
     for (size_t i = 0; i < VERIFLOOPCOUNT; i++) {
         std::cerr << ".";
-        f3vec Q = MakeDRand<f3vec>(-2000, 2000);
+        f3vec Q = makeRand<f3vec>(-2000, 2000);
         KDBVector ResultT;
         f3vec::ElType treedist = Tree.nearest(Q, ResultT);
         f3vec ResultL;
@@ -173,7 +173,7 @@ void FindCloseEnough_Speed(const std::vector<f3vec>& List, KDBoxTree<KDBVector>&
     std::cerr << "Speed: Finding close enough for each of " << SPDLOOPCOUNT << " random points in KDBoxTree...\n";
     Timer Clock;
     for (int i = 0; i < SPDLOOPCOUNT; i++) {
-        f3vec Q = MakeDRand<f3vec>(-2000, 2000);
+        f3vec Q = makeRand<f3vec>(-2000, 2000);
         KDBVector ResultT;
         Tree.find(Q, ResultT, CLOSE_THRESH);
     }
@@ -188,7 +188,7 @@ bool FindCloseEnough_Verify(const std::vector<f3vec>& List, KDBoxTree<KDBVector>
     bool fail = false;
     Timer Clock;
     for (int i = 0; i < VERIFLOOPCOUNT; i++) {
-        f3vec Q = MakeDRand<f3vec>(-2000, 2000);
+        f3vec Q = makeRand<f3vec>(-2000, 2000);
         KDBVector ResultT;
         bool Found = Tree.find(Q, ResultT, CLOSE_THRESH);
 
@@ -228,14 +228,14 @@ void TestSphereAABBIntersection()
 {
     Timer Clock;
     for (int i = 0; i < LISTCOUNT; i++) {
-        f3vec b0 = MakeDRand<f3vec>(-1000, 1000);
-        f3vec b1 = MakeDRand<f3vec>(-1000, 1000);
+        f3vec b0 = makeRand<f3vec>(-1000, 1000);
+        f3vec b1 = makeRand<f3vec>(-1000, 1000);
         Aabb box;
         box.grow(b0);
         box.grow(b1);
 
-        f3vec sphC = MakeDRand<f3vec>(-1000, 1000);
-        float sphR = DRandf(100.f);
+        f3vec sphC = makeRand<f3vec>(-1000, 1000);
+        float sphR = frand(0.f, 100.f);
 
         f3vec near = box.nearest(sphC);
         float dist = length(near - sphC);

@@ -125,8 +125,8 @@ bool Map2DTest()
     const int IMSIZE = 512;
     while (1) {
         {
-            int x = LRand(0, IMSIZE);
-            int y = LRand(0, IMSIZE);
+            int x = irand(0, IMSIZE);
+            int y = irand(0, IMSIZE);
 
             float u, v;
 
@@ -142,8 +142,8 @@ bool Map2DTest()
         }
 
         {
-            int x = LRand(0, IMSIZE * 6);
-            int y = LRand(0, IMSIZE);
+            int x = irand(0, IMSIZE * 6);
+            int y = irand(0, IMSIZE);
 
             // Test them again with the image offset in Z
             f3vec V2;
@@ -169,7 +169,7 @@ void MappingsPerf(int chosen_mapping)
     const int N = 1000000000;
     Timer T;
 
-    f3vec V3 = MakeRandOnSphere<f3vec>();
+    f3vec V3 = makeRandOnSphere<f3vec>();
     V3.z = -0.5f;
     f3vec Acc(0, 0, 0);
 
@@ -236,9 +236,9 @@ void PrintTest(int chosen_mapping)
 {
     int tries = 0, fails = 0;
     while (1) {
-        f3vec V2, V3p, V3 = MakeRandOnSphere<f3vec>();
+        f3vec V2, V3p, V3 = makeRandOnSphere<f3vec>();
 
-        V3 *= DRandf(0.00001f, 10.0f); // For testing the NN functions
+        V3 *= frand(0.00001f, 10.0f); // For testing the NN functions
 
         switch (chosen_mapping) {
         case E_PAR:

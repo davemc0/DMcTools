@@ -17,9 +17,9 @@ void ChunkReadTest(const int64_t iterations, const int64_t chunk_size, const int
     T.Start();
 
     for (int i = 0; i < iterations; i++) {
-        int64_t disk_chunk = LRand() % nchunks_in_file;
+        int64_t disk_chunk = irand(nchunks_in_file);
         // disk_chunk = (disk_chunk+1) % nchunks_in_file;
-        int64_t mem_chunk = LRand() % nchunks_in_mem;
+        int64_t mem_chunk = irand(nchunks_in_mem);
         // std::cerr << "Read " << chunk_size << "B from " << disk_chunk << " to " << mem_chunk << std::endl;
         thefile.seekg(static_cast<std::streamoff>(chunk_size * disk_chunk));
         thefile.read((char*)&(dat[chunk_size * mem_chunk]), chunk_size);

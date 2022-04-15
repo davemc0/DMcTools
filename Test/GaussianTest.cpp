@@ -19,16 +19,13 @@ bool GaussianTest(int argc, char** argv)
         // double gx = exp(xs * r2s) * r2;
 
         double gx = Gaussian(x, sigma);
-#if 0
-        for(int i=0; i<1000000; i++)
-        {
-            yes += (drand48() < gx);
-        }
-#endif
-        printf("%f %d\n", x, yes);
-        printf("%f %f\n", x, gx);
-    }
 
+        for (int i = 0; i < 1000000; i++) yes += (drand() < gx);
+
+        printf("R %f %f\n", x, yes / 1000000.0);
+        printf("G %f %f\n", x, gx);
+    }
+    exit(0);
     std::cerr << "Ending GaussianTest\n";
 
     return true;

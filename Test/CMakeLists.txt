@@ -41,6 +41,7 @@ set(SOURCES
     MappingsTest.cpp
     MathTest.cpp
     Matrix44Test.cpp
+    SpaceFillCurveTest.cpp
     PullPushTest.cpp
     RayTest.cpp
     TimerTest.cpp

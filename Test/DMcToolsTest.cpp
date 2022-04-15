@@ -19,6 +19,7 @@ extern bool MathTest(int argc, char** argv);
 extern bool Matrix44Test(int argc, char** argv);
 extern bool PullPushTest(int argc, char** argv);
 extern bool RayTest(int argc, char** argv);
+extern bool SpaceFillCurveTest(int argc, char** argv);
 extern bool TimerTest(int argc, char** argv);
 extern bool VCDTest(int argc, char** argv);
 extern bool tImageTest(int argc, char** argv);
@@ -42,6 +43,7 @@ void Usage(const char* message = NULL, const bool Exit = true)
     std::cerr << "-Matrix44Test\n";
     std::cerr << "-PullPushTest\n";
     std::cerr << "-RayTest\n";
+    std::cerr << "-SpaceFillCurveTest\n";
     std::cerr << "-TimerTest\n";
     std::cerr << "-tImageTest\n";
     std::cerr << "-VCDTest\n";
@@ -77,6 +79,8 @@ bool AllTests(int argc, char** argv)
     ok = PullPushTest(0, NULL);
     allok = allok && ok;
     ok = RayTest(0, NULL);
+    allok = allok && ok;
+    ok = SpaceFillCurveTest(0, NULL);
     allok = allok && ok;
     ok = TimerTest(0, NULL);
     allok = allok && ok;
@@ -125,6 +129,8 @@ void Args(int argc, char** argv)
             PullPushTest(argc - i, &(argv[i]));
         } else if (starg == "-RayTest") {
             RayTest(argc - i, &(argv[i]));
+        } else if (starg == "-SpaceFillCurveTest") {
+            SpaceFillCurveTest(argc - i, &(argv[i]));
         } else if (starg == "-TimerTest") {
             TimerTest(argc - i, &(argv[i]));
         } else if (starg == "-tImageTest") {
