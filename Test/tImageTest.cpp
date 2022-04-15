@@ -396,6 +396,7 @@ void TestImageConversion()
     B1.Save("test5.jpg");
     B3.Save("test6.jpg");
     baseImage* C = new uc3Image(B1);
+    C->Save("testC.png");
     tImage<uc3Pixel>* D = dynamic_cast<uc3Image*>(&B3); // Could make a virtual casting operator to do this.
     ASSERT_R(D);
     // D->Save("test7.tif");

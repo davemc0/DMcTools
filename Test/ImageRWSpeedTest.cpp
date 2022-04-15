@@ -14,9 +14,6 @@ bool ImageWriteSpeedTest(int argc, char** argv)
     uc3Image TestIm("C:\\Users\\DaveMc\\Pictures\\Stuff\\Olympus\\HiRes\\0802\\D20080215_143356.jpg");
 
     Timer T;
-    T.Reset();
-
-    T.Start();
     for (int i = 0; i < NUM_TIMES_TO_WRITE; i++) { TestIm.Save("C:\\Windows\\Temp\\testout.jpg"); }
 
     float Sec = T.Read();

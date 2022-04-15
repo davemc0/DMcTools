@@ -15,8 +15,10 @@ extern bool HashStringTest(int argc, char** argv);
 extern bool ImageRWSpeedTest(int argc, char** argv);
 extern bool KDTreeTest(int argc, char** argv);
 extern bool MappingsTest(int argc, char** argv);
+extern bool MathTest(int argc, char** argv);
 extern bool Matrix44Test(int argc, char** argv);
 extern bool PullPushTest(int argc, char** argv);
+extern bool RayTest(int argc, char** argv);
 extern bool TimerTest(int argc, char** argv);
 extern bool VCDTest(int argc, char** argv);
 extern bool tImageTest(int argc, char** argv);
@@ -28,7 +30,7 @@ void Usage(const char* message = NULL, const bool Exit = true)
     if (message) std::cerr << "\nERROR: " << message << std::endl;
 
     std::cerr << "Program options:\n";
-    std::cerr << "-testall                Run all tests, with same args given to all of them\n";
+    std::cerr << "-testall\n";
     std::cerr << "-DiskReadTest\n";
     std::cerr << "-DiskWriteTest\n";
     std::cerr << "-GaussianTest\n";
@@ -36,8 +38,10 @@ void Usage(const char* message = NULL, const bool Exit = true)
     std::cerr << "-ImageRWSpeedTest\n";
     std::cerr << "-KDTreeTest\n";
     std::cerr << "-MappingsTest\n";
+    std::cerr << "-MathTest\n";
     std::cerr << "-Matrix44Test\n";
     std::cerr << "-PullPushTest\n";
+    std::cerr << "-RayTest\n";
     std::cerr << "-TimerTest\n";
     std::cerr << "-tImageTest\n";
     std::cerr << "-VCDTest\n";
@@ -51,29 +55,34 @@ bool AllTests(int argc, char** argv)
 
     bool ok = true, allok = true;
 
-    ok = DiskWriteTest(argc, argv);
+    // TODO: Change this to send in args that do tests of various speeds, level 1, 2, 3, etc.
+    ok = DiskWriteTest(0, NULL);
     allok = allok && ok;
-    ok = DiskReadTest(argc, argv);
+    ok = DiskReadTest(0, NULL);
     allok = allok && ok;
-    ok = GaussianTest(argc, argv);
+    ok = GaussianTest(0, NULL);
     allok = allok && ok;
-    ok = HashStringTest(argc, argv);
+    ok = HashStringTest(0, NULL);
     allok = allok && ok;
-    ok = ImageRWSpeedTest(argc, argv);
+    ok = ImageRWSpeedTest(0, NULL);
     allok = allok && ok;
-    ok = KDTreeTest(argc, argv);
+    ok = KDTreeTest(0, NULL);
     allok = allok && ok;
-    ok = MappingsTest(argc, argv);
+    ok = MappingsTest(0, NULL);
     allok = allok && ok;
-    ok = Matrix44Test(argc, argv);
+    ok = MathTest(0, NULL);
     allok = allok && ok;
-    ok = PullPushTest(argc, argv);
+    ok = Matrix44Test(0, NULL);
     allok = allok && ok;
-    ok = TimerTest(argc, argv);
+    ok = PullPushTest(0, NULL);
     allok = allok && ok;
-    ok = tImageTest(argc, argv);
+    ok = RayTest(0, NULL);
     allok = allok && ok;
-    ok = VCDTest(argc, argv);
+    ok = TimerTest(0, NULL);
+    allok = allok && ok;
+    ok = tImageTest(0, NULL);
+    allok = allok && ok;
+    ok = VCDTest(0, NULL);
     allok = allok && ok;
 
     std::cerr << "Ending AllTests\n";
@@ -108,10 +117,14 @@ void Args(int argc, char** argv)
             KDTreeTest(argc - i, &(argv[i]));
         } else if (starg == "-MappingsTest") {
             MappingsTest(argc - i, &(argv[i]));
+        } else if (starg == "-MathTest") {
+            MathTest(argc - i, &(argv[i]));
         } else if (starg == "-Matrix44Test") {
             Matrix44Test(argc - i, &(argv[i]));
         } else if (starg == "-PullPushTest") {
             PullPushTest(argc - i, &(argv[i]));
+        } else if (starg == "-RayTest") {
+            RayTest(argc - i, &(argv[i]));
         } else if (starg == "-TimerTest") {
             TimerTest(argc - i, &(argv[i]));
         } else if (starg == "-tImageTest") {
