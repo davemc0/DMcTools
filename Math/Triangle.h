@@ -13,6 +13,13 @@
 template <class Vec_T> struct tTriangle {
     Vec_T v[3];
 
+    tTriangle<Vec_T>(Vec_T v0, Vec_T v1, Vec_T v2)
+    {
+        v[0] = v0;
+        v[1] = v1;
+        v[2] = v2;
+    }
+
     DMC_DECL typename Vec_T::ElType area()
     {
         Vec_T E1 = v[1] - v[0];

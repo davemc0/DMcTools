@@ -8,6 +8,7 @@
 #include <iostream>
 #include <string>
 
+extern bool BVHTest(int argc, char** argv);
 extern bool DiskReadTest(int argc, char** argv);
 extern bool DiskWriteTest(int argc, char** argv);
 extern bool GaussianTest(int argc, char** argv);
@@ -32,6 +33,7 @@ void Usage(const char* message = NULL, const bool Exit = true)
 
     std::cerr << "Program options:\n";
     std::cerr << "-testall\n";
+    std::cerr << "-BVHTest\n";
     std::cerr << "-DiskReadTest\n";
     std::cerr << "-DiskWriteTest\n";
     std::cerr << "-GaussianTest\n";
@@ -58,6 +60,8 @@ bool AllTests(int argc, char** argv)
     bool ok = true, allok = true;
 
     // TODO: Change this to send in args that do tests of various speeds, level 1, 2, 3, etc.
+    ok = BVHTest(0, NULL);
+    allok = allok && ok;
     ok = DiskWriteTest(0, NULL);
     allok = allok && ok;
     ok = DiskReadTest(0, NULL);
@@ -107,6 +111,8 @@ void Args(int argc, char** argv)
 
         if (starg == "-h" || starg == "-help") {
             Usage();
+        } else if (starg == "-BVHTest") {
+            BVHTest(argc - i, &(argv[i]));
         } else if (starg == "-DiskReadTest") {
             DiskReadTest(argc - i, &(argv[i]));
         } else if (starg == "-DiskWriteTest") {

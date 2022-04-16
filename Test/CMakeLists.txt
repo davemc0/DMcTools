@@ -32,6 +32,7 @@ include_directories(${GLUT_INCLUDE_DIR})
 link_libraries(${GLUT_LIBRARIES})
 
 set(SOURCES
+ BVHTest.cpp
     DMcToolsTest.cpp
     DiskReadSpeedTest.cpp
     GaussianTest.cpp
