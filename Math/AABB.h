@@ -26,6 +26,11 @@ template <class Vec_T> struct tAABB {
         lo() = DMC_MAXFLOAT;
         hi() = -DMC_MAXFLOAT;
     }
+    DMC_DECL tAABB(const Vec_T& v0)
+    {
+        lo() = v0;
+        hi() = v0;
+    }
     DMC_DECL tAABB(const Vec_T& v0, const Vec_T& v1)
     {
         lo() = v0;

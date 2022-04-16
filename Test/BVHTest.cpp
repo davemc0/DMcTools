@@ -1,4 +1,10 @@
+// Test BVH builders
+//
+// Copyright 2022 by David K. McAllister
+
 #include "Math/Triangle.h"
+#include "Model/LBVH.h"
+
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "deps/tiny_obj_loader.h"
 
@@ -15,8 +21,7 @@ void loadModel(std::vector<Triangle>& tris, const std::string& fname)
 
     reader.ParseFromFile(fname, cfg);
     if (!reader.Valid()) {
-        std::cerr << "OBJ load not valid"
-                  << "WARN: " << reader.Warning() << "ERR: " << reader.Error() << std::endl;
+        std::cerr << "OBJ load not valid: WARN: " << reader.Warning() << "ERR: " << reader.Error() << '\n';
         return;
     }
 
@@ -42,6 +47,8 @@ bool BVHTest(int argc, char** argv)
     loadModel(tris, "../../Models/Bunny/bunny.obj");
 
     std::cerr << tris.size() << " triangles\n";
+
+    LBVH builder(tris);
 
     return true;
 }

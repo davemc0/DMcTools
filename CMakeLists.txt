@@ -77,10 +77,14 @@ set(HALF_SOURCES
 
 set(MODEL_SOURCES
     Model/AElements.h
+    Model/BVH.cpp
+    Model/BVH.h
     Model/BaseObject.h
     Model/CameraDB.cpp
     Model/CameraDB.h
     Model/KDVertex.h
+    Model/LBVH.cpp
+    Model/LBVH.h
     Model/LightDB.h
     Model/LoadOBJ.cpp
     Model/Mesh.cpp
@@ -90,6 +94,8 @@ set(MODEL_SOURCES
     Model/Model.h
     Model/RenderObject.cpp
     Model/RenderObject.h
+    Model/SBVH.cpp
+    Model/SBVH.h
     Model/SaveOBJ.cpp
     Model/TextureDB.cpp
     Model/TextureDB.h

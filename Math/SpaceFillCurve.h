@@ -18,15 +18,15 @@
 #include <vector>
 
 typedef enum { CURVE_MORTON, CURVE_HILBERT, CURVE_RASTER, CURVE_BOUSTRO, CURVE_TILED2, CURVE_COUNT } SFCurveType;
-char const* SFCurveNames[] = {"CURVE_MORTON", "CURVE_HILBERT", "CURVE_RASTER", "CURVE_BOUSTRO", "CURVE_TILED2", "NONE"};
+static char const* SFCurveNames[] = {"CURVE_MORTON", "CURVE_HILBERT", "CURVE_RASTER", "CURVE_BOUSTRO", "CURVE_TILED2", "NONE"};
 
 // Public, generic interfaces
 // Statically choose the SFCurveType (performant)
-template <typename intcode_t, SFCurveType CT> intcode_t toSFCurveCode(i3vec x) {}
-template <typename intcode_t, SFCurveType CT> i3vec toSFCurveCoords(intcode_t x) {}
+template <typename intcode_t, SFCurveType CT> DMC_DECL intcode_t toSFCurveCode(i3vec x) {}
+template <typename intcode_t, SFCurveType CT> DMC_DECL i3vec toSFCurveCoords(intcode_t x) {}
 
 // Dynamically choose the SFCurveType
-template <typename intcode_t> intcode_t toSFCurveCode(i3vec x, SFCurveType CT)
+template <typename intcode_t> DMC_DECL intcode_t toSFCurveCode(i3vec x, SFCurveType CT)
 {
     switch (CT) {
     case CURVE_MORTON: return toSFCurveCode<intcode_t, CURVE_MORTON>(x);
@@ -37,7 +37,7 @@ template <typename intcode_t> intcode_t toSFCurveCode(i3vec x, SFCurveType CT)
     }
     return 0;
 }
-template <typename intcode_t> i3vec toSFCurveCoords(intcode_t x, SFCurveType CT)
+template <typename intcode_t> DMC_DECL i3vec toSFCurveCoords(intcode_t x, SFCurveType CT)
 {
     switch (CT) {
     case CURVE_MORTON: return toSFCurveCoords<intcode_t, CURVE_MORTON>(x);
@@ -51,48 +51,48 @@ template <typename intcode_t> i3vec toSFCurveCoords(intcode_t x, SFCurveType CT)
 
 // The curve order (number of bits in each dimension)
 // Was sizeof(intcode_t) > sizeof(uint32_t) ? 20 : 10
-template <typename intcode_t> constexpr const int curveOrder() { return (sizeof(intcode_t) * 8) / 3; }
+template <typename intcode_t> DMC_DECL constexpr const int curveOrder() { return (sizeof(intcode_t) * 8) / 3; }
 
 // Declarations of actual implementations
-template <typename intcode_t> intcode_t toMortonCode(const i3vec v);
-template <typename intcode_t> intcode_t toHilbertCode(const i3vec v);
-template <typename intcode_t> intcode_t toRasterCode(const i3vec v);
-template <typename intcode_t> intcode_t toBoustroCode(const i3vec v);
-template <typename intcode_t> intcode_t toTiled2Code(const i3vec v);
+template <typename intcode_t> DMC_DECL intcode_t toMortonCode(const i3vec v);
+template <typename intcode_t> DMC_DECL intcode_t toHilbertCode(const i3vec v);
+template <typename intcode_t> DMC_DECL intcode_t toRasterCode(const i3vec v);
+template <typename intcode_t> DMC_DECL intcode_t toBoustroCode(const i3vec v);
+template <typename intcode_t> DMC_DECL intcode_t toTiled2Code(const i3vec v);
 
-template <typename intcode_t> i3vec toMortonCoords(const intcode_t p);
-template <typename intcode_t> i3vec toHilbertCoords(const intcode_t p);
-template <typename intcode_t> i3vec toRasterCoords(const intcode_t p);
-template <typename intcode_t> i3vec toBoustroCoords(const intcode_t p);
-template <typename intcode_t> i3vec toTiled2Coords(const intcode_t p);
+template <typename intcode_t> DMC_DECL i3vec toMortonCoords(const intcode_t p);
+template <typename intcode_t> DMC_DECL i3vec toHilbertCoords(const intcode_t p);
+template <typename intcode_t> DMC_DECL i3vec toRasterCoords(const intcode_t p);
+template <typename intcode_t> DMC_DECL i3vec toBoustroCoords(const intcode_t p);
+template <typename intcode_t> DMC_DECL i3vec toTiled2Coords(const intcode_t p);
 
 // Convert from two template arguments to one
-template <> uint32_t toSFCurveCode<uint32_t, CURVE_MORTON>(const i3vec v) { return toMortonCode<uint32_t>(v); }
-template <> uint32_t toSFCurveCode<uint32_t, CURVE_HILBERT>(const i3vec v) { return toHilbertCode<uint32_t>(v); }
-template <> uint32_t toSFCurveCode<uint32_t, CURVE_RASTER>(const i3vec v) { return toRasterCode<uint32_t>(v); }
-template <> uint32_t toSFCurveCode<uint32_t, CURVE_BOUSTRO>(const i3vec v) { return toBoustroCode<uint32_t>(v); }
-template <> uint32_t toSFCurveCode<uint32_t, CURVE_TILED2>(const i3vec v) { return toTiled2Code<uint32_t>(v); }
+template <> DMC_DECL uint32_t toSFCurveCode<uint32_t, CURVE_MORTON>(const i3vec v) { return toMortonCode<uint32_t>(v); }
+template <> DMC_DECL uint32_t toSFCurveCode<uint32_t, CURVE_HILBERT>(const i3vec v) { return toHilbertCode<uint32_t>(v); }
+template <> DMC_DECL uint32_t toSFCurveCode<uint32_t, CURVE_RASTER>(const i3vec v) { return toRasterCode<uint32_t>(v); }
+template <> DMC_DECL uint32_t toSFCurveCode<uint32_t, CURVE_BOUSTRO>(const i3vec v) { return toBoustroCode<uint32_t>(v); }
+template <> DMC_DECL uint32_t toSFCurveCode<uint32_t, CURVE_TILED2>(const i3vec v) { return toTiled2Code<uint32_t>(v); }
 
-template <> uint64_t toSFCurveCode<uint64_t, CURVE_MORTON>(const i3vec v) { return toMortonCode<uint64_t>(v); }
-template <> uint64_t toSFCurveCode<uint64_t, CURVE_HILBERT>(const i3vec v) { return toHilbertCode<uint64_t>(v); }
-template <> uint64_t toSFCurveCode<uint64_t, CURVE_RASTER>(const i3vec v) { return toRasterCode<uint64_t>(v); }
-template <> uint64_t toSFCurveCode<uint64_t, CURVE_BOUSTRO>(const i3vec v) { return toBoustroCode<uint64_t>(v); }
-template <> uint64_t toSFCurveCode<uint64_t, CURVE_TILED2>(const i3vec v) { return toTiled2Code<uint64_t>(v); }
+template <> DMC_DECL uint64_t toSFCurveCode<uint64_t, CURVE_MORTON>(const i3vec v) { return toMortonCode<uint64_t>(v); }
+template <> DMC_DECL uint64_t toSFCurveCode<uint64_t, CURVE_HILBERT>(const i3vec v) { return toHilbertCode<uint64_t>(v); }
+template <> DMC_DECL uint64_t toSFCurveCode<uint64_t, CURVE_RASTER>(const i3vec v) { return toRasterCode<uint64_t>(v); }
+template <> DMC_DECL uint64_t toSFCurveCode<uint64_t, CURVE_BOUSTRO>(const i3vec v) { return toBoustroCode<uint64_t>(v); }
+template <> DMC_DECL uint64_t toSFCurveCode<uint64_t, CURVE_TILED2>(const i3vec v) { return toTiled2Code<uint64_t>(v); }
 
-template <> i3vec toSFCurveCoords<uint32_t, CURVE_MORTON>(const uint32_t p) { return toMortonCoords<uint32_t>(p); }
-template <> i3vec toSFCurveCoords<uint32_t, CURVE_HILBERT>(const uint32_t p) { return toHilbertCoords<uint32_t>(p); }
-template <> i3vec toSFCurveCoords<uint32_t, CURVE_RASTER>(const uint32_t p) { return toRasterCoords<uint32_t>(p); }
-template <> i3vec toSFCurveCoords<uint32_t, CURVE_BOUSTRO>(const uint32_t p) { return toBoustroCoords<uint32_t>(p); }
-template <> i3vec toSFCurveCoords<uint32_t, CURVE_TILED2>(const uint32_t p) { return toTiled2Coords<uint32_t>(p); }
+template <> DMC_DECL i3vec toSFCurveCoords<uint32_t, CURVE_MORTON>(const uint32_t p) { return toMortonCoords<uint32_t>(p); }
+template <> DMC_DECL i3vec toSFCurveCoords<uint32_t, CURVE_HILBERT>(const uint32_t p) { return toHilbertCoords<uint32_t>(p); }
+template <> DMC_DECL i3vec toSFCurveCoords<uint32_t, CURVE_RASTER>(const uint32_t p) { return toRasterCoords<uint32_t>(p); }
+template <> DMC_DECL i3vec toSFCurveCoords<uint32_t, CURVE_BOUSTRO>(const uint32_t p) { return toBoustroCoords<uint32_t>(p); }
+template <> DMC_DECL i3vec toSFCurveCoords<uint32_t, CURVE_TILED2>(const uint32_t p) { return toTiled2Coords<uint32_t>(p); }
 
-template <> i3vec toSFCurveCoords<uint64_t, CURVE_MORTON>(const uint64_t p) { return toMortonCoords<uint64_t>(p); }
-template <> i3vec toSFCurveCoords<uint64_t, CURVE_HILBERT>(const uint64_t p) { return toHilbertCoords<uint64_t>(p); }
-template <> i3vec toSFCurveCoords<uint64_t, CURVE_RASTER>(const uint64_t p) { return toRasterCoords<uint64_t>(p); }
-template <> i3vec toSFCurveCoords<uint64_t, CURVE_BOUSTRO>(const uint64_t p) { return toBoustroCoords<uint64_t>(p); }
-template <> i3vec toSFCurveCoords<uint64_t, CURVE_TILED2>(const uint64_t p) { return toTiled2Coords<uint64_t>(p); }
+template <> DMC_DECL i3vec toSFCurveCoords<uint64_t, CURVE_MORTON>(const uint64_t p) { return toMortonCoords<uint64_t>(p); }
+template <> DMC_DECL i3vec toSFCurveCoords<uint64_t, CURVE_HILBERT>(const uint64_t p) { return toHilbertCoords<uint64_t>(p); }
+template <> DMC_DECL i3vec toSFCurveCoords<uint64_t, CURVE_RASTER>(const uint64_t p) { return toRasterCoords<uint64_t>(p); }
+template <> DMC_DECL i3vec toSFCurveCoords<uint64_t, CURVE_BOUSTRO>(const uint64_t p) { return toBoustroCoords<uint64_t>(p); }
+template <> DMC_DECL i3vec toSFCurveCoords<uint64_t, CURVE_TILED2>(const uint64_t p) { return toTiled2Coords<uint64_t>(p); }
 
 // Actual implementations
-template <typename intcode_t> intcode_t toMortonCode(i3vec v)
+template <typename intcode_t> DMC_DECL intcode_t toMortonCode(i3vec v)
 {
     const int nbits = curveOrder<intcode_t>();
 
@@ -156,7 +156,7 @@ template <typename intcode_t> intcode_t toMortonCode(i3vec v)
 // See https://stackoverflow.com/questions/499166/mapping-n-dimensional-value-to-a-point-on-hilbert-curve
 // The uint32_t is the N-D coordinate type. Could be something else.
 
-void transposeFromHilbertCoords(uint32_t* X, int nbits, int dim)
+DMC_DECL void transposeFromHilbertCoords(uint32_t* X, int nbits, int dim)
 {
     uint32_t N = 2 << (nbits - 1), P, Q, t;
 
@@ -180,7 +180,7 @@ void transposeFromHilbertCoords(uint32_t* X, int nbits, int dim)
     }
 }
 
-void transposeToHilbertCoords(uint32_t* X, int nbits, int dim)
+DMC_DECL void transposeToHilbertCoords(uint32_t* X, int nbits, int dim)
 {
     uint32_t M = 1 << (nbits - 1), P, Q, t;
 
@@ -205,7 +205,7 @@ void transposeToHilbertCoords(uint32_t* X, int nbits, int dim)
     for (int i = 0; i < dim; i++) X[i] ^= t;
 }
 
-template <typename intcode_t> intcode_t toHilbertCode(i3vec v)
+template <typename intcode_t> DMC_DECL intcode_t toHilbertCode(i3vec v)
 {
     const int nbits = curveOrder<intcode_t>();
 
@@ -216,7 +216,7 @@ template <typename intcode_t> intcode_t toHilbertCode(i3vec v)
     return s;
 }
 
-template <typename intcode_t> intcode_t toRasterCode(i3vec v)
+template <typename intcode_t> DMC_DECL intcode_t toRasterCode(i3vec v)
 {
     const int nbits = curveOrder<intcode_t>();
     intcode_t s = ((intcode_t)v.z << (intcode_t)(2 * nbits)) | ((intcode_t)v.y << (intcode_t)nbits) | (intcode_t)v.x;
@@ -224,7 +224,7 @@ template <typename intcode_t> intcode_t toRasterCode(i3vec v)
     return s;
 }
 
-template <typename intcode_t> intcode_t toBoustroCode(i3vec v)
+template <typename intcode_t> DMC_DECL intcode_t toBoustroCode(i3vec v)
 {
     const int nbits = curveOrder<intcode_t>();
     const intcode_t nbitmask = ((intcode_t)1 << (intcode_t)nbits) - (intcode_t)1;
@@ -238,7 +238,7 @@ template <typename intcode_t> intcode_t toBoustroCode(i3vec v)
     return s;
 }
 
-template <typename intcode_t> intcode_t toTiled2Code(i3vec v)
+template <typename intcode_t> DMC_DECL intcode_t toTiled2Code(i3vec v)
 {
     const int nbits = curveOrder<intcode_t>();
 
@@ -255,7 +255,7 @@ template <typename intcode_t> intcode_t toTiled2Code(i3vec v)
     return (hi << (intcode_t)(nbitsl * 3)) | lo;
 }
 
-template <typename intcode_t> i3vec toMortonCoords(intcode_t p)
+template <typename intcode_t> DMC_DECL i3vec toMortonCoords(intcode_t p)
 {
     // From https://github.com/Forceflow/libmorton/blob/main/include/libmorton/morton3D.h
     const unsigned int nbits = curveOrder<intcode_t>();
@@ -271,7 +271,7 @@ template <typename intcode_t> i3vec toMortonCoords(intcode_t p)
     return v;
 }
 
-template <typename intcode_t> i3vec toHilbertCoords(intcode_t p)
+template <typename intcode_t> DMC_DECL i3vec toHilbertCoords(intcode_t p)
 {
     const int nbits = curveOrder<intcode_t>();
 
@@ -282,7 +282,7 @@ template <typename intcode_t> i3vec toHilbertCoords(intcode_t p)
     return v;
 }
 
-template <typename intcode_t> i3vec toRasterCoords(intcode_t p)
+template <typename intcode_t> DMC_DECL i3vec toRasterCoords(intcode_t p)
 {
     const int nbits = curveOrder<intcode_t>();
     const intcode_t nbitmask = ((intcode_t)1 << (intcode_t)nbits) - (intcode_t)1;
@@ -292,7 +292,7 @@ template <typename intcode_t> i3vec toRasterCoords(intcode_t p)
     return v;
 }
 
-template <typename intcode_t> i3vec toBoustroCoords(intcode_t p)
+template <typename intcode_t> DMC_DECL i3vec toBoustroCoords(intcode_t p)
 {
     const int nbits = curveOrder<intcode_t>();
     const intcode_t nbitmask = ((intcode_t)1 << (intcode_t)nbits) - (intcode_t)1;
@@ -306,7 +306,7 @@ template <typename intcode_t> i3vec toBoustroCoords(intcode_t p)
     return v;
 }
 
-template <typename intcode_t> i3vec toTiled2Coords(intcode_t p)
+template <typename intcode_t> DMC_DECL i3vec toTiled2Coords(intcode_t p)
 {
     const int nbits = curveOrder<intcode_t>();
 

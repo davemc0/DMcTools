@@ -20,23 +20,30 @@ template <class Vec_T> struct tTriangle {
         v[2] = v2;
     }
 
-    DMC_DECL typename Vec_T::ElType area()
+    DMC_DECL typename Vec_T::ElType area() const
     {
         Vec_T E1 = v[1] - v[0];
         Vec_T E2 = v[2] - v[1];
 
-        return fabs(Cross(E1, E2).length() * (typename Vec_T::ElType)0.5);
+        return abs(cross(E1, E2).length() * (typename Vec_T::ElType)0.5);
     }
 
-    DMC_DECL Vec_T centroid() { return (v[0] + v[1] + v[2]) * (typename Vec_T::ElType)0.3333333333; }
+    DMC_DECL Vec_T centroid() const { return (v[0] + v[1] + v[2]) * (typename Vec_T::ElType)0.3333333333; }
 
-    DMC_DECL tAABB<Vec_T> bbox()
+    DMC_DECL tAABB<Vec_T> bbox() const
     {
         tAABB<Vec_T> b(v[0]);
         b.grow(v[1]);
         b.grow(v[2]);
 
         return b;
+    }
+
+    DMC_DECL bool isDegenerate() const
+    {
+        if (v[0] == v[1] || v[0] == v[2] || v[1] == v[2]) return true;
+        if (area() == 0) return true;
+        return false;
     }
 };
 
