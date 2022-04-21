@@ -9,7 +9,8 @@
 #include <algorithm>
 #include <execution>
 
-#define EXPOL std::execution::par_unseq
+//#define EXPOL std::execution::par_unseq
+#define EXPOL std::execution::seq
 
 void LBVH::build()
 {
@@ -19,20 +20,26 @@ void LBVH::build()
 
 void LBVH::makeRefs()
 {
-    // Make array of references to input triangles
-    std::for_each(EXPOL, Tris.begin(), Tris.end(), [&](const Triangle& tri) {
-        PrimRef ref;
-        int ind = &tri - &(*Tris.begin());
-        bool degen = tri.isDegenerate();
-        ref.primId = degen ? -1 : ind;
-        ref.box = tri.bbox();
+    // Make array of references to input triangles and return world AABB
+    Refs.resize(Tris.size());
 
-        if (!degen) worldBox.grow(ref.box); // XXX: Can I do this safely in parallel?
-        Refs.emplace_back(ref);
-    });
+    worldBox = std::transform_reduce(
+        EXPOL, Tris.begin(), Tris.end(), Aabb(), [&](const Aabb& boxa, const Aabb& boxb) { return unioncsg(boxa, boxb); },
+        [&](const Triangle& tri) {
+            PrimRef ref;
+            int ind = &tri - &(*Tris.begin());
+            bool degen = tri.isDegenerate();
+            ref.primId = degen ? -1 : ind;
+            ref.box = tri.bbox();
+            Refs[ind] = ref;
+            return degen ? Aabb() : ref.box;
+        });
 
-    // Move invalid references to end of list, where they can easily be killed
-    std::partition(EXPOL, Refs.begin(), Refs.end(), [&](auto a) { return a.primId >= 0; });
+    // Move invalid references to end of list and kill them
+    std::vector<PrimRef>::iterator first_bad = std::partition(EXPOL, Refs.begin(), Refs.end(), [&](const PrimRef& a) { return a.primId >= 0; });
+    Refs.resize(first_bad - Refs.begin());
+
+    std::cerr << worldBox << " Refs.size=" << Refs.size() << '\n';
 }
 
 void LBVH::linearize()

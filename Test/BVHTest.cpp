@@ -50,5 +50,7 @@ bool BVHTest(int argc, char** argv)
 
     LBVH builder(tris);
 
+    builder.build();
+
     return true;
 }
