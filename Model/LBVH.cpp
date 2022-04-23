@@ -9,8 +9,8 @@
 #include <algorithm>
 #include <execution>
 
-//#define EXPOL std::execution::par_unseq
-#define EXPOL std::execution::seq
+#define EXPOL std::execution::par_unseq
+//#define EXPOL std::execution::seq
 
 void LBVH::build()
 {
@@ -46,7 +46,25 @@ void LBVH::linearize()
 {
     FixedPointifier<f3vec> Fixifier(worldBox, curveOrder<uint32_t>());
 
-    // Make centroid
-    // Get Morton code of centroid
-    // Fixifier.floatToFixed();
+    // Make centroids and get Morton codes of centroids
+    std::transform(EXPOL, Refs.begin(), Refs.end(), Refs.begin(), [&](auto ref) {
+        i3vec icrds = Fixifier.floatToFixed(ref.box.centroid());
+        ref.linCode = toMortonCode<uint32_t>(icrds);
+        return ref;
+    });
+
+    std::sort(EXPOL, Refs.begin(), Refs.end(), [&](auto a, auto b) { return a.linCode < b.linCode; });
 }
+
+// Compute SAH at each ref
+// int LBVH::computeObjectSplitCosts(int begin, int end)
+// {
+//     // Grow partial AABB from left
+//     std::inclusive_scan(EXPOL, Refs.begin() + begin, Refs.begin() + end, Refs.begin(), [&](const Aabb& boxa, const Aabb& boxb) { return unioncsg(boxa, boxb); });
+//
+//
+// }
+// Partition span of PrimRefs
+// Spatial median
+// Object median
+// Primitive split

@@ -16,6 +16,7 @@ class BVHNode {
 
 struct PrimRef {
     Aabb box;
+    Aabb leftBox;     // Scratch space to store left inclusive scan AABB for some range
     int primId;       // Index into user's triangle array; primId < 0 means reference is invalid
     uint32_t linCode; // Morton code of primitive reference
 };

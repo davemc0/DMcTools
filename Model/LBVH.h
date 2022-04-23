@@ -16,5 +16,7 @@ private:
     void makeRefs();
     void linearize();
 
+    void computeObjectSplitCosts(int begin, int end);
+
     Aabb worldBox;
 };
