@@ -4,6 +4,10 @@ cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
 
 project(DMcTools)
 
+if( CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR )
+    message( FATAL_ERROR "Don't build directly from here." )
+endif()
+
 set(IMAGE_SOURCES
     Image/Bmp.cpp
     Image/ColorMap.cpp
