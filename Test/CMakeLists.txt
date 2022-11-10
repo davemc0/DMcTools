@@ -6,7 +6,7 @@ set(EXE_NAME DMcToolsTest)
 
 project(${EXE_NAME})
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(PROJECT_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 
 # GLEW - setenv GLEW_HOME C:/Users/davemc/source/repos/Goodies/glew-2.2.0

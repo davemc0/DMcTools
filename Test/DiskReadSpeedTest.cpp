@@ -37,7 +37,7 @@ bool DiskReadTest(int argc, char** argv)
     std::cerr << "Starting DiskReadTest\n";
 
     const int64_t iterations_per_chunk_size = 512;
-    const int64_t mem_array_size = 256 * 1024 * 1024;
+    const int64_t mem_array_size = 256ull * 1024ull * 1024ull;
 
     SRand();
 

@@ -105,6 +105,31 @@ template <typename intcode_t> void testCodeToCoordToCodeRand(SFCurveType crvType
     std::cerr << "\n\n\n";
 }
 
+template <typename intcode_t> void testCodeMinimality(SFCurveType crvType)
+{
+    printName<intcode_t>("testCodeMinimality", crvType);
+
+    int nonmon = 0;
+    for (int i = 0; i < LOOP_COUNT; i++) {
+        intcode_t codea = (intcode_t)irand() | ((intcode_t)irand() << (intcode_t)31); // 62 random bits
+        intcode_t codeb = (intcode_t)irand() | ((intcode_t)irand() << (intcode_t)31); // 62 random bits
+        if (codeb < codea) std::swap(codea, codeb);
+
+        i3vec coordsa = toSFCurveCoords(codea, crvType);
+        i3vec coordsb = toSFCurveCoords(codeb, crvType);
+
+        tAABB<i3vec> box(coordsa);
+        box.grow(coordsb);
+
+        if (coordsa != box.lo()) {
+            nonmon++;
+            if (nonmon % 100000 == 0) std::cerr << nonmon << "/" << i << ": " << codea << coordsa << codeb << coordsb << '\n';
+        }
+    }
+
+    std::cerr << "\n\n\n";
+}
+
 // For random pairs of a given distance in one space, what is the histogram of distances in the other space?
 template <typename intcode_t> void testCodeToCoordDistRand(SFCurveType crvType)
 {
@@ -316,7 +341,7 @@ template <typename intcode_t> void testCompareRand(SFCurveType crvType)
         intcode_t code = toSFCurveCode<intcode_t>(v, crvType);
         intcode_t codeF = computeMortonCodeF<intcode_t>(v);
 
-        if (code != codeF) std::cerr << x << " " << y << " " << z << " " << code << " " << codeF << '\n';
+        if (code != codeF) std::cerr << v.x << " " << v.y << " " << v.z << " " << code << " " << codeF << '\n';
     }
 
     std::cerr << "\n\n\n";
@@ -382,7 +407,8 @@ template <typename intcode_t> void testAll()
 {
     // To CURVE_COUNT
     for (int crvType = 0; crvType < CURVE_COUNT; crvType++) {
-        testCoordToCodeDistAll<intcode_t>((SFCurveType)crvType);
+        testCodeMinimality<intcode_t>((SFCurveType)crvType);
+        // testCoordToCodeDistAll<intcode_t>((SFCurveType)crvType);
         // testPerf<intcode_t>((SFCurveType)crvType);
         // testCodeToCoordDistAll<intcode_t>((SFCurveType)crvType);
         // testCodeToCoordDistRand<intcode_t>((SFCurveType)crvType);

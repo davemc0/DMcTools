@@ -49,6 +49,8 @@ set(MATH_SOURCES
     Math/HVector.h
     Math/Halton.h
     Math/HermiteSpline.h
+    Math/Intersect.cpp
+    Math/Intersect.h
     Math/KDBVector.h
     Math/KDBoxTree.h
     Math/Mappings.h
@@ -98,11 +100,11 @@ set(MODEL_SOURCES
     Model/Model.h
     Model/RenderObject.cpp
     Model/RenderObject.h
-    Model/SBVH.cpp
-    Model/SBVH.h
     Model/SaveOBJ.cpp
     Model/TextureDB.cpp
     Model/TextureDB.h
+    Model/Traverser.cpp
+    Model/Traverser.h
     Model/TriObject.cpp
     Model/TriObject.h
 )
@@ -146,7 +148,7 @@ target_compile_options(DMcTools PUBLIC
     $<$<COMPILE_LANGUAGE:CXX>:/Ot>
     $<$<COMPILE_LANGUAGE:CXX>:/Oy>
     $<$<COMPILE_LANGUAGE:CXX>:/Qpar>
-    $<$<COMPILE_LANGUAGE:CXX>:/arch:AVX512>
+#    $<$<COMPILE_LANGUAGE:CXX>:/arch:AVX512> # Causes failures on new laptop in VS2022
     $<$<COMPILE_LANGUAGE:CXX>:/fp:fast>
 )
 target_link_options(DMcTools INTERFACE $<$<LINK_LANGUAGE:CXX>:/LTCG>)

@@ -96,7 +96,7 @@ DMC_DECL void ConvertShort(unsigned short* array, int length)
 DMC_DECL void RemoveArgs(int& argc, char** argv, int& i, int NumDel = 1)
 {
     argc -= NumDel;
-    memmove(&(argv[i]), &(argv[i + NumDel]), (argc - i) * sizeof(char*));
+    memmove(&(argv[i]), &(argv[i + NumDel]), (argc - i) * (int)sizeof(char*));
     i--;
 }
 
