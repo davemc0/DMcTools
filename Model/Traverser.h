@@ -7,12 +7,12 @@
 
 class Traverser {
 public:
-    Traverser(BVH& _bvh) : m_bvh(_bvh) {}
+    Traverser(const BVH& _bvh) : m_bvh(_bvh) {}
 
     // Trace the ray against the BVH and return the hit
     template <class Vec_T, class Elem_T> std::tuple<bool, float, int> traceRay(const Vec_T& orig, const Vec_T& dir, Elem_T tMin, Elem_T tMax);
 
 private:
     template <class Vec_T, class Elem_T> auto rayNodeIntersect(const Vec_T& orig, const Vec_T& dir, Elem_T tMin, Elem_T tMax, const BVHNode& node);
-    BVH& m_bvh; // Ref to user's BVH
+    const BVH& m_bvh; // Ref to user's BVH
 };

@@ -45,6 +45,12 @@ template <class Vec_T> struct tTriangle {
         if (area() == 0) return true;
         return false;
     }
+
+    DMC_DECL Vec_T normal() const
+    {
+        Vec_T e10 = v[1] - v[0], e20 = v[2] - v[0];
+        return cross(e10, e20).normalized(); // Could not normalize it to optimize a bit.
+    }
 };
 
 template <class Vec_T> DMC_DECL std::ostream& operator<<(std::ostream& os, const tTriangle<Vec_T>& b);

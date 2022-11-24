@@ -32,7 +32,7 @@ void LBVH::build()
     auto [box, cost] = refitNodes(0);
     cost /= box.area();
 
-    std::cerr << box << box.area() << " SAH = " << cost << " Nodes.size = " << Nodes.size() << '\n';
+    // std::cerr << box << box.area() << " SAH = " << cost << " Nodes.size = " << Nodes.size() << '\n';
 
     Refs.clear(); // Refs is only used while building. Only Nodes and Tris remain afterward.
 }
@@ -58,7 +58,7 @@ void LBVH::makeRefs()
     std::vector<PrimRef>::iterator first_bad = std::partition(EXPOL, Refs.begin(), Refs.end(), [&](const PrimRef& a) { return a.primId >= 0; });
     Refs.resize(first_bad - Refs.begin());
 
-    std::cerr << m_worldBox << " Refs.size = " << Refs.size() << '\n';
+    // std::cerr << m_worldBox << " Refs.size = " << Refs.size() << '\n';
 }
 
 void LBVH::linearize()

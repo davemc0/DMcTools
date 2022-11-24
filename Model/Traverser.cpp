@@ -21,7 +21,7 @@ template <class Vec_T, class Elem_T> std::tuple<bool, float, int> Traverser::tra
         StackEntry stkTop = TravStack.back();
         TravStack.pop_back();
 
-        BVHNode& node = m_bvh.Nodes[std::get<1>(stkTop)];
+        const BVHNode& node = m_bvh.Nodes[std::get<1>(stkTop)];
 
         if (node.isLeaf) {
             const Triangle& tri = m_bvh.Tris[node.primId];
@@ -38,6 +38,7 @@ template <class Vec_T, class Elem_T> std::tuple<bool, float, int> Traverser::tra
                 bary1 = bary1Cand;
                 isFrontFacing = isFrontFacingCand;
                 isHit = isHitCand;
+                primIdHit = node.primId;
             }
         } else {
             for (int i = 0; i < node.childCnt; i++) {
