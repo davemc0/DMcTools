@@ -111,6 +111,9 @@ set(MODEL_SOURCES
 
 set(UTIL_SOURCES
     Util/Assert.h
+    Util/Counters.h
+    Util/Counters.cpp
+    Util/PerThread.h
     Util/StatTimer.cpp
     Util/StatTimer.h
     Util/Timer.cpp
