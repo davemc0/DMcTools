@@ -12,7 +12,7 @@
 #include <execution>
 
 #define EXPOL std::execution::par_unseq
-//#define EXPOL std::execution::seq
+// #define EXPOL std::execution::seq
 
 void LBVH::build()
 {

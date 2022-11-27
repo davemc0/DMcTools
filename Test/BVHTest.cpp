@@ -7,6 +7,7 @@
 #include "Math/VectorUtils.h"
 #include "Model/LBVH.h"
 #include "Model/Traverser.h"
+#include "Util/Counters.h"
 
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "deps/tiny_obj_loader.h"
@@ -134,6 +135,9 @@ bool renderModel(int argc, char** argv)
 bool BVHTest(int argc, char** argv)
 {
     renderModel(argc, argv);
+
+    std::cerr << "Here\n";
+    CPRINT();
 
     return true;
 }

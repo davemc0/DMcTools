@@ -1,6 +1,7 @@
 #include "Model/Traverser.h"
 
 #include "Math/Intersect.h"
+#include "Util/Counters.h"
 
 #include <algorithm>
 
@@ -22,6 +23,8 @@ template <class Vec_T, class Elem_T> std::tuple<bool, float, int> Traverser::tra
         TravStack.pop_back();
 
         const BVHNode& node = m_bvh.Nodes[std::get<1>(stkTop)];
+
+        // CINC("TRAV_STEP");
 
         if (node.isLeaf) {
             const Triangle& tri = m_bvh.Tris[node.primId];

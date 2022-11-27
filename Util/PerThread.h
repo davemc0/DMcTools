@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <iostream>
 #include <map>
 #include <thread>
 
@@ -11,8 +12,17 @@ public:
     std::shared_ptr<Tracked_T> get_mine()
     {
         std::thread::id tid = std::this_thread::get_id();
-        if (m_trackedMap.find(tid) == m_trackedMap.end()) m_trackedMap[tid] = std::shared_ptr<Tracked_T>(new Tracked_T);
+        if (m_trackedMap.find(tid) == m_trackedMap.end()) {
+            auto x = std::shared_ptr<Tracked_T>(new Tracked_T);
+            if (x == nullptr) //
+                std::cerr << "Bleh!\n";
+            m_trackedMap[tid] = x;
+        }
 
+        auto x = m_trackedMap[tid];
+
+        if (x == nullptr) //
+            std::cerr << "Huh?\n";
         return m_trackedMap[tid];
     }
 
@@ -20,8 +30,10 @@ public:
     // TODO: Instead take a lambda
     std::shared_ptr<Tracked_T> reduce()
     {
-        std::shared_ptr<Tracked_T> merged(new Tracked_T);
-        for (const auto& tPtr : m_trackedMap) merged->merge(tPtr);
+        std::shared_ptr<Tracked_T> aggregated(new Tracked_T);
+        for (const auto& tPtr : m_trackedMap) aggregated->merge(*tPtr.second);
+
+        return aggregated;
     }
 
 private:
