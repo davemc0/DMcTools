@@ -208,9 +208,9 @@ typename Quantizer<Pixel_T, Index_T>::MathType Quantizer<Pixel_T, Index_T>::Refi
 
         CentroidsToColorMap(Centroids);
 
-        //#ifdef DMC_DEBUG
+        // #ifdef DMC_DEBUG
         fprintf(stderr, "%03d RefineColorMap Error = %f Fast=%d\n", iter, float(Error) / float(size), (int)Fast);
-        //#endif
+        // #endif
     }
 
     return Error;

@@ -6,9 +6,9 @@
 #pragma once
 
 #define DMC_USE_JPEG
-//#define DMC_USE_TIFF
+// #define DMC_USE_TIFF
 #define DMC_USE_PNG
-//#define DMC_USE_MAT
+// #define DMC_USE_MAT
 
 // Define this to use the class "half" from ILM's OpenEXR.
 #define DMC_USE_HALF_FLOAT
@@ -61,10 +61,10 @@
 #define _CRT_SECURE_NO_WARNINGS
 #pragma warning(disable : 4996) // This function or variable may be unsafe.
 #pragma warning(disable : 4244) // Conversion from '__int64' to 'int', possible loss of data
-//#pragma warning(disable : 4305) // Disable bogus conversion warnings
-//#pragma warning (disable:4800) // Disable bogus conversion warnings
-//#pragma warning (disable:4786) // stupid symbol size limitation
-//#pragma warning (disable:4018) // disable signed/unsigned mismatch
-//#pragma warning (disable:4267) // disable 64-bit conversion warnings
+// #pragma warning(disable : 4305) // Disable bogus conversion warnings
+// #pragma warning (disable:4800) // Disable bogus conversion warnings
+// #pragma warning (disable:4786) // stupid symbol size limitation
+// #pragma warning (disable:4018) // disable signed/unsigned mismatch
+// #pragma warning (disable:4267) // disable 64-bit conversion warnings
 
 #endif

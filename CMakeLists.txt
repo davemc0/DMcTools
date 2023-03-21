@@ -111,6 +111,8 @@ set(MODEL_SOURCES
 
 set(UTIL_SOURCES
     Util/Assert.h
+    Util/ConfigParams.h
+    Util/ConfigParams.cpp
     Util/Counters.h
     Util/Counters.cpp
     Util/PerThread.h

@@ -7,7 +7,8 @@
 
 template <class Vec_T, class Elem_T> auto Traverser::rayNodeIntersect(const Vec_T& orig, const Vec_T& dir, Elem_T tMin, Elem_T tMax, const BVHNode& node) {}
 
-template <class Vec_T, class Elem_T> std::tuple<bool, float, int> Traverser::traceRay(const Vec_T& orig, const Vec_T& dir, Elem_T tMin, Elem_T tMax)
+template <class Vec_T, class Elem_T>
+std::tuple<bool, float, float, float, bool, int> Traverser::traceRay(const Vec_T& orig, const Vec_T& dir, Elem_T tMin, Elem_T tMax)
 {
     typedef std::tuple<float, int> StackEntry;
     std::vector<StackEntry> TravStack;
@@ -56,6 +57,6 @@ template <class Vec_T, class Elem_T> std::tuple<bool, float, int> Traverser::tra
         }
     } while (TravStack.size());
 
-    return {isHit, tHit, primIdHit};
+    return {isHit, tHit, bary0, bary1, isFrontFacing, primIdHit};
 }
-template std::tuple<bool, float, int> Traverser::traceRay(const f3vec& orig, const f3vec& dir, float tMin, float tMax);
+template std::tuple<bool, float, float, float, bool, int> Traverser::traceRay(const f3vec& orig, const f3vec& dir, float tMin, float tMax);

@@ -32,7 +32,7 @@ void LBVH::build()
     auto [box, cost] = refitNodes(0);
     cost /= box.area();
 
-    // std::cerr << box << box.area() << " SAH = " << cost << " Nodes.size = " << Nodes.size() << '\n';
+    std::cerr << box << box.area() << " SAH = " << cost << " Nodes.size = " << Nodes.size() << '\n';
 
     Refs.clear(); // Refs is only used while building. Only Nodes and Tris remain afterward.
 }
