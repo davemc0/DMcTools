@@ -45,11 +45,46 @@ void deconstructFloatTest()
     }
 }
 
+void continuousFloatTest()
+{
+    int tries = 0, fails = 0;
+    while (1) {
+        float frnd = abs(nfrand(0, 1));
+
+        uint32_t fcont = floatToContinuous(frnd);
+        float fout = continuousToFloat(fcont);
+
+        tries++;
+        if (frnd != fout) {
+            fails++;
+            printf("I %9.9g %d\n", frnd, fcont);
+            printf("O %9.9g %d %d,%d\n", fout, fcont, fails, tries);
+        }
+    }
+}
+
+void continuousFloatTest2()
+{
+    int tries = 0, fails = 0;
+    for (float frnd = -1e38f; frnd < 1e5f; frnd *= 0.5f) {
+        uint32_t fcont = floatToContinuous(frnd);
+        float fout = continuousToFloat(fcont);
+
+        tries++;
+        if (true || frnd != fout) {
+            fails++;
+            printf("I %9.9g 0x%08x\n", frnd, fcont);
+            printf("O %9.9g 0x%08x %d,%d\n", fout, fcont, fails, tries);
+        }
+    }
+}
+
 bool MathTest(int argc, char** argv)
 {
     std::cerr << "Starting MathTest\n";
 
     vectorTest();
+    continuousFloatTest2();
     // deconstructFloatTest();
 
     std::cerr << "Ending MathTest\n";

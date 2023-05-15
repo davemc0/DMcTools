@@ -157,3 +157,22 @@ DMC_DECL float fixedToFloatGivenExp(const uint32_t fixed, const uint32_t expVal,
 
     return constructFloat(0, fexp, mant);
 }
+
+// Convert the float to a uint that is continuous in the floating point value, with no discontinuity at zero
+DMC_DECL uint32_t floatToContinuous(const float f)
+{
+    uint32_t fuint = floatAsUint(f);
+    if (fuint & 0x80000000)
+        return ~fuint;
+    else
+        return fuint | 0x80000000;
+}
+
+// Convert a continuous uint made via floatToContinuous() to float
+DMC_DECL float continuousToFloat(const uint32_t contfloat)
+{
+    if (contfloat & 0x80000000)
+        return uintAsFloat(contfloat & 0x7fffffff);
+    else
+        return uintAsFloat(~contfloat);
+}
