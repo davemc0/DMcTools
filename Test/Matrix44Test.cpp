@@ -3,6 +3,8 @@
 #include "Math/Matrix44.h"
 
 #include "GL/glew.h"
+#include "Math/Random.h"
+#include "Math/VectorUtils.h"
 
 // This needs to come after GLEW
 #include "GL/freeglut.h"
@@ -137,7 +139,7 @@ template <class Vec_T> bool Matrix44Testing(int argc, char** argv)
     return true;
 }
 
-bool Matrix44Test(int argc, char** argv)
+void glutMatrixTest(int argc, char** argv)
 {
     std::cerr << "Starting Matrix44Test\n";
 
@@ -148,6 +150,39 @@ bool Matrix44Test(int argc, char** argv)
     Matrix44Testing<f3vec>(argc, argv);
 
     std::cerr << "Ending Matrix44Test\n";
+}
+
+void vecRotateTest()
+{
+    while (1) {
+        f3vec rvec = makeRandOnSphere<f3vec>(); // F3vec(0., 0., 1.)
+        Matrix44<f3vec> mymat;
+        std::cerr << mymat.string() << std::endl;
+
+        mymat.LoadIdentity();
+        mymat.Rotate(degToRad(90.), rvec);
+        std::cerr << mymat.string() << std::endl;
+
+        f3vec test(1.f, 2.f, 3.f);
+        f3vec out = mymat * test;
+
+        std::cerr << "ORIGaxis=" << rvec << rvec.length() << " " << test << test.length() << " => " << out << out.length() << "\n\n";
+
+        mymat.LoadIdentity();
+        mymat.Rotate(degToRad(90.), {rvec.x, rvec.z, rvec.y});
+        std::cerr << mymat.string() << std::endl;
+
+        out = mymat * test;
+
+        std::cerr << "FLIPaxis=" << rvec << rvec.length() << " " << test << test.length() << " => " << out << out.length() << "\n\n";
+    }
+}
+
+bool Matrix44Test(int argc, char** argv)
+{
+    vecRotateTest();
+
+    // glutMatrixTest(int argc, char** argv);
 
     return true;
 }
